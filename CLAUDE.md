@@ -89,6 +89,31 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
 - Every new endpoint gets at least one basic test (pytest).
 - Never commit secrets; use `.env` (git-ignored) and document variables in `.env.example`.
 
+## Things to know (learned while building)
+- **Branches and deploys**: work on a feature branch and open a PR. GitHub Actions tests every PR; merging to `main`
+  deploys to the live site. Check the deploy run (and Lambda's logs) after each merge; tests passing is not enough.
+- **iCloud**: the repo lives in `~/Documents/code.nosync` (with a `~/Documents/code` link) so iCloud doesn't sync it.
+  iCloud once made stale `name 2` copies of files during branch switches, and some got committed. If ` 2` files
+  appear, delete them; never commit them.
+- **Lambda limits shape the backend**:
+  - The package must stay under 250 MB unzipped (about 213 MB now, mostly LiteLLM). `infra/stacks/bundle.py` drops
+    LiteLLM's unused proxy dashboard and stops the build above 235 MB. Check the size before adding a dependency.
+  - The app must start within 10 seconds. Keep heavy imports lazy: LiteLLM loads in `llm.load_litellm()`, and a test
+    fails if `app.main` imports it. Bytecode ships as unchecked-hash `.pyc` because the CDK fixes file timestamps.
+  - Bundling runs as its own process, never inside the CDK's: forking there breaks the CDK ("unexpected EOF").
+  - CloudFront waits at most 60 seconds between bytes, so long streams send keep-alives (`with_keepalive`).
+- **Database**: every model change needs an Alembic migration (`alembic revision --autogenerate`, from `backend/`);
+  `tests/test_migrations.py` fails otherwise. Migrations run at app start under a Postgres advisory lock.
+- **LLM calls**: current Claude models reject `temperature` and other sampling parameters, so never send them. Thinking
+  effort is `LLM_REASONING_EFFORT` (LiteLLM maps `reasoning_effort` to Anthropic's effort setting).
+- **Claude key**: it lives in its own Anthropic workspace ("Cuddly Tales") with a monthly spend limit. Keys can't move
+  between workspaces, and the default workspace can't have a spend limit.
+- **AWS**: SSO profile `ukdoshi`, region `us-east-1`. Secrets are set only with `scripts/claude-key.sh` and
+  `scripts/database-url.sh`; never paste a secret into chat or a file. The deploy role trusts only this repo's `main`.
+- **Local-only changes**: don't commit the Angular CLI's `cli.analytics` id in `frontend/angular.json`.
+- **Diagrams**: `docs/architecture.html` is the source; `docs/*.svg` are generated from it for the README. Keep them in
+  step with what's built, and redraw them before submission.
+
 ## Build order
 - Day 1: repo setup → cocoon happy path → CRUD for characters and stories → seed data → first deploy.
 - Day 2: streaming polish → safety check guardrail → adventure agent with visible steps → Langfuse tracing → latte monster creator.
