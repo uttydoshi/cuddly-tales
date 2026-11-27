@@ -4,9 +4,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from sqlalchemy.engine import Engine
+from sqlmodel import Session
 
 from app.config import get_settings
 from app.db import create_tables, make_engine
+from app.seed import seed_if_empty
 
 
 def create_app(engine: Engine | None = None) -> FastAPI:
@@ -16,6 +18,8 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         create_tables(engine)
+        with Session(engine) as session:
+            seed_if_empty(session)
         yield
 
     app = FastAPI(title="Cuddly Tales", lifespan=lifespan)
