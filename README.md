@@ -6,6 +6,23 @@ story is written by an LLM and streamed to the screen word by word, ready to rea
 
 > Work in progress. This README grows with each feature.
 
+## Architecture
+
+![Architecture: the Angular app talks to one FastAPI service over JSON and Server-Sent Events; FastAPI stores data in SQLite through SQLModel and calls the LLM through LiteLLM](docs/architecture.svg)
+
+One FastAPI service serves both the built Angular app and the API, so the app deploys as a single
+unit. On the streaming path (amber), the LLM sends token chunks through LiteLLM, the story service
+regroups them into whole words, and Server-Sent Events carry each word to the browser. Dashed parts
+come later.
+
+![Sequence: load the cast, create a planned story, stream it word by word, save the full text once at the end](docs/story-flow.svg)
+
+The story row is created before any text arrives, so the stream has an id to save into. The full
+text is saved once, when the model finishes. If generation fails, the browser gets an `error` event
+and the story stays `planned`, so nothing half-written is kept.
+
+A version with the scope of each slice is in [docs/architecture.html](docs/architecture.html).
+
 ## Run it locally
 
 You need Python 3.13 and Node.js with npm. The Angular CLI is installed with the frontend packages.
