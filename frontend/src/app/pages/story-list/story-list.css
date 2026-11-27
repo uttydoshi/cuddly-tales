@@ -23,9 +23,9 @@
 }
 
 .chip[aria-pressed='true'] {
-  border-color: var(--dark);
-  background: var(--dark);
-  color: #ffffff;
+  border-color: var(--chip-on-bg);
+  background: var(--chip-on-bg);
+  color: var(--chip-on-text);
   font-weight: 700;
 }
 

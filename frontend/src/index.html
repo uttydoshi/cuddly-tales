@@ -10,6 +10,16 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
+  <script>
+    // Dark mode before first paint, so the page never flashes the wrong theme.
+    // A choice saved by the moon button wins; otherwise follow the device's setting.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('cuddly-tales.theme'); } catch (e) {}
+      var dark = saved ? saved === 'dark' : window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) { document.documentElement.classList.add('night'); }
+    })();
+  </script>
   <app-root></app-root>
 </body>
 </html>

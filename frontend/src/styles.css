@@ -20,6 +20,12 @@
   --ok-12: rgb(22 163 74 / 0.12);
   --error: #b91c1c;
   --page-bg: #f8fafc;
+  --bar-bg: rgb(255 255 255 / 0.97); /* bottom tab bar */
+  --border-strong: rgb(26 26 46 / 0.25); /* empty tick circles */
+  --on-accent: #ffffff; /* a tick on the accent colour */
+  --focus: #1a1a2e; /* focus ring on things that use the accent for "chosen" */
+  --chip-on-bg: #1a1a2e;
+  --chip-on-text: #ffffff;
   --bg: radial-gradient(circle at 20% 15%, #ede9fe, transparent 45%),
     radial-gradient(circle at 85% 85%, #e0f2fe, transparent 45%), var(--page-bg);
   --font-heading: 'Source Serif 4 Variable', Georgia, serif;
@@ -40,9 +46,16 @@
   }
 }
 
-/* Night mode for reading at bedtime: ukdoshi.com's dark theme, dimmed for a dark room.
-   Set on <html> by the reading page while it's open. */
+/* Night mode: ukdoshi.com's dark theme, dimmed for a dark room. On <html> when the site is in
+   dark mode (the moon button, or the device's setting) and always while reading a story. */
 :root.night {
+  --dark: #20203a; /* the top bar, lifted a little off the dark page */
+  --bar-bg: rgb(16 16 31 / 0.97);
+  --border-strong: rgb(255 255 255 / 0.3);
+  --on-accent: #0b0b16;
+  --focus: #f3eefa;
+  --chip-on-bg: #f3eefa;
+  --chip-on-text: #0b0b16;
   --text: #e9e4f2;
   --heading: #f3eefa;
   --muted: #a3a8c3;

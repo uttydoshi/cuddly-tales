@@ -44,7 +44,6 @@
 }
 
 .child {
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   min-height: 2.25rem;
@@ -62,13 +61,59 @@
   background: rgb(255 255 255 / 0.18);
 }
 
-/* --- Page area: leaves room for the tab bar --- */
+/* --- Page area: fills the screen, so the footer sits at the bottom of short pages --- */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 main {
+  flex: 1;
   display: block;
 }
 
-main.with-tabs {
-  padding-bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
+.tab-space {
+  height: calc(var(--tab-bar-height) + var(--safe-bottom));
+}
+
+/* --- Light/dark toggle, as on ukdoshi.com --- */
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: rgb(255 255 255 / 0.85);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.theme-toggle:hover {
+  color: #ffffff;
+  background: rgb(255 255 255 / 0.1);
+  transform: rotate(15deg);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.theme-toggle svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* --- Bottom tab bar: where a thumb rests --- */
@@ -83,7 +128,7 @@ main.with-tabs {
   padding: 0.35rem max(0.5rem, env(safe-area-inset-left, 0px)) calc(0.35rem + var(--safe-bottom))
     max(0.5rem, env(safe-area-inset-right, 0px));
   border-top: 1px solid var(--border);
-  background: rgb(255 255 255 / 0.97);
+  background: var(--bar-bg);
   backdrop-filter: blur(12px);
 }
 
@@ -131,6 +176,11 @@ main.with-tabs {
     margin-left: auto;
   }
 
+  /* On wider screens the links take the space; the toggle sits beside them. */
+  .theme-toggle {
+    margin-left: 0.25rem;
+  }
+
   .top-nav a {
     display: inline-flex;
     align-items: center;
@@ -165,10 +215,10 @@ main.with-tabs {
 
   .top-nav a.cta.active {
     background: var(--accent);
-    color: #ffffff;
+    color: var(--on-accent); /* white on magenta; dark on night mode's pale pink */
   }
 
   .child {
-    margin-left: 0.5rem;
+    margin-left: 0.25rem;
   }
 }
