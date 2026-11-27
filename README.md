@@ -38,6 +38,30 @@ Diggles the wombat, and characters from public-domain folklore and the Panchatan
 has running jokes the story always follows, like Minnie chasing her ball while everyone shouts
 "Minnie, NOT NOW!".
 
+## The safety and age check
+
+Every new story is checked before it's saved, as soon as it finishes streaming:
+
+1. **Plain rules** (code, always the same answer): the length suits the child's age (about 300–600
+   words at 3), there's a title, and none of a short list of frightening words appears.
+2. **An LLM judge** (the same model, asked for a structured JSON verdict): scariness from 1 to 5
+   (a story passes at 2 or below), whether the reading level suits the child's age, whether every
+   character keeps their running-joke rules, whether everyone stays who they are (a cat isn't turned
+   into a grandma), and whether the ending is right (calm and sleepy for bedtime). Any problems come
+   back as short sentences a parent can read.
+
+If the story fails, it's **rewritten once**, with the problems as feedback, and the rewrite streams
+in place of the first version. If that fails too (or the check itself can't run), the story is
+saved but marked **"Read first"**: the reading page lists what the check found, and a parent can
+approve it, edit it or delete it. A story is never treated as safe without a check.
+
+Each story keeps the full report (scores and problems for every version), so the dashboard can show
+how often stories pass first time. One trade-off: the first version streams before it's checked,
+because holding it back would remove the word-by-word streaming. The prompt sets the same limits,
+the check runs within seconds of the end, and a failed story is replaced.
+
+Tests never call the real model: a test fixture makes any unfaked model call fail.
+
 ## Architecture
 
 ![Architecture: the Angular app on a phone talks to CloudFront at cuddly-tales.ukdoshi.com, which serves the app from S3 and sends /api requests to FastAPI on AWS Lambda through a streaming Function URL; the Lambda reads secrets from Secrets Manager, calls the Anthropic API through LiteLLM and stores data in Neon Postgres; GitHub Actions deploys it with the CDK](docs/architecture.svg)
@@ -51,7 +75,7 @@ come later.
 ![Sequence: load the cast, create a planned story, stream it word by word, save the full text once at the end](docs/story-flow.svg)
 
 The story row is created before any text arrives, so the stream has an id to save into. The full
-text is saved once, when the model finishes. If generation fails, the browser gets an `error` event
+text is saved once, when the model finishes and the [safety check](#the-safety-and-age-check) has run. If generation fails, the browser gets an `error` event
 and the story stays `planned`, so nothing half-written is kept.
 
 A version with captions and progress so far is in [docs/architecture.html](docs/architecture.html).
