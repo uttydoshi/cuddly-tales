@@ -51,7 +51,7 @@ def placeholder_title(names: list[str]) -> str:
 
 DAILY_LIMIT_MESSAGE = (
     "That's all the new stories for today. Come back tomorrow for more, "
-    "or read one of your saved stories tonight."
+    "or read one of your saved stories."
 )
 
 
