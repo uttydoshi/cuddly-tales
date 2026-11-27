@@ -11,9 +11,19 @@ from app.models import Character, ChildProfile, Story, StoryStatus, utc_now
 from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
 from app.services import llm
 from app.services.story_prompt import build_story_messages
-from app.services.story_stream import count_words, reading_minutes, split_title, sse, words_from_chunks
+from app.services.story_stream import (
+    KEEPALIVE,
+    count_words,
+    reading_minutes,
+    split_title,
+    sse,
+    with_keepalive,
+    words_from_chunks,
+)
 
 logger = logging.getLogger(__name__)
+
+KEEPALIVE_SECONDS = 15  # well inside CloudFront's 60-second wait between bytes
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
 
@@ -144,7 +154,11 @@ def stream_story(
     async def events():
         parts: list[str] = []
         try:
-            async for word in words_from_chunks(llm.stream_text(messages)):
+            words = words_from_chunks(llm.stream_text(messages))
+            async for word in with_keepalive(words, KEEPALIVE_SECONDS):
+                if word is None:
+                    yield KEEPALIVE
+                    continue
                 parts.append(word)
                 yield sse("word", {"text": word})
         except Exception:

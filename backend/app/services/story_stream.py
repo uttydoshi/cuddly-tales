@@ -1,8 +1,12 @@
 """Turns the model's token stream into whole words, and the finished text into a saved story."""
 
+import asyncio
 import json
 import re
 from collections.abc import AsyncIterator
+from typing import TypeVar
+
+T = TypeVar("T")
 
 WORDS_PER_MINUTE = 100  # a slow, read-aloud bedtime pace
 
@@ -41,6 +45,34 @@ def count_words(text: str) -> int:
 
 def reading_minutes(word_count: int) -> int:
     return max(1, round(word_count / WORDS_PER_MINUTE))
+
+
+async def with_keepalive(source: AsyncIterator[T], interval: float) -> AsyncIterator[T | None]:
+    """Pass items through, yielding None whenever `interval` seconds pass with nothing new.
+
+    The caller turns None into an SSE comment, so proxies such as CloudFront don't
+    close a stream that goes quiet (the model thinking before it writes, or a long
+    agent step). The pending read is never cancelled by a timeout, so no output is lost.
+    """
+    pending = asyncio.ensure_future(anext(source))
+    try:
+        while True:
+            done, _ = await asyncio.wait({pending}, timeout=interval)
+            if not done:
+                yield None
+                continue
+            try:
+                item = pending.result()
+            except StopAsyncIteration:
+                return
+            yield item
+            pending = asyncio.ensure_future(anext(source))
+    finally:
+        if not pending.done():
+            pending.cancel()
+
+
+KEEPALIVE = ": keepalive\n\n"  # an SSE comment; EventSource ignores it
 
 
 def sse(event: str, data: dict) -> str:
