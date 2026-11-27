@@ -17,6 +17,12 @@ class ChildProfileRead(BaseModel):
     favourite_things: list[str]
 
 
+class ChildProfileUpdate(BaseModel):
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
+    age: int = Field(ge=2, le=6)
+    favourite_things: list[ShortText] = Field(default_factory=list, max_length=10)
+
+
 class CharacterRead(BaseModel):
     id: int
     name: str
