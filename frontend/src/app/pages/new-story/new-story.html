@@ -40,7 +40,7 @@
     } @else if (phase() === 'streaming') {
       <h1 class="muted">Writing your story…</h1>
     }
-    <div class="text">{{ body() }}@if (phase() === 'streaming') {<span class="cursor" aria-hidden="true">▍</span>}</div>
+    <div class="text"><app-story-text [text]="body()" />@if (phase() === 'streaming') {<span class="cursor" aria-hidden="true">▍</span>}</div>
   </article>
 
   @if (phase() === 'done') {

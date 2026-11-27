@@ -3,10 +3,11 @@ import { RouterLink } from '@angular/router';
 
 import { Story } from '../../models';
 import { ApiService } from '../../services/api.service';
+import { StoryText } from '../../story-text/story-text';
 
 @Component({
   selector: 'app-story-detail',
-  imports: [RouterLink],
+  imports: [RouterLink, StoryText],
   templateUrl: './story-detail.html',
   styleUrl: './story-detail.css',
 })

@@ -32,3 +32,9 @@ def test_word_range_follows_age_and_falls_back_to_age_3():
     assert word_range(3) == (300, 600)
     assert word_range(6) == (600, 900)
     assert word_range(9) == (300, 600)
+
+
+def test_prompt_allows_only_italics_for_foreign_words():
+    system, _ = build_story_messages(CHILD, [MINNIE])
+    assert "*single asterisks*" in system["content"]
+    assert "No other headings, lists, bold or markdown." in system["content"]

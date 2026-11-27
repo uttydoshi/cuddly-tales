@@ -6,6 +6,7 @@ import { forkJoin, switchMap } from 'rxjs';
 import { Character, CharacterType, ChildProfile } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { StoryStreamService } from '../../services/story-stream.service';
+import { StoryText } from '../../story-text/story-text';
 
 type Phase = 'loading' | 'pick' | 'streaming' | 'done' | 'error';
 
@@ -19,7 +20,7 @@ const GROUPS: { type: CharacterType; label: string }[] = [
 
 @Component({
   selector: 'app-new-story',
-  imports: [RouterLink],
+  imports: [RouterLink, StoryText],
   templateUrl: './new-story.html',
   styleUrl: './new-story.css',
 })

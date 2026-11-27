@@ -26,7 +26,9 @@ Rules you always follow:
 
 Format:
 - First line: the story title, starting with "# ".
-- Then the story in short paragraphs of plain text. No other headings, lists or markdown."""
+- Then the story in short paragraphs of plain text.
+- Words from another language (like a Polish word) go in *single asterisks*, for italics.
+- No other headings, lists, bold or markdown."""
 
 
 def word_range(age: int) -> tuple[int, int]:

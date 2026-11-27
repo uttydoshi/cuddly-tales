@@ -12,7 +12,7 @@
       }
     </p>
     @if (s.text) {
-      <div class="text">{{ s.text }}</div>
+      <div class="text"><app-story-text [text]="s.text" /></div>
     } @else {
       <p class="muted">This story has not been written yet.</p>
     }
