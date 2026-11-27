@@ -20,7 +20,6 @@
   --ok-12: rgb(22 163 74 / 0.12);
   --error: #b91c1c;
   --page-bg: #f8fafc;
-  --bar-bg: rgb(255 255 255 / 0.97); /* bottom tab bar */
   --border-strong: rgb(26 26 46 / 0.25); /* empty tick circles */
   --on-accent: #ffffff; /* a tick on the accent colour */
   --focus: #1a1a2e; /* focus ring on things that use the accent for "chosen" */
@@ -35,12 +34,17 @@
   --fab-fg: #ffffff;
   --fab-off-bg: #dfe0e8;
   --fab-off-fg: #6b6f85;
+  --glass-bg: rgb(255 255 255 / 0.72); /* the floating tab bar: frosted, but solid enough to read over the dark footer */
+  --glass-edge: rgb(255 255 255 / 0.7);
+  --glass-shadow: rgb(26 26 46 / 0.28);
+  --tab-on-bg: rgb(181 24 111 / 0.12); /* the current tab's capsule */
   --bg: radial-gradient(circle at 20% 15%, #ede9fe, transparent 45%),
     radial-gradient(circle at 85% 85%, #e0f2fe, transparent 45%), var(--page-bg);
   --font-heading: 'Source Serif 4 Variable', Georgia, serif;
   --font-body: 'Figtree Variable', Helvetica, Arial, sans-serif;
   --font-script: 'Mrs Saint Delafield', cursive;
-  --tab-bar-height: 64px;
+  /* The floating tab bar's height plus its gap above the screen's bottom edge. */
+  --tab-bar-height: 4.6rem;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --content-width: 40rem;
   color-scheme: light;
@@ -61,7 +65,6 @@
    own styles never matches, because Angular scopes it to the component. */
 :root.night {
   --dark: #20203a; /* the top bar, lifted a little off the dark page */
-  --bar-bg: rgb(16 16 31 / 0.97);
   --border-strong: rgb(255 255 255 / 0.3);
   --on-accent: #0b0b16;
   --focus: #f3eefa;
@@ -76,6 +79,10 @@
   --fab-fg: #0b0b16;
   --fab-off-bg: #2a2a44;
   --fab-off-fg: #8d8aa3;
+  --glass-bg: rgb(28 28 50 / 0.72);
+  --glass-edge: rgb(255 255 255 / 0.14);
+  --glass-shadow: rgb(0 0 0 / 0.55);
+  --tab-on-bg: rgb(242 167 207 / 0.16);
   --text: #e9e4f2;
   --heading: #f3eefa;
   --muted: #a3a8c3;

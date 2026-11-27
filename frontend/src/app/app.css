@@ -116,20 +116,26 @@ main {
   stroke-linejoin: round;
 }
 
-/* --- Bottom tab bar: where a thumb rests --- */
+/* --- Bottom tab bar: a floating glass pill, where a thumb rests --- */
 .tabs {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: max(0.75rem, env(safe-area-inset-left, 0px));
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--safe-bottom) + 0.6rem);
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  padding: 0.35rem max(0.5rem, env(safe-area-inset-left, 0px)) calc(0.35rem + var(--safe-bottom))
-    max(0.5rem, env(safe-area-inset-right, 0px));
-  border-top: 1px solid var(--border);
-  background: var(--bar-bg);
-  backdrop-filter: blur(12px);
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass-bg);
+  /* Glass: a strong blur, a little extra colour from what's behind, a bright top edge. */
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow:
+    0 12px 32px -12px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-edge);
 }
 
 .tabs a {
@@ -137,22 +143,33 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
-  min-height: 3rem;
+  gap: 0.1rem;
+  min-height: 3.1rem;
+  border-radius: 999px;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
   text-decoration: none;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
+/* The current tab: a soft magenta capsule behind it. */
 .tabs a.active {
+  background: var(--tab-on-bg);
   color: var(--accent);
   font-weight: 700;
 }
 
+.tabs a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
 .tabs svg {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.4rem;
+  height: 1.4rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
