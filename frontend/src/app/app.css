@@ -193,17 +193,16 @@ main {
     white-space: nowrap;
   }
 
-  .top-nav a:hover,
-  .top-nav a.active {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.35em;
+  .top-nav a:hover {
+    background: rgb(255 255 255 / 0.1);
   }
 
+  /* The current page is a magenta pill, as the current tab is magenta on phones. */
   .top-nav a.active {
+    background: var(--accent);
+    color: var(--on-accent); /* white on magenta; dark on night mode's pale pink */
     font-weight: 700;
   }
-
 
   .child {
     margin-left: 0.25rem;
