@@ -38,7 +38,7 @@ def parse_events(body: str) -> list[tuple[str, dict]]:
 def check_passes(monkeypatch):
     """These tests are about writing and saving; the safety check has its own tests."""
 
-    async def check_story(title, body, child, characters, *, bedtime):
+    async def check_story(title, body, child, characters, *, bedtime, earlier=()):
         return safety.Attempt(passed=True, word_count=len(body.split()), scariness=1)
 
     monkeypatch.setattr(safety, "check_story", check_story)
@@ -256,3 +256,26 @@ def test_bedtime_flag_reaches_the_prompt(client, character_ids, monkeypatch):
     story_id = client.post("/api/stories", json={"character_ids": character_ids, "bedtime": True}).json()["id"]
     client.get(f"/api/stories/{story_id}/stream")
     assert "bedtime story" in seen["user"]
+
+
+def test_new_story_prompt_lists_earlier_stories_and_a_kind_of_plot(client, character_ids, monkeypatch):
+    prompts = []
+
+    def recording(chunks):
+        async def stream_text(messages, **kwargs):
+            prompts.append(messages)
+            for chunk in chunks:
+                yield chunk
+
+        return stream_text
+
+    monkeypatch.setattr(llm, "stream_text", recording(STORY_CHUNKS))
+    first = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
+    client.get(f"/api/stories/{first}/stream")
+    second = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
+    client.get(f"/api/stories/{second}/stream")
+
+    assert "already told" not in prompts[0][1]["content"]  # nothing written before the first
+    # The first story is listed with what happens in it (its opening, as the fake check gave no summary).
+    assert "- The Ball Hunt: Minnie chased her ball." in prompts[1][1]["content"]
+    assert "The kind of story:" in prompts[1][1]["content"]

@@ -21,7 +21,8 @@ Rules you always follow:
 - Nothing frightening: no danger, threats, injuries, monsters that scare, or sad endings.
   Folklore characters are always friendly and silly.
 - Use short sentences and simple words a young child knows.
-- Follow every character's rules exactly. They are running jokes the child looks forward to.
+- Follow every character's rules exactly. They are running jokes the child looks forward to:
+  small, funny moments along the way, never the main plot of the story.
 - Every character is exactly who their description says: a cat stays a cat. Never give anyone a
   title, family role or job (like Grandma or Babcia) that their description doesn't give them.
 - Use only the characters you are given, plus everyday people and animals.
@@ -64,6 +65,31 @@ def describe_character(character: Character) -> str:
     return "\n".join(lines)
 
 
+# Kinds of plot, one picked at random for each story, so stories don't all become
+# "something is lost" (the model's favourite when left to choose).
+PLOTS = [
+    "getting ready for a celebration or a party",
+    "making or building something together",
+    "a visit to somewhere new",
+    "making a new friend",
+    "the weather changes and everyone adapts",
+    "a friendly game, race or contest",
+    "a surprise for someone special",
+    "learning to do something new",
+    "a gentle adventure in the bush",
+    "looking after a small animal or a plant",
+    "cooking or baking something",
+    "a puzzle or riddle to solve",
+    "putting on a little show or concert",
+    "a helping job for someone who needs it",
+    "something lost that has to be found",
+]
+
+# How many earlier stories the prompt (and the safety check) look at, so new stories
+# don't repeat them. Enough for a family's recent weeks of stories.
+EARLIER_STORIES = 30
+
+
 BEDTIME_ENDING = (
     "This is a bedtime story: keep the pace gentle, and end calm and cosy, "
     "with everyone getting sleepy, ready for bed."
@@ -80,11 +106,15 @@ def build_story_messages(
     *,
     bedtime: bool = False,
     others: Iterable[Character] = (),
+    plot: str | None = None,
+    earlier: Iterable[tuple[str, str]] = (),
 ) -> list[dict]:
     """The system prompt is the same for every story; everything that varies is in the user message.
 
     `others` are the rest of the family's characters: any the cast's rules mention are described
     briefly, so the model knows who they are without bringing them into the story.
+    `plot` is the kind of story to write (one of PLOTS), and `earlier` the family's stories so far
+    as (title, what happens), which this one must not repeat or resemble.
     """
     low, high = word_range(child.age)
     favourites = ", ".join(child.favourite_things) or "none given"
@@ -96,9 +126,19 @@ def build_story_messages(
         if mentioned
         else ""
     )
+    told = list(earlier)[:EARLIER_STORIES]
+    variety = ""
+    if plot:
+        variety += f"\n\nThe kind of story: {plot}."
+    if told:
+        listed = "\n".join(f"- {t}: {summary}" for t, summary in told)
+        variety += (
+            "\n\nStories already told (title: what happens). This one must be new: not a repeat, "
+            f"and not similar either, with a different main problem or activity and a different title.\n{listed}"
+        )
     user_prompt = f"""Write a story.
 
-{BEDTIME_ENDING if bedtime else ANYTIME_ENDING}
+{BEDTIME_ENDING if bedtime else ANYTIME_ENDING}{variety}
 
 The hero: {child.name}, aged {child.age}. Favourite things: {favourites}.
 

@@ -32,6 +32,8 @@ def verdict(**overrides) -> dict:
         "ending_ok": True,
         "characters_stay_themselves": True,
         "rules": [{"character": "Minnie", "rule": "Chases her ball at least once per story.", "followed": True}],
+        "similar_to": [],
+        "summary": "Minnie chases her ball around the garden.",
         "problems": [],
     }
     return base | overrides
@@ -48,8 +50,8 @@ def fake_judge(monkeypatch, reply: dict) -> list[list[dict]]:
     return calls
 
 
-def check(title, body, age=3, bedtime=True):
-    return asyncio.run(safety.check_story(title, body, child(age), [MINNIE], bedtime=bedtime))
+def check(title, body, age=3, bedtime=True, earlier=()):
+    return asyncio.run(safety.check_story(title, body, child(age), [MINNIE], bedtime=bedtime, earlier=list(earlier)))
 
 
 # --- Rules that need no model ---
@@ -152,16 +154,20 @@ def fake_writer(monkeypatch, *versions):
 
 
 def fake_checks(monkeypatch, *results):
-    """Each safety check returns the next result (an Attempt, or an exception to raise)."""
+    """Each safety check returns the next result (an Attempt, or an exception to raise).
+    Returns what each check was told about earlier stories."""
     queue = list(results)
+    seen_earlier: list[list[tuple[str, str]]] = []
 
-    async def check_story(title, body, child, characters, *, bedtime):
+    async def check_story(title, body, child, characters, *, bedtime, earlier=()):
+        seen_earlier.append(list(earlier))
         result = queue.pop(0)
         if isinstance(result, Exception):
             raise result
         return result
 
     monkeypatch.setattr(safety, "check_story", check_story)
+    return seen_earlier
 
 
 PASS = safety.Attempt(passed=True, word_count=4, scariness=1)
@@ -269,3 +275,46 @@ def test_only_a_flagged_story_can_be_approved(client, story_id, monkeypatch):
     fake_checks(monkeypatch, PASS)
     stream(client, story_id)
     assert client.patch(f"/api/stories/{story_id}", json={"approve": True}).status_code == 409
+
+
+# --- Every story is new ---
+
+
+def test_a_story_too_similar_to_an_earlier_one_fails(monkeypatch):
+    calls = fake_judge(monkeypatch, verdict(similar_to=["Mira and the Lost Mortar"]))
+    earlier = [("Mira and the Lost Mortar", "Baba Yaga loses her mortar and Mira finds it.")]
+    attempt = check("Mira and the Missing Mortar", GOOD_BODY, earlier=earlier)
+    assert not attempt.passed
+    assert attempt.similar_to == ["Mira and the Lost Mortar"]
+    assert attempt.problems == [
+        'Too similar to an earlier story, "Mira and the Lost Mortar": give it a different main problem.'
+    ]
+    # The judge is shown the earlier stories.
+    assert "- Mira and the Lost Mortar: Baba Yaga loses her mortar and Mira finds it." in calls[0][1]["content"]
+
+
+def test_the_check_saves_a_summary_for_later_stories(monkeypatch):
+    fake_judge(monkeypatch, verdict(summary="Minnie chases her ball around the garden."))
+    assert check("The Ball", GOOD_BODY).summary == "Minnie chases her ball around the garden."
+
+
+def test_digest_uses_the_summary_or_else_the_opening():
+    checked = Story(title="The Ball", text="x", safety_report={"attempts": [{"summary": "Minnie finds her ball."}]})
+    assert safety.digest(checked) == ("The Ball", "Minnie finds her ball.")
+    older = Story(title="Old One", text=" ".join(["word"] * 50))
+    title, opening = safety.digest(older)
+    assert title == "Old One" and opening == " ".join(["word"] * 40) + "…"
+
+
+def test_each_check_is_told_about_the_stories_so_far(client, story_id, monkeypatch):
+    fake_writer(monkeypatch, REWRITE)
+    seen = fake_checks(monkeypatch, safety.Attempt(passed=True, word_count=4, scariness=1, summary="Minnie chases her ball."))
+    stream(client, story_id)
+    assert seen == [[]]  # the first story has nothing to compare with
+
+    ids = {c["name"]: c["id"] for c in client.get("/api/characters").json()}
+    second = client.post("/api/stories", json={"character_ids": [ids["Maverick"]]}).json()["id"]
+    fake_writer(monkeypatch, REWRITE)
+    seen = fake_checks(monkeypatch, PASS)
+    stream(client, second)
+    assert seen == [[("The Ball", "Minnie chases her ball.")]]

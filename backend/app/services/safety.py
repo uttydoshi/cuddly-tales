@@ -8,7 +8,7 @@ check is meant for the adventure agent's `safety_check` tool and for the evals.
 import re
 from dataclasses import asdict, dataclass, field
 
-from app.models import Character, ChildProfile
+from app.models import Character, ChildProfile, Story
 from app.services import llm
 from app.services.story_prompt import word_range
 
@@ -58,6 +58,10 @@ class Attempt:
     characters_stay_themselves: bool | None = None
     rules: list[RuleCheck] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)
+    # One sentence on what happens, so later stories can be kept different from this one.
+    summary: str | None = None
+    # Titles of earlier stories this one is too similar to.
+    similar_to: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -94,6 +98,13 @@ unless the story breaks it.
 A character "stays themselves" if they are what their description says (a cat stays a cat) and are
 never given a title, family role or job their description doesn't give them (like Grandma or Babcia).
 
+Every story must be new. A story is too similar to an earlier one if it has the same main problem
+or activity (two stories about finding a lost mortar, say), even with a different title or place.
+Sharing characters, the setting or running jokes is fine. Name each earlier story it's too similar to
+in "similar_to", by its exact title.
+
+"summary" is one plain sentence saying what happens: the main problem or activity, and where.
+
 List in "problems" only real problems: things that make the story fail one of the points above.
 Leave it empty when the story is fine; don't list small suggestions or matters of taste.
 Write each problem as one short, plain sentence a parent can read, saying what to change."""
@@ -124,24 +135,45 @@ JUDGE_SCHEMA = {
                 "additionalProperties": False,
             },
         },
+        "similar_to": {"type": "array", "items": {"type": "string"}},
+        "summary": {"type": "string"},
         "problems": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["scariness", "reading_level_ok", "ending_ok", "characters_stay_themselves", "rules", "problems"],
+    "required": [
+        "scariness",
+        "reading_level_ok",
+        "ending_ok",
+        "characters_stay_themselves",
+        "rules",
+        "similar_to",
+        "summary",
+        "problems",
+    ],
     "additionalProperties": False,
 }
 
 
 def build_judge_messages(
-    title: str | None, body: str, child: ChildProfile, characters: list[Character], *, bedtime: bool
+    title: str | None,
+    body: str,
+    child: ChildProfile,
+    characters: list[Character],
+    *,
+    bedtime: bool,
+    earlier: list[tuple[str, str]] = (),
 ) -> list[dict]:
     cast = "\n".join(
         f"- {c.name}: {c.description}" + "".join(f"\n  Rule: {r}" for r in c.rules) for c in characters
     )
     kind = "a bedtime story (should end calm and sleepy)" if bedtime else "a story for any time of day"
+    told = "\n".join(f"- {t}: {summary}" for t, summary in earlier) or "(none yet)"
     user = f"""The child: {child.name}, aged {child.age}. This is {kind}.
 
 The characters and their rules:
 {cast}
+
+Earlier stories (title: what happens):
+{told}
 
 The story:
 <story>
@@ -155,13 +187,21 @@ Review it. List every character rule above in "rules", saying whether the story 
 
 
 async def check_story(
-    title: str | None, body: str, child: ChildProfile, characters: list[Character], *, bedtime: bool
+    title: str | None,
+    body: str,
+    child: ChildProfile,
+    characters: list[Character],
+    *,
+    bedtime: bool,
+    earlier: list[tuple[str, str]] = (),
 ) -> Attempt:
     """Run the rules and the judge. Raises if the judge can't be reached or answers nonsense,
     so the caller can treat "couldn't check" as "a parent should read it"."""
     problems = rule_problems(title, body, child.age)
     verdict = await llm.complete_json(
-        build_judge_messages(title, body, child, characters, bedtime=bedtime), JUDGE_SCHEMA, name="story_review"
+        build_judge_messages(title, body, child, characters, bedtime=bedtime, earlier=earlier),
+        JUDGE_SCHEMA,
+        name="story_review",
     )
     rules = [RuleCheck(r["character"], r["rule"], bool(r["followed"])) for r in verdict["rules"]]
     scariness = int(verdict["scariness"])
@@ -173,6 +213,10 @@ async def check_story(
     for r in rules:
         if not r.followed and not any(r.character in p for p in judged):
             judged.append(f"{r.character} doesn't follow their rule: {r.rule}")
+    similar = [t for t in verdict["similar_to"] if t]
+    for t in similar:
+        if not any(t in p for p in judged):
+            judged.append(f'Too similar to an earlier story, "{t}": give it a different main problem.')
 
     passed = (
         not problems
@@ -181,6 +225,7 @@ async def check_story(
         and bool(verdict["ending_ok"])
         and bool(verdict["characters_stay_themselves"])
         and all(r.followed for r in rules)
+        and not similar
     )
     return Attempt(
         passed=passed,
@@ -191,7 +236,20 @@ async def check_story(
         characters_stay_themselves=bool(verdict["characters_stay_themselves"]),
         rules=rules,
         problems=problems + [p for p in judged if p not in problems],
+        summary=verdict["summary"].strip() or None,
+        similar_to=similar,
     )
+
+
+def digest(story: Story) -> tuple[str, str]:
+    """A story's title and what happens in it, for keeping new stories different. The check's
+    summary when there is one; otherwise (stories from before summaries) its opening lines."""
+    attempts = (story.safety_report or {}).get("attempts") or []
+    summary = attempts[-1].get("summary") if attempts else None
+    if not summary:
+        words = (story.text or "").split()
+        summary = " ".join(words[:40]) + ("…" if len(words) > 40 else "")
+    return story.title, summary
 
 
 def unchecked(body: str, reason: str) -> Attempt:

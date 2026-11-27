@@ -47,8 +47,15 @@ Every new story is checked before it's saved, as soon as it finishes streaming:
 2. **An LLM judge** (the same model, asked for a structured JSON verdict): scariness from 1 to 5
    (a story passes at 2 or below), whether the reading level suits the child's age, whether every
    character keeps their running-joke rules, whether everyone stays who they are (a cat isn't turned
-   into a grandma), and whether the ending is right (calm and sleepy for bedtime). Any problems come
-   back as short sentences a parent can read.
+   into a grandma), whether the ending is right (calm and sleepy for bedtime), and whether the story
+   is new: not a repeat of, or too similar to, any of the family's last 30 stories. Any problems come
+   back as short sentences a parent can read, with a one-sentence summary of what happens.
+
+**Every story is new.** Before writing, the prompt lists the stories told so far (title and that
+summary) and asks for a different main problem; the code also picks a kind of plot at random (a
+surprise to prepare, building something, a visit somewhere new…), so the model doesn't keep falling
+back on "something is lost". Running jokes stay small moments, never the whole plot. The check then
+enforces it: a story too similar to an earlier one fails and is rewritten.
 
 If the story fails, it's **rewritten once**, with the problems as feedback, and the rewrite streams
 in place of the first version. If that fails too (or the check itself can't run), the story is
