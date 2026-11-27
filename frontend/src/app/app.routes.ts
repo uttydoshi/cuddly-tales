@@ -32,5 +32,10 @@ export const routes: Routes = [
     title: 'Edit character · Cuddly Tales',
     loadComponent: () => import('./pages/character-form/character-form').then((m) => m.CharacterForm),
   },
+  {
+    path: 'profile',
+    title: 'Your child · Cuddly Tales',
+    loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
+  },
   { path: '**', redirectTo: 'new' },
 ];

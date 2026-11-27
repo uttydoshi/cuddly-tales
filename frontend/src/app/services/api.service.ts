@@ -12,6 +12,10 @@ export class ApiService {
     return this.http.get<ChildProfile>('/api/profile');
   }
 
+  updateProfile(profile: Omit<ChildProfile, 'id'>): Observable<ChildProfile> {
+    return this.http.put<ChildProfile>('/api/profile', profile);
+  }
+
   listCharacters(): Observable<Character[]> {
     return this.http.get<Character[]>('/api/characters');
   }

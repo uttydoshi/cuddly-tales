@@ -1,0 +1,42 @@
+<h1>Your child</h1>
+<p class="muted">Every story stars your child. Their age sets the story length and how simple the words are.</p>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <label for="name">
+      First name
+      <input id="name" type="text" formControlName="name" maxlength="40" autocomplete="off" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <span class="error">Add your child's first name.</span>
+      }
+    </label>
+
+    <label for="age">
+      Age
+      <select id="age" formControlName="age">
+        @for (age of ages; track age) {
+          <option [ngValue]="age">{{ age }}</option>
+        }
+      </select>
+    </label>
+
+    <label for="favourites">
+      Favourite things
+      <span class="hint">One per line, for example "bubbles" or "trains". Stories may weave these in.</span>
+      <textarea id="favourites" formControlName="favouriteThings" rows="5"></textarea>
+    </label>
+
+    @if (errorMessage()) {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <div class="actions">
+      <button type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+      @if (saved()) {
+        <span class="muted" role="status">Saved.</span>
+      }
+    </div>
+  </form>
+}

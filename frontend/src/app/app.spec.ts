@@ -17,6 +17,6 @@ describe('App', () => {
     const links = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
     ).map((a) => a.textContent?.trim());
-    expect(links).toEqual(['New story', 'Stories', 'Characters']);
+    expect(links).toEqual(['New story', 'Stories', 'Characters', 'Your child']);
   });
 });
