@@ -8,8 +8,10 @@ from fastapi.responses import FileResponse
 from sqlalchemy.engine import Engine
 from sqlmodel import Session
 
+from app import aws_secrets
 from app.config import get_settings
 from app.db import create_tables, make_engine
+from app.origin import CloudFrontOnly
 from app.routers import characters, profile, stories
 from app.seed import seed_if_empty
 
@@ -28,6 +30,7 @@ def create_app(engine: Engine | None = None, frontend_dist: Path | None = None) 
 
     app = FastAPI(title="Cuddly Tales", lifespan=lifespan)
     app.state.engine = engine
+    app.add_middleware(CloudFrontOnly, expected_secret=aws_secrets.origin_secret)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

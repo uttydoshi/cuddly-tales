@@ -3,3 +3,4 @@ uvicorn[standard]>=0.32
 sqlmodel>=0.0.22
 litellm>=1.60
 python-dotenv>=1.0
+psycopg[binary]>=3.2

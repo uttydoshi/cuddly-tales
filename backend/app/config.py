@@ -6,8 +6,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from app import aws_secrets
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(REPO_ROOT / ".env")
+aws_secrets.load_into_env()  # on Lambda: the Claude key and database URL; locally a no-op
 
 
 @dataclass(frozen=True)
