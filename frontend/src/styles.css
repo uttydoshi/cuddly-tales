@@ -36,16 +36,16 @@
   --fab-off-fg: #6b6f85;
   /* Liquid-glass tab bar: two fixed sets, light glass (--lgl-) and dark glass (--lgd-), so the bar
      can switch to dark glass over the dark footer even in light mode. --lg- is the set in use. */
-  --lgl-tint: rgb(255 255 255 / 0.3);
-  --lgl-sheen-top: rgb(255 255 255 / 0.55);
-  --lgl-sheen-mid: rgb(255 255 255 / 0.1);
-  --lgl-edge: rgb(255 255 255 / 0.55);
+  --lgl-tint: rgb(220 220 234 / 0.72); /* a cool grey, so the bar shows up on white cards */
+  --lgl-sheen-top: rgb(255 255 255 / 0.6);
+  --lgl-sheen-mid: rgb(255 255 255 / 0.12);
+  --lgl-edge: rgb(26 26 46 / 0.1); /* a dark hairline outline */
   --lgl-highlight: rgb(255 255 255 / 0.95);
-  --lgl-shadow: rgb(26 26 46 / 0.25);
+  --lgl-shadow: rgb(26 26 46 / 0.38);
   --lgl-label: #1a1a2e;
   --lgl-label-glow: rgb(255 255 255 / 0.7);
-  --lgl-lens-top: rgb(255 255 255 / 0.8);
-  --lgl-lens-bottom: rgb(255 255 255 / 0.35);
+  --lgl-lens-top: rgb(255 255 255 / 0.95);
+  --lgl-lens-bottom: rgb(251 231 243 / 0.85); /* a hint of magenta */
   --lgl-active: #b5186f;
   --lgd-tint: rgb(22 22 42 / 0.45);
   --lgd-sheen-top: rgb(255 255 255 / 0.16);
