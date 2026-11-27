@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cuddly Tales Cocoon</title>
+<title>Cuddly Tales Architecture</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,107 +91,133 @@ code { font: 13px var(--font-mono); }
 <body>
 <main>
   <header>
-    <span class="eyebrow">Day 1 · cocoon happy path</span>
-    <h1>Cuddly Tales cocoon</h1>
-    <p class="lede">The first slice runs end to end: pick characters, generate a bedtime story through LiteLLM, stream it word by word, save it, then read it from the story list. Everything dashed comes later and only plugs into the boxes already here.</p>
+    <span class="eyebrow">Live on AWS · cuddly-tales.ukdoshi.com</span>
+    <h1>Cuddly Tales architecture</h1>
+    <p class="lede">A parent picks characters, an LLM writes a bedtime story starring their child, and the story streams to the phone word by word, then is saved to read again. The Angular app and the FastAPI API run on AWS, defined with the CDK, alongside ukdoshi.com and lab.ukdoshi.com. Dashed parts come next.</p>
   </header>
 
   <section>
     <h2>What runs where</h2>
     <figure>
       <div class="scroller">
-        <svg viewBox="0 0 1000 480" role="img" aria-label="Architecture: the Angular app in the browser talks to one FastAPI service over JSON and Server-Sent Events. FastAPI serves the built Angular files, stores data through SQLModel in SQLite, and calls the Anthropic API through LiteLLM with streaming. Postgres, Langfuse and APScheduler are later additions.">
+        <svg viewBox="0 0 1110 540" role="img" aria-label="Architecture: the Angular app on a phone talks to CloudFront at cuddly-tales.ukdoshi.com. CloudFront serves the app's files from S3 and sends /api requests, with a secret header, to FastAPI on AWS Lambda through a streaming Function URL. The Lambda reads its secrets from Secrets Manager, calls the Anthropic API through LiteLLM and stores data in Neon Postgres. GitHub Actions deploys everything with the CDK. Langfuse tracing and the EventBridge scheduled job come later.">
           <defs>
             <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
             <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-acc"/></marker>
             <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-later"/></marker>
           </defs>
 
-          <!-- Browser -->
-          <rect class="frame" x="20" y="40" width="200" height="290" rx="10"/>
-          <text class="t" x="36" y="66">Browser</text>
-          <text class="s" x="36" y="82">Angular SPA</text>
-          <rect class="box" x="36" y="100" width="168" height="48" rx="6"/>
-          <text class="t" x="48" y="120">Story list</text>
-          <text class="s" x="48" y="137">/stories</text>
-          <rect class="box" x="36" y="160" width="168" height="48" rx="6"/>
-          <text class="t" x="48" y="180">Read a story</text>
-          <text class="s" x="48" y="197">/stories/:id</text>
-          <rect class="box-acc" x="36" y="240" width="168" height="56" rx="6"/>
-          <text class="t" x="48" y="262">Pick + watch it stream</text>
-          <text class="s" x="48" y="280">/new · EventSource</text>
+          <!-- Phone / browser -->
+          <rect class="frame" x="20" y="60" width="176" height="270" rx="10"/>
+          <text class="t" x="34" y="84">Phone or browser</text>
+          <text class="s" x="34" y="100">Angular app</text>
+          <rect class="box-acc" x="32" y="110" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="128">Pick + stream</text>
+          <text class="s" x="42" y="145">/new · EventSource</text>
+          <rect class="box" x="32" y="164" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="182">Stories</text>
+          <text class="s" x="42" y="199">read · edit · delete</text>
+          <rect class="box" x="32" y="218" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="236">Characters</text>
+          <text class="s" x="42" y="253">add · edit · delete</text>
+          <rect class="box" x="32" y="272" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="290">Your child</text>
+          <text class="s" x="42" y="307">/profile</text>
 
-          <!-- FastAPI -->
-          <rect class="frame" x="290" y="20" width="440" height="440" rx="10"/>
-          <text class="t" x="306" y="46">FastAPI</text>
-          <text class="s" x="306" y="62">one service · uvicorn</text>
-          <rect class="box" x="320" y="70" width="190" height="48" rx="6"/>
-          <text class="t" x="332" y="90">Static files</text>
-          <text class="s" x="332" y="107">frontend/dist</text>
-          <rect class="box" x="320" y="144" width="190" height="48" rx="6"/>
-          <text class="t" x="332" y="164">API routers</text>
-          <text class="s" x="332" y="181">/api/*  REST</text>
-          <rect class="box-acc" x="320" y="240" width="190" height="56" rx="6"/>
-          <text class="t" x="332" y="262">Story service</text>
-          <text class="s" x="332" y="280">prompt · words · save</text>
-          <rect class="box" x="320" y="340" width="190" height="48" rx="6"/>
-          <text class="t" x="332" y="360">llm.py</text>
-          <text class="s" x="332" y="377">LiteLLM acompletion</text>
-          <rect class="box-later" x="560" y="70" width="150" height="48" rx="6"/>
-          <text class="t-later" x="572" y="90">APScheduler</text>
-          <text class="s" x="572" y="107">Day 3</text>
-          <rect class="box" x="560" y="190" width="150" height="48" rx="6"/>
-          <text class="t" x="572" y="210">SQLModel</text>
-          <text class="s" x="572" y="227">tables · session</text>
+          <!-- CloudFront -->
+          <rect class="box" x="280" y="60" width="180" height="162" rx="8"/>
+          <text class="t" x="292" y="84">CloudFront</text>
+          <text class="s" x="292" y="100">cuddly-tales.ukdoshi.com</text>
+          <rect class="box-acc" x="292" y="112" width="156" height="40" rx="6"/>
+          <text class="t" x="302" y="129">/api/* → Lambda</text>
+          <text class="s" x="302" y="145">+ secret header</text>
+          <rect class="box" x="292" y="166" width="156" height="40" rx="6"/>
+          <text class="t" x="302" y="183">/* → S3</text>
+          <text class="s" x="302" y="199">app files</text>
+          <text class="s" x="280" y="242">Route 53 alias · ACM cert</text>
 
-          <!-- Outside services -->
-          <rect class="box-later" x="800" y="110" width="180" height="48" rx="6"/>
-          <text class="t-later" x="812" y="130">Postgres</text>
-          <text class="s" x="812" y="147">prod · DATABASE_URL</text>
-          <rect class="box" x="800" y="190" width="180" height="48" rx="6"/>
-          <text class="t" x="812" y="210">SQLite</text>
-          <text class="s" x="812" y="227">cuddly_tales.db</text>
-          <rect class="box-acc" x="800" y="340" width="180" height="48" rx="6"/>
-          <text class="t" x="812" y="360">Anthropic API</text>
-          <text class="s" x="812" y="377">claude-opus-5-5</text>
-          <rect class="box-later" x="800" y="410" width="180" height="48" rx="6"/>
-          <text class="t-later" x="812" y="430">Langfuse</text>
-          <text class="s" x="812" y="447">traces · Day 2</text>
+          <!-- AWS account -->
+          <rect class="frame" x="510" y="20" width="410" height="410" rx="12"/>
+          <text class="t" x="526" y="44">AWS · us-east-1</text>
+          <text class="s" x="526" y="60">CDK stack CuddlyTalesSite</text>
+          <rect class="box" x="530" y="164" width="150" height="44" rx="6"/>
+          <text class="t" x="542" y="182">S3 bucket</text>
+          <text class="s" x="542" y="199">Angular build</text>
+          <rect class="box" x="530" y="284" width="150" height="40" rx="6"/>
+          <text class="t" x="542" y="301">Secrets Manager</text>
+          <text class="s" x="542" y="317">Claude key · DB URL</text>
+          <rect class="box-later" x="530" y="356" width="150" height="40" rx="6"/>
+          <text class="t-later" x="542" y="373">EventBridge</text>
+          <text class="s" x="542" y="389">18:30 job · Day 3</text>
 
-          <!-- Browser <-> FastAPI -->
-          <line class="ln" x1="220" y1="94" x2="320" y2="94" marker-end="url(#a1)"/>
-          <text class="lbl" x="255" y="87" text-anchor="middle">app shell</text>
-          <line class="ln" x1="220" y1="168" x2="320" y2="168" marker-start="url(#a1)" marker-end="url(#a1)"/>
-          <text class="lbl" x="255" y="161" text-anchor="middle">JSON</text>
-          <line class="ln-acc" x1="320" y1="268" x2="222" y2="268" marker-end="url(#a2)"/>
-          <text class="lbl-acc" x="255" y="261" text-anchor="middle">SSE words</text>
+          <!-- Lambda -->
+          <rect class="frame" x="710" y="60" width="190" height="280" rx="10"/>
+          <text class="t" x="722" y="84">Lambda (arm64)</text>
+          <text class="s" x="722" y="100">FastAPI · Web Adapter</text>
+          <rect class="box" x="722" y="112" width="166" height="40" rx="6"/>
+          <text class="t" x="732" y="129">API routers</text>
+          <text class="s" x="732" y="145">origin check · cap</text>
+          <rect class="box-acc" x="722" y="168" width="166" height="44" rx="6"/>
+          <text class="t" x="732" y="186">Story service</text>
+          <text class="s" x="732" y="203">prompt · words · save</text>
+          <rect class="box" x="722" y="228" width="166" height="40" rx="6"/>
+          <text class="t" x="732" y="245">llm.py</text>
+          <text class="s" x="732" y="261">LiteLLM, loaded lazily</text>
+          <rect class="box" x="722" y="284" width="166" height="40" rx="6"/>
+          <text class="t" x="732" y="301">SQLModel</text>
+          <text class="s" x="732" y="317">Alembic at start</text>
 
-          <!-- Inside FastAPI -->
-          <line class="ln" x1="415" y1="192" x2="415" y2="240" marker-end="url(#a1)"/>
-          <text class="lbl" x="424" y="220">start stream</text>
-          <line class="ln" x1="400" y1="296" x2="400" y2="340" marker-end="url(#a1)"/>
-          <text class="lbl" x="392" y="322" text-anchor="end">prompt</text>
-          <line class="ln-acc" x1="430" y1="340" x2="430" y2="296" marker-end="url(#a2)"/>
-          <text class="lbl-acc" x="438" y="322">deltas</text>
-          <line class="ln" x1="510" y1="170" x2="560" y2="204" marker-start="url(#a1)" marker-end="url(#a1)"/>
-          <line class="ln" x1="510" y1="262" x2="560" y2="228" marker-end="url(#a1)"/>
-          <text class="lbl" x="516" y="286">save on done</text>
+          <!-- Outside AWS -->
+          <rect class="box-later" x="960" y="168" width="130" height="40" rx="6"/>
+          <text class="t-later" x="972" y="185">Langfuse</text>
+          <text class="s" x="972" y="201">traces · Day 2</text>
+          <rect class="box-acc" x="960" y="228" width="130" height="40" rx="6"/>
+          <text class="t" x="972" y="245">Anthropic API</text>
+          <text class="s" x="972" y="261">claude-opus-5-5</text>
+          <rect class="box" x="960" y="284" width="130" height="40" rx="6"/>
+          <text class="t" x="972" y="301">Neon Postgres</text>
+          <text class="s" x="972" y="317">us-east-1</text>
 
-          <!-- FastAPI <-> outside -->
-          <line class="ln" x1="710" y1="214" x2="800" y2="214" marker-start="url(#a1)" marker-end="url(#a1)"/>
-          <text class="lbl" x="755" y="207" text-anchor="middle">read/write</text>
-          <line class="ln-later" x1="710" y1="200" x2="800" y2="142" marker-end="url(#a3)"/>
-          <line class="ln" x1="510" y1="356" x2="800" y2="356" marker-end="url(#a1)"/>
-          <text class="lbl" x="655" y="349" text-anchor="middle">acompletion(stream=True)</text>
-          <line class="ln-acc" x1="800" y1="376" x2="512" y2="376" marker-end="url(#a2)"/>
-          <text class="lbl-acc" x="655" y="394" text-anchor="middle">token chunks</text>
-          <path class="ln-later" d="M415,388 V434 H800" marker-end="url(#a3)"/>
-          <text class="lbl-later" x="655" y="427" text-anchor="middle">callback · later</text>
+          <!-- GitHub Actions -->
+          <rect class="box" x="530" y="470" width="370" height="48" rx="6"/>
+          <text class="t" x="542" y="490">GitHub Actions</text>
+          <text class="s" x="542" y="507">PRs: tests · main: tests → build → cdk deploy</text>
+          <line class="ln" x1="715" y1="470" x2="715" y2="432" marker-end="url(#a1)"/>
+          <text class="lbl" x="724" y="455">deploys (OIDC)</text>
+
+          <!-- Phone <-> CloudFront -->
+          <line class="ln-acc" x1="198" y1="132" x2="278" y2="132" marker-start="url(#a2)" marker-end="url(#a2)"/>
+          <text class="lbl-acc" x="238" y="125" text-anchor="middle">API · SSE</text>
+          <line class="ln" x1="280" y1="186" x2="198" y2="186" marker-end="url(#a1)"/>
+          <text class="lbl" x="238" y="179" text-anchor="middle">files</text>
+
+          <!-- CloudFront -> origins -->
+          <line class="ln-acc" x1="460" y1="132" x2="708" y2="132" marker-start="url(#a2)" marker-end="url(#a2)"/>
+          <text class="lbl-acc" x="585" y="125" text-anchor="middle">streaming Function URL</text>
+          <line class="ln" x1="460" y1="186" x2="528" y2="186" marker-end="url(#a1)"/>
+          <text class="lbl" x="494" y="179" text-anchor="middle">read</text>
+
+          <!-- Inside Lambda -->
+          <line class="ln" x1="805" y1="152" x2="805" y2="168" marker-end="url(#a1)"/>
+          <line class="ln" x1="790" y1="212" x2="790" y2="228" marker-end="url(#a1)"/>
+          <line class="ln-acc" x1="820" y1="228" x2="820" y2="212" marker-end="url(#a2)"/>
+          <line class="ln" x1="805" y1="268" x2="805" y2="284" marker-end="url(#a1)"/>
+          <line class="ln" x1="710" y1="304" x2="682" y2="304" marker-end="url(#a1)"/>
+          <text class="lbl" x="605" y="342" text-anchor="middle">read at start</text>
+          <path class="ln-later" d="M680,376 H805 V342" marker-end="url(#a3)"/>
+
+          <!-- Lambda <-> outside -->
+          <line class="ln" x1="888" y1="240" x2="958" y2="240" marker-end="url(#a1)"/>
+          <line class="ln-acc" x1="958" y1="256" x2="890" y2="256" marker-end="url(#a2)"/>
+          <text class="lbl-acc" x="924" y="233" text-anchor="middle">stream</text>
+          <line class="ln" x1="888" y1="304" x2="958" y2="304" marker-start="url(#a1)" marker-end="url(#a1)"/>
+          <text class="lbl" x="924" y="297" text-anchor="middle">SQL</text>
+          <line class="ln-later" x1="888" y1="232" x2="958" y2="200" marker-end="url(#a3)"/>
         </svg>
       </div>
-      <figcaption>One FastAPI service serves the Angular build and the API, so the app deploys as a single unit. The warm path is the stream: Anthropic sends token chunks to LiteLLM, the story service regroups them into whole words, and Server-Sent Events carry each word to the browser. Postgres replaces SQLite in production by changing only <code>DATABASE_URL</code>.</figcaption>
+      <figcaption>CloudFront serves the Angular app from S3 and sends <code>/api/*</code> to FastAPI on Lambda through a streaming Function URL, adding a secret header the API checks, so the Lambda can't be reached around CloudFront. The warm path is the stream: Anthropic sends token chunks through LiteLLM, the story service regroups them into whole words, and Server-Sent Events carry each word back through CloudFront to the phone. Locally the same app runs with SQLite instead of Neon; only <code>DATABASE_URL</code> changes.</figcaption>
       <div class="legend">
-        <span><i></i>in the cocoon</span>
+        <span><i></i>live now</span>
         <span><i class="acc"></i>streaming path</span>
         <span><i class="later"></i>added later</span>
       </div>
@@ -202,7 +228,7 @@ code { font: 13px var(--font-mono); }
     <h2>One story, start to finish</h2>
     <figure>
       <div class="scroller">
-        <svg viewBox="0 0 1000 556" role="img" aria-label="Sequence: Angular loads the child profile and characters, posts a new story, opens an EventSource stream, receives one word event per word while FastAPI reads token chunks from LiteLLM, then FastAPI saves the full text to SQLite and sends a done event with the story id.">
+        <svg viewBox="0 0 1000 556" role="img" aria-label="Sequence: Angular loads the child profile and characters, posts a new story (FastAPI checks the daily cap), opens an EventSource stream, receives one word event per word while FastAPI on Lambda reads token chunks from LiteLLM, then FastAPI saves the full text to Neon Postgres and sends a done event with the story id.">
           <defs>
             <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
             <marker id="b2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-acc"/></marker>
@@ -212,11 +238,11 @@ code { font: 13px var(--font-mono); }
           <rect class="box" x="40" y="16" width="160" height="40" rx="6"/>
           <text class="t" x="120" y="41" text-anchor="middle">Angular</text>
           <rect class="box" x="320" y="16" width="160" height="40" rx="6"/>
-          <text class="t" x="400" y="41" text-anchor="middle">FastAPI</text>
+          <text class="t" x="400" y="41" text-anchor="middle">FastAPI on Lambda</text>
           <rect class="box" x="590" y="16" width="180" height="40" rx="6"/>
           <text class="t" x="680" y="41" text-anchor="middle">LiteLLM → Anthropic</text>
           <rect class="box" x="810" y="16" width="160" height="40" rx="6"/>
-          <text class="t" x="890" y="41" text-anchor="middle">SQLite</text>
+          <text class="t" x="890" y="41" text-anchor="middle">Neon Postgres</text>
           <line class="life" x1="120" y1="56" x2="120" y2="540"/>
           <line class="life" x1="400" y1="56" x2="400" y2="540"/>
           <line class="life" x1="680" y1="56" x2="680" y2="540"/>
@@ -234,7 +260,7 @@ code { font: 13px var(--font-mono); }
           <line class="ln" x1="120" y1="196" x2="398" y2="196" marker-end="url(#b1)"/>
           <text class="lbl" x="260" y="189" text-anchor="middle">2  POST /api/stories {character_ids}</text>
           <line class="ln" x1="400" y1="220" x2="888" y2="220" marker-end="url(#b1)"/>
-          <text class="lbl" x="645" y="213" text-anchor="middle">insert Story · status planned</text>
+          <text class="lbl" x="645" y="213" text-anchor="middle">check daily cap · insert Story (planned)</text>
           <line class="ln ret" x1="400" y1="244" x2="122" y2="244" marker-end="url(#b1)"/>
           <text class="lbl" x="260" y="237" text-anchor="middle">201 {id}</text>
 
@@ -244,7 +270,7 @@ code { font: 13px var(--font-mono); }
           <line class="ln" x1="400" y1="320" x2="678" y2="320" marker-end="url(#b1)"/>
           <text class="lbl" x="540" y="313" text-anchor="middle">acompletion(stream=True)</text>
           <rect class="loop" x="40" y="336" width="740" height="92" rx="6"/>
-          <text class="s" x="50" y="353">loop · each chunk</text>
+          <text class="s" x="50" y="353">loop · each chunk (keep-alive comment if quiet for 15s)</text>
           <line class="ln-acc ret" x1="680" y1="374" x2="402" y2="374" marker-end="url(#b2)"/>
           <text class="lbl-acc" x="540" y="367" text-anchor="middle">delta text</text>
           <line class="ln-acc" x1="400" y1="408" x2="122" y2="408" marker-end="url(#b2)"/>
@@ -261,31 +287,29 @@ code { font: 13px var(--font-mono); }
           <text class="lbl" x="260" y="523" text-anchor="middle">5  GET /api/stories/{id}</text>
         </svg>
       </div>
-      <figcaption>The story row exists before any text arrives, so the stream has an id to save into. FastAPI sends each word as soon as it is whole and writes the full text once, when the model finishes. If the model call fails, the browser gets <code>event: error</code> and the story stays <code>planned</code>, so nothing half-written is saved. The browser uses a GET request for the stream because <code>EventSource</code> only supports GET.</figcaption>
+      <figcaption>The story row exists before any text arrives, so the stream has an id to save into. FastAPI sends each word as soon as it is whole and writes the full text once, when the model finishes. If the model call fails, the browser gets <code>event: error</code> and the story stays <code>planned</code>, so nothing half-written is saved. The browser uses a GET request for the stream because <code>EventSource</code> only supports GET. Past 30 new stories in 24 hours, the create step returns 429 and the page says to come back tomorrow.</figcaption>
     </figure>
   </section>
 
   <section>
-    <h2>Scope of this slice</h2>
+    <h2>Progress</h2>
     <div class="scope">
       <div>
-        <h3>In the cocoon</h3>
+        <h3>Done</h3>
         <ul>
-          <li>Child profile (Mira, 3) and the seed cast, loaded on first start</li>
-          <li>Pick characters, generate, watch the story stream</li>
-          <li>Story saved with text, word count and reading time</li>
-          <li>Story list and story view</li>
-          <li>pytest for every endpoint, with the LLM call faked</li>
+          <li>Pick characters, generate, watch the story stream word by word</li>
+          <li>Create, view, edit and delete characters and stories; mark stories read</li>
+          <li>Child profile; demo family seeded on first start</li>
+          <li>Live on AWS with the CDK; GitHub Actions tests every PR and deploys main</li>
+          <li>Daily story cap; Alembic migrations; pytest for every endpoint</li>
         </ul>
       </div>
       <div>
-        <h3>Comes after</h3>
+        <h3>Next</h3>
         <ul>
-          <li>Edit and delete for characters and stories</li>
-          <li>Plot cards and drag-and-drop storyboard</li>
-          <li>Safety and age check, Langfuse tracing</li>
-          <li>Adventure agent, scheduled chapter, dashboard</li>
-          <li>Postgres and the Render deploy</li>
+          <li>Mobile-first design in the style of ukdoshi.com</li>
+          <li>Safety and age check, Langfuse tracing, adventure agent, latte monsters</li>
+          <li>Storyboard drag and drop, dashboard, 18:30 scheduled chapter, evals</li>
         </ul>
       </div>
     </div>

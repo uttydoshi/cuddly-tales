@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="556" viewBox="0 0 1000 556" role="img" aria-label="Sequence: Angular loads the child profile and characters, posts a new story, opens an EventSource stream, receives one word event per word while FastAPI reads token chunks from LiteLLM, then FastAPI saves the full text to SQLite and sends a done event with the story id.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="556" viewBox="0 0 1000 556" role="img" aria-label="Sequence: Angular loads the child profile and characters, posts a new story (FastAPI checks the daily cap), opens an EventSource stream, receives one word event per word while FastAPI on Lambda reads token chunks from LiteLLM, then FastAPI saves the full text to Neon Postgres and sends a done event with the story id.">
           <style>svg{--bg:#ffffff;--fg:#1b2230;--muted:#5d6676;--line-strong:#8a93a3;--accent:#b86e0a;--accent-soft:#fbefd9;--accent-ink:#8a5207;--surface:#ffffff}@media (prefers-color-scheme: dark){svg{--bg:#18202c;--fg:#e4e8ef;--muted:#98a2b3;--line-strong:#5b6678;--accent:#f2b35a;--accent-soft:#2d2416;--accent-ink:#f2b35a;--surface:#18202c}}svg{--font-head:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}.bg{fill:var(--bg)}.frame { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
 .box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.25; }
 .box-acc { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
@@ -26,11 +26,11 @@
           <rect class="box" x="40" y="16" width="160" height="40" rx="6"/>
           <text class="t" x="120" y="41" text-anchor="middle">Angular</text>
           <rect class="box" x="320" y="16" width="160" height="40" rx="6"/>
-          <text class="t" x="400" y="41" text-anchor="middle">FastAPI</text>
+          <text class="t" x="400" y="41" text-anchor="middle">FastAPI on Lambda</text>
           <rect class="box" x="590" y="16" width="180" height="40" rx="6"/>
           <text class="t" x="680" y="41" text-anchor="middle">LiteLLM → Anthropic</text>
           <rect class="box" x="810" y="16" width="160" height="40" rx="6"/>
-          <text class="t" x="890" y="41" text-anchor="middle">SQLite</text>
+          <text class="t" x="890" y="41" text-anchor="middle">Neon Postgres</text>
           <line class="life" x1="120" y1="56" x2="120" y2="540"/>
           <line class="life" x1="400" y1="56" x2="400" y2="540"/>
           <line class="life" x1="680" y1="56" x2="680" y2="540"/>
@@ -48,7 +48,7 @@
           <line class="ln" x1="120" y1="196" x2="398" y2="196" marker-end="url(#b1)"/>
           <text class="lbl" x="260" y="189" text-anchor="middle">2  POST /api/stories {character_ids}</text>
           <line class="ln" x1="400" y1="220" x2="888" y2="220" marker-end="url(#b1)"/>
-          <text class="lbl" x="645" y="213" text-anchor="middle">insert Story · status planned</text>
+          <text class="lbl" x="645" y="213" text-anchor="middle">check daily cap · insert Story (planned)</text>
           <line class="ln ret" x1="400" y1="244" x2="122" y2="244" marker-end="url(#b1)"/>
           <text class="lbl" x="260" y="237" text-anchor="middle">201 {id}</text>
 
@@ -58,7 +58,7 @@
           <line class="ln" x1="400" y1="320" x2="678" y2="320" marker-end="url(#b1)"/>
           <text class="lbl" x="540" y="313" text-anchor="middle">acompletion(stream=True)</text>
           <rect class="loop" x="40" y="336" width="740" height="92" rx="6"/>
-          <text class="s" x="50" y="353">loop · each chunk</text>
+          <text class="s" x="50" y="353">loop · each chunk (keep-alive comment if quiet for 15s)</text>
           <line class="ln-acc ret" x1="680" y1="374" x2="402" y2="374" marker-end="url(#b2)"/>
           <text class="lbl-acc" x="540" y="367" text-anchor="middle">delta text</text>
           <line class="ln-acc" x1="400" y1="408" x2="122" y2="408" marker-end="url(#b2)"/>

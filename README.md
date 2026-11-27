@@ -4,11 +4,31 @@ Gentle bedtime stories for young children (ages 2–6), with the child as the he
 family, pets, original characters and public-domain folklore. A parent picks tonight's cast, and the
 story is written by an LLM and streamed to the screen word by word, ready to read aloud.
 
-> Work in progress. This README grows with each feature.
+**Live: https://cuddly-tales.ukdoshi.com** (public; new stories are capped at 30 a day)
+
+> Built for a take-home assessment over three days. Day 1 is done; this README grows with each
+> feature, and the table below shows what's in place and what's next.
+
+## What it does
+
+The assessment asks for at least three of five capabilities; Cuddly Tales aims for all five.
+
+| Requirement | Status | How it's met |
+| --- | --- | --- |
+| **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. Stories can be marked read. The child's profile (name, age, favourite things) can be edited too. Deleting a character keeps the stories it was in. |
+| **2. In-app analytics** | Day 3 | A dashboard with charts from real app data (stories read, character appearances, Polish words learned). |
+| **3. Drag and drop** | Day 3 | A storyboard of plot cards that can be reordered, with the order saved. |
+| **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare tonight's chapter, with a "Run now" button. |
+| **5. AI agent** | Day 2 | "Plan a 5-night adventure for Mira": an agent that uses tools step by step, with every step shown live. |
+
+The demo family is Mira (3) and her cast: two toy poodles, Minnie and Maverick, Tosia the cat,
+Diggles the wombat, and characters from public-domain folklore and the Panchatantra. Each character
+has running jokes the story always follows, like Minnie chasing her ball while everyone shouts
+"Minnie, NOT NOW!".
 
 ## Architecture
 
-![Architecture: the Angular app talks to one FastAPI service over JSON and Server-Sent Events; FastAPI stores data in SQLite through SQLModel and calls the LLM through LiteLLM](docs/architecture.svg)
+![Architecture: the Angular app on a phone talks to CloudFront at cuddly-tales.ukdoshi.com, which serves the app from S3 and sends /api requests to FastAPI on AWS Lambda through a streaming Function URL; the Lambda reads secrets from Secrets Manager, calls the Anthropic API through LiteLLM and stores data in Neon Postgres; GitHub Actions deploys it with the CDK](docs/architecture.svg)
 
 Live, the Angular app is served from S3 through CloudFront, and `/api/*` goes to FastAPI on AWS
 Lambda through a streaming Function URL (see [Deployment](#deployment)). Locally, one FastAPI process
@@ -22,7 +42,7 @@ The story row is created before any text arrives, so the stream has an id to sav
 text is saved once, when the model finishes. If generation fails, the browser gets an `error` event
 and the story stays `planned`, so nothing half-written is kept.
 
-A version with the scope of each slice is in [docs/architecture.html](docs/architecture.html).
+A version with captions and progress so far is in [docs/architecture.html](docs/architecture.html).
 
 ## Run it locally
 
@@ -64,6 +84,22 @@ Then open http://localhost:8000.
 cd backend && .venv/bin/pytest        # API tests, with the LLM faked (no API key needed)
 cd frontend && npx ng test --watch=false
 ```
+
+GitHub Actions runs both on every pull request, and again before every deploy.
+
+### Changing the database
+
+Tables are managed with [Alembic](https://alembic.sqlalchemy.org). The app runs any new migrations
+when it starts, locally and on Lambda. After changing a model in `backend/app/models.py`, add a
+migration and check it in:
+
+```bash
+cd backend
+.venv/bin/alembic revision --autogenerate -m "add plot cards"   # writes app/migrations/versions/...
+```
+
+Read the generated file before committing. A test (`tests/test_migrations.py`) fails if the models
+and the migrations ever disagree.
 
 ## Configuration
 
