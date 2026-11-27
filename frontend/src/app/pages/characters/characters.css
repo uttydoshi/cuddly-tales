@@ -80,3 +80,9 @@
     align-items: start;
   }
 }
+
+@media (min-width: 1200px) {
+  .cast {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

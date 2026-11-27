@@ -144,3 +144,9 @@
 .type.anytime svg {
   stroke: var(--anytime);
 }
+
+@media (min-width: 1200px) {
+  .stories {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

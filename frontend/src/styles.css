@@ -51,7 +51,7 @@
 @media (min-width: 768px) {
   :root {
     --tab-bar-height: 0px;
-    --content-width: 64rem;
+    --content-width: 90rem; /* ukdoshi.com's page width */
   }
 }
 
@@ -155,7 +155,7 @@ a {
    (same radius, border, shadow and blur). The reading page doesn't: a story fills the screen. */
 .page {
   width: calc(100% - 1.5rem);
-  max-width: calc(var(--content-width) - 1rem);
+  max-width: var(--content-width);
   margin: 0.75rem auto 0;
   box-sizing: border-box;
   padding: 1.5rem 1.1rem;
@@ -354,7 +354,7 @@ a {
 @media (min-width: 768px) {
   .page {
     margin-top: 1rem;
-    padding: 2.5rem clamp(1.75rem, 4vw, 3rem) 3rem;
+    padding: 3rem clamp(2rem, 5vw, 4.5rem); /* ukdoshi.com's card padding */
     gap: 1.25rem;
   }
 }
