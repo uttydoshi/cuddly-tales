@@ -71,8 +71,8 @@
 </div>
 
 <div class="action">
+  <!-- Wider screens: a bar that names who's coming, with the button beside it -->
   <div class="bar">
-    <!-- Wider screens: who's coming along, beside the button -->
     <p class="summary" aria-live="polite">
       @if (count() === 0) {
         <span class="muted">Pick up to six friends to join {{ shell.child()?.name ?? 'your child' }}.</span>
@@ -82,14 +82,9 @@
       }
     </p>
     <button type="button" class="btn big" [disabled]="count() === 0 || starting()" (click)="generate()">
-      @if (starting()) {
-        Starting the story…
-      } @else {
-        <span class="label-phone">{{ buttonLabel() }}</span>
-        <span class="label-wide">Write the story</span>
-        @if (count() > 0) {
-          <span aria-hidden="true">→</span>
-        }
+      {{ starting() ? 'Starting the story…' : 'Write the story' }}
+      @if (count() > 0 && !starting()) {
+        <span aria-hidden="true">→</span>
       }
     </button>
   </div>
@@ -97,3 +92,21 @@
     <p class="error" role="alert">{{ errorMessage() }}</p>
   }
 </div>
+
+<!-- Phones: a round button with a pen, once at least one friend is picked -->
+@if (count() > 0) {
+  <button
+    type="button"
+    class="fab"
+    [class.busy]="starting()"
+    [disabled]="starting()"
+    (click)="generate()"
+    [attr.aria-label]="starting() ? 'Starting the story' : buttonLabel()"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+    <span class="badge" aria-hidden="true">{{ count() }}</span>
+  </button>
+}

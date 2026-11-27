@@ -127,61 +127,132 @@
   overflow: hidden;
 }
 
-/* The button sits just above the tab bar, where a thumb can reach it. */
+/* --- Phones: a round floating button with a pen, above the tab bar --- */
+
+/* Room at the end of the page so the button never covers the last cards. */
+.page {
+  padding-bottom: 6rem;
+}
+
 .action {
-  position: sticky;
-  bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
-  z-index: 5;
   box-sizing: border-box;
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: 1rem 1rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  background: linear-gradient(to bottom, transparent, var(--page-bg) 30%);
-}
-
-.action .error {
-  font-weight: 600;
+  padding: 0 1rem;
 }
 
 .bar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* Phones: just the big button, which says who's coming. */
-.summary,
-.label-wide {
   display: none;
 }
 
-/* Wider screens: a floating bar at the bottom of the screen that names who's coming,
-   with the button beside it. */
+.fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 1rem);
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fab-bg);
+  color: var(--fab-fg);
+  box-shadow: 0 12px 28px -8px rgb(26 26 46 / 0.55);
+  cursor: pointer;
+  animation: fab-in 0.18s ease-out;
+}
+
+.fab svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.fab.busy {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* How many friends are coming, in a magenta badge on the button. */
+.badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.2rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.3rem;
+  box-sizing: border-box;
+  border: 2px solid var(--page-bg);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+@keyframes fab-in {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* A problem (like the daily limit) pops up just above the button. */
+.action .error {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 5.5rem);
+  z-index: 20;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  background: var(--surface-raised);
+  box-shadow: 0 12px 28px -12px rgb(26 26 46 / 0.4);
+  font-weight: 600;
+}
+
+/* --- Wider screens: a floating bar that names who's coming, with the button beside it --- */
 @media (min-width: 768px) {
+  .page {
+    padding-bottom: 3rem;
+  }
+
+  .fab {
+    display: none;
+  }
+
   .action {
+    position: sticky;
     bottom: calc(1rem + var(--safe-bottom));
+    z-index: 5;
     padding: 1.5rem 1.5rem 0;
-    background: none;
     pointer-events: none; /* only the bar itself takes clicks */
   }
 
   .bar {
     pointer-events: auto;
-    flex-direction: row;
+    display: flex;
     align-items: center;
     gap: 1rem;
     padding: 0.6rem 0.6rem 0.6rem 1.25rem;
     border: 1px solid var(--border);
     border-radius: 1.1rem;
-    background: var(--surface);
+    background: var(--surface-raised);
     box-shadow: 0 18px 40px -18px rgb(26 26 46 / 0.45);
-  }
-
-  :root.night .bar {
-    background: #17172b;
   }
 
   .summary {
@@ -197,14 +268,6 @@
     font-weight: 700;
   }
 
-  .label-phone {
-    display: none;
-  }
-
-  .label-wide {
-    display: inline;
-  }
-
   .action .btn.big {
     width: auto;
     min-width: 14rem;
@@ -213,8 +276,13 @@
   }
 
   .action .error {
+    position: static;
     pointer-events: auto;
-    padding: 0.5rem 0.25rem 0;
+    margin-top: 0.5rem;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    padding: 0 0.25rem;
   }
 }
 

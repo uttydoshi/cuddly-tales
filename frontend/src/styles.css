@@ -28,6 +28,9 @@
   --chip-on-text: #ffffff;
   --bedtime: #6d28d9; /* violet moon */
   --anytime: #b45309; /* amber sun */
+  --surface-raised: #ffffff; /* solid: floating bars and messages, nothing shows through */
+  --fab-bg: #1a1a2e;
+  --fab-fg: #ffffff;
   --bg: radial-gradient(circle at 20% 15%, #ede9fe, transparent 45%),
     radial-gradient(circle at 85% 85%, #e0f2fe, transparent 45%), var(--page-bg);
   --font-heading: 'Source Serif 4 Variable', Georgia, serif;
@@ -49,7 +52,9 @@
 }
 
 /* Night mode: ukdoshi.com's dark theme, dimmed for a dark room. On <html> when the site is in
-   dark mode (the moon button, or the device's setting) and always while reading a story. */
+   dark mode (the moon button, or the device's setting) and for bedtime stories.
+   Colours that differ by theme must be tokens here: a `:root.night` rule inside a component's
+   own styles never matches, because Angular scopes it to the component. */
 :root.night {
   --dark: #20203a; /* the top bar, lifted a little off the dark page */
   --bar-bg: rgb(16 16 31 / 0.97);
@@ -60,6 +65,9 @@
   --chip-on-text: #0b0b16;
   --bedtime: #c4b5fd;
   --anytime: #fcd34d;
+  --surface-raised: #17172b;
+  --fab-bg: #f3eefa;
+  --fab-fg: #0b0b16;
   --text: #e9e4f2;
   --heading: #f3eefa;
   --muted: #a3a8c3;
