@@ -130,3 +130,61 @@ def test_get_story_returns_text(client, character_ids, monkeypatch):
 
 def test_get_unknown_story_is_404(client):
     assert client.get("/api/stories/9999").status_code == 404
+
+
+def written_story(client, character_ids, monkeypatch) -> int:
+    monkeypatch.setattr(llm, "stream_text", fake_stream(STORY_CHUNKS))
+    story_id = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
+    client.get(f"/api/stories/{story_id}/stream")
+    return story_id
+
+
+def test_edit_title_and_text_recounts_words(client, character_ids, monkeypatch):
+    story_id = written_story(client, character_ids, monkeypatch)
+    response = client.patch(
+        f"/api/stories/{story_id}",
+        json={"title": "  Minnie's Big Night ", "text": "Minnie slept. " * 150},
+    )
+    assert response.status_code == 200
+    story = response.json()
+    assert story["title"] == "Minnie's Big Night"
+    assert story["word_count"] == 300
+    assert story["reading_minutes"] == 3
+    assert client.get(f"/api/stories/{story_id}").json()["word_count"] == 300
+
+
+def test_mark_read_and_unread(client, character_ids, monkeypatch):
+    story_id = written_story(client, character_ids, monkeypatch)
+
+    story = client.patch(f"/api/stories/{story_id}", json={"read": True}).json()
+    assert story["status"] == "read"
+    assert story["read_at"] is not None
+
+    story = client.patch(f"/api/stories/{story_id}", json={"read": False}).json()
+    assert story["status"] == "written"
+    assert story["read_at"] is None
+
+
+def test_cannot_edit_text_or_read_a_planned_story(client, character_ids):
+    story_id = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
+    assert client.patch(f"/api/stories/{story_id}", json={"text": "Hi."}).status_code == 409
+    assert client.patch(f"/api/stories/{story_id}", json={"read": True}).status_code == 409
+    assert client.patch(f"/api/stories/{story_id}", json={"title": "Soon"}).status_code == 200
+
+
+def test_edit_rejects_empty_title(client, character_ids, monkeypatch):
+    story_id = written_story(client, character_ids, monkeypatch)
+    assert client.patch(f"/api/stories/{story_id}", json={"title": "  "}).status_code == 422
+
+
+def test_edit_unknown_story_is_404(client):
+    assert client.patch("/api/stories/9999", json={"title": "x"}).status_code == 404
+
+
+def test_delete_story_keeps_its_characters(client, character_ids, monkeypatch):
+    story_id = written_story(client, character_ids, monkeypatch)
+    assert client.delete(f"/api/stories/{story_id}").status_code == 204
+    assert client.get(f"/api/stories/{story_id}").status_code == 404
+    assert client.get("/api/stories").json() == []
+    assert len(client.get("/api/characters").json()) == 10
+    assert client.delete(f"/api/stories/{story_id}").status_code == 404

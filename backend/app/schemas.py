@@ -74,3 +74,11 @@ class StorySummary(BaseModel):
 class StoryRead(StorySummary):
     text: str | None
     read_at: datetime | None
+
+
+class StoryUpdate(BaseModel):
+    """Parent edits. Only the fields sent are changed."""
+
+    title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)] | None = None
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20000)] | None = None
+    read: bool | None = None
