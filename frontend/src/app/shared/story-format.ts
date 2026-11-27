@@ -14,14 +14,14 @@ export function joinNames(names: string[]): string {
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
-/** A bedtime-friendly date: "Tonight", "Yesterday", otherwise "Tue 25 Nov". */
+/** A friendly date: "Today", "Yesterday", otherwise "Tue 25 Nov". */
 export function friendlyDate(iso: string, now: Date = new Date()): string {
   // The API sends UTC; a value without a zone is UTC too.
   const date = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`);
   const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const daysAgo = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000);
   if (daysAgo === 0) {
-    return 'Tonight';
+    return 'Today';
   }
   if (daysAgo === 1) {
     return 'Yesterday';

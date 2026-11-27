@@ -11,7 +11,13 @@ import { ShellService } from '../../shared/shell.service';
 
 export const MAX_FRIENDS = 6;
 
-/** Pick tonight's cast. Writing and reading happen on the story page, in night mode. */
+/** Evenings (6pm to 6am) start on Bedtime; days start on Anytime. Either can be switched. */
+export function isEvening(now: Date = new Date()): boolean {
+  const hour = now.getHours();
+  return hour >= 18 || hour < 6;
+}
+
+/** Pick the cast and when the story is for. Writing and reading happen on the story page. */
 @Component({
   selector: 'app-new-story',
   imports: [RouterLink],
@@ -28,6 +34,7 @@ export class NewStory {
   readonly starting = signal(false);
   readonly characters = signal<Character[]>([]);
   readonly selected = signal<ReadonlySet<number>>(new Set());
+  readonly bedtime = signal(isEvening());
   readonly errorMessage = signal('');
 
   readonly groups = computed(() => groupByType(this.characters()));
@@ -75,7 +82,7 @@ export class NewStory {
   generate(): void {
     this.starting.set(true);
     this.errorMessage.set('');
-    this.api.createStory([...this.selected()]).subscribe({
+    this.api.createStory([...this.selected()], this.bedtime()).subscribe({
       // The story page starts the stream when it's opened this way (and only then).
       next: (story) => this.router.navigate(['/stories', story.id], { state: { stream: true } }),
       error: (error: HttpErrorResponse) => {

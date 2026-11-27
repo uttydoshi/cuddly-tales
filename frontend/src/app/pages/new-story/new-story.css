@@ -217,3 +217,93 @@
     padding: 0.5rem 0.25rem 0;
   }
 }
+
+/* --- When is it for: Anytime or Bedtime --- */
+.when {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.when legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.when-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .when-options {
+    max-width: 32rem;
+  }
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.5rem;
+  padding: 0.6rem 0.75rem;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.option.chosen {
+  border: 2px solid var(--accent);
+  padding: calc(0.6rem - 1px) calc(0.75rem - 1px);
+  background: var(--accent-08);
+}
+
+.option svg {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.option.chosen svg {
+  stroke: var(--accent);
+}
+
+.option .text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.option .title {
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.option .hint {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  color: var(--muted);
+}

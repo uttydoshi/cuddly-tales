@@ -36,8 +36,8 @@ export class ApiService {
     return this.http.delete<void>(`/api/characters/${id}`);
   }
 
-  createStory(characterIds: number[]): Observable<Story> {
-    return this.http.post<Story>('/api/stories', { character_ids: characterIds });
+  createStory(characterIds: number[], bedtime: boolean): Observable<Story> {
+    return this.http.post<Story>('/api/stories', { character_ids: characterIds, bedtime });
   }
 
   listStories(): Observable<StorySummary[]> {

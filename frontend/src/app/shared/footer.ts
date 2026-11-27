@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
     <footer class="site-footer">
       <div class="inner">
         <div class="top">
-          <p class="tagline">Gentle stories,<br />sweet dreams.</p>
+          <p class="tagline">Little stories,<br />starring your child.</p>
           <nav class="links" aria-label="Footer">
             <div>
               <h2>Explore</h2>

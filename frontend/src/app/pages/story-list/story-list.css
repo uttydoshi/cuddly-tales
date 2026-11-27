@@ -113,3 +113,7 @@
     flex: 1;
   }
 }
+
+.pill.bedtime svg {
+  stroke-width: 2.2;
+}

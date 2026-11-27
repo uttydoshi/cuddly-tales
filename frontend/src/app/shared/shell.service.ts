@@ -25,10 +25,11 @@ export class ShellService {
   /** The site's theme. index.html applies it before Angular starts; this starts from what it chose. */
   readonly theme = signal<Theme>(this.document.documentElement.classList.contains('night') ? 'dark' : 'light');
 
-  /** Reading a story: the top bar and tabs step aside, and the page goes into night mode. */
+  /** Reading a story: the top bar and tabs step aside. */
   readonly reading = signal(false);
-  /** Night mode while reading. It always starts on; the sun button turns it off for that story. */
-  readonly night = signal(true);
+  /** Night mode while reading: on for bedtime stories, else the site theme. The reading page's
+   *  sun/moon button changes it for that story only. */
+  readonly night = signal(false);
 
   /** Whether the page is dark right now. */
   readonly dark = computed(() => (this.reading() ? this.night() : this.theme() === 'dark'));
@@ -72,9 +73,15 @@ export class ShellService {
     }
   }
 
+  /** Starts in the site's theme; the reading page switches to night once it knows it's a bedtime story. */
   startReading(): void {
-    this.night.set(true);
+    this.night.set(this.theme() === 'dark');
     this.reading.set(true);
+  }
+
+  /** Bedtime stories always open in night mode. */
+  readingStory(bedtime: boolean): void {
+    this.night.set(bedtime || this.theme() === 'dark');
   }
 
   stopReading(): void {
