@@ -1,0 +1,50 @@
+/* Minimal styling until the features work (see CLAUDE.md). */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --fg: #1d2330;
+  --muted: #5f6878;
+  --line: #d8dce3;
+  --accent: #a8640a;
+  --accent-soft: #fbefd9;
+  --danger: #b42318;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+button {
+  font: inherit;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.muted {
+  color: var(--muted);
+}
