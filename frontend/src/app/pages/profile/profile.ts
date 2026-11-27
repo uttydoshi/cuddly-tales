@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ApiService } from '../../services/api.service';
+import { ShellService } from '../../shared/shell.service';
 import { fromLines, toLines } from '../../shared/lines';
 
 @Component({
@@ -13,6 +14,7 @@ import { fromLines, toLines } from '../../shared/lines';
 })
 export class Profile {
   private readonly api = inject(ApiService);
+  private readonly shell = inject(ShellService);
 
   readonly ages = [2, 3, 4, 5, 6];
   readonly loading = signal(true);
@@ -37,7 +39,7 @@ export class Profile {
         this.loading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Could not load the profile. Is the server running?');
+        this.errorMessage.set('Could not load the profile. Please check your connection and try again.');
         this.loading.set(false);
       },
     });
@@ -59,7 +61,8 @@ export class Profile {
     this.saving.set(true);
     this.errorMessage.set('');
     this.api.updateProfile({ name: name.trim(), age: Number(age), favourite_things: favourites }).subscribe({
-      next: () => {
+      next: (child) => {
+        this.shell.setChild(child); // the top bar shows the new name and age
         this.saving.set(false);
         this.saved.set(true);
       },

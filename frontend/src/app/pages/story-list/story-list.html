@@ -1,25 +1,61 @@
-<h1>Stories</h1>
+<div class="page">
+  <h1>Your stories</h1>
 
-@if (errorMessage()) {
-  <p class="error" role="alert">{{ errorMessage() }}</p>
-} @else if (stories() === null) {
-  <p class="muted">Loading…</p>
-} @else if (stories()!.length === 0) {
-  <p class="muted">No stories yet. <a routerLink="/new">Write the first one</a>.</p>
-} @else {
-  <ul class="stories">
-    @for (story of stories(); track story.id) {
-      <li>
-        <a [routerLink]="['/stories', story.id]">{{ story.title }}</a>
-        <span class="meta">
-          <span class="status" [attr.data-status]="story.status">{{ story.status }}</span>
-          @if (story.reading_minutes) {
-            · {{ story.reading_minutes }} min read
-          }
-          · {{ story.created_at | date: 'd MMM, h:mm a' }}
-        </span>
-        <span class="muted">With {{ names(story) }}</span>
-      </li>
-    }
-  </ul>
-}
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  } @else if (stories() === null) {
+    <p class="muted">Fetching your stories…</p>
+  } @else if (counts().all === 0) {
+    <div class="empty panel">
+      <p>No stories yet. Tonight's could be the first.</p>
+      <a class="btn" routerLink="/new">Write a story <span aria-hidden="true">→</span></a>
+    </div>
+  } @else {
+    <div class="filters" role="group" aria-label="Show">
+      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'all'" (click)="filter.set('all')">
+        All · {{ counts().all }}
+      </button>
+      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'unread'" (click)="filter.set('unread')">
+        Not read yet · {{ counts().unread }}
+      </button>
+      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'read'" (click)="filter.set('read')">
+        Read · {{ counts().read }}
+      </button>
+    </div>
+
+    <ul class="stories">
+      @for (card of cards(); track card.story.id) {
+        <li>
+          <a class="story" [class.done]="card.story.status === 'read'" [routerLink]="['/stories', card.story.id]">
+            <span class="meta">
+              @switch (card.story.status) {
+                @case ('read') {
+                  <span class="pill ok">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                    Read
+                  </span>
+                }
+                @case ('written') {
+                  <span class="pill">Not read yet</span>
+                }
+                @default {
+                  <span class="pill quiet">Not written yet</span>
+                }
+              }
+              {{ card.when }}
+              @if (card.story.reading_minutes) {
+                · {{ card.story.reading_minutes }} min read
+              }
+            </span>
+            <span class="title">{{ card.story.title }}</span>
+            @if (card.cast) {
+              <span class="cast">With {{ card.cast }}</span>
+            }
+          </a>
+        </li>
+      } @empty {
+        <li class="muted">Nothing here yet.</li>
+      }
+    </ul>
+  }
+</div>

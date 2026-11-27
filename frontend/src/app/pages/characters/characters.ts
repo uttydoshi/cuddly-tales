@@ -22,7 +22,7 @@ export class Characters {
   constructor() {
     this.api.listCharacters().subscribe({
       next: (characters) => this.characters.set(characters),
-      error: () => this.errorMessage.set('Could not load the characters. Is the server running?'),
+      error: () => this.errorMessage.set('Could not load the characters. Please check your connection and try again.'),
     });
   }
 
