@@ -40,6 +40,14 @@ def _upgrade_to(engine, revision):
         command.upgrade(config, revision)
 
 
+def _head() -> str:
+    from alembic.script import ScriptDirectory
+
+    from app.db import MIGRATIONS_DIR
+
+    return ScriptDirectory(str(MIGRATIONS_DIR)).get_current_head()
+
+
 def test_database_made_before_migrations_is_adopted(engine):
     # Before Alembic, the app made the tables directly: the shape of revision 0001,
     # with no alembic_version table.
@@ -52,7 +60,7 @@ def test_database_made_before_migrations_is_adopted(engine):
     migrate(engine)
 
     with engine.connect() as connection:
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0002"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == _head()
         assert connection.execute(text("SELECT name FROM childprofile")).scalar() == "Mira"
 
 
