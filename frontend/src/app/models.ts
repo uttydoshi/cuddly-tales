@@ -18,6 +18,9 @@ export interface Character {
   image_url: string | null;
 }
 
+/** What a parent can set when adding or editing a character. */
+export type CharacterInput = Pick<Character, 'name' | 'type' | 'description' | 'traits' | 'rules'>;
+
 export interface CharacterRef {
   id: number;
   name: string;

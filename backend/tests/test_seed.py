@@ -13,6 +13,15 @@ def test_startup_seeds_demo_family(client, engine):
     assert len(names) == 10
 
 
+def test_deleted_characters_stay_deleted_after_restart(client, engine):
+    with Session(engine) as session:
+        for character in session.exec(select(Character)).all():
+            session.delete(character)
+        session.commit()
+        seed_if_empty(session)  # what the next startup does
+        assert session.exec(select(Character)).all() == []
+
+
 def test_seed_does_not_duplicate(client, engine):
     with Session(engine) as session:
         seed_if_empty(session)

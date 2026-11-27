@@ -3,20 +3,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { forkJoin, switchMap } from 'rxjs';
 
-import { Character, CharacterType, ChildProfile } from '../../models';
+import { Character, ChildProfile } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { StoryStreamService } from '../../services/story-stream.service';
+import { groupByType } from '../../shared/character-groups';
 import { StoryText } from '../../story-text/story-text';
 
 type Phase = 'loading' | 'pick' | 'streaming' | 'done' | 'error';
-
-const GROUPS: { type: CharacterType; label: string }[] = [
-  { type: 'family', label: 'Family' },
-  { type: 'original', label: 'Friends' },
-  { type: 'folklore', label: 'Folk tales' },
-  { type: 'latte_monster', label: 'Latte monsters' },
-  { type: 'custom', label: 'Your characters' },
-];
 
 @Component({
   selector: 'app-new-story',
@@ -37,11 +30,7 @@ export class NewStory {
   readonly storyId = signal<number | null>(null);
   readonly errorMessage = signal('');
 
-  readonly groups = computed(() =>
-    GROUPS.map((g) => ({ ...g, characters: this.characters().filter((c) => c.type === g.type) })).filter(
-      (g) => g.characters.length > 0,
-    ),
-  );
+  readonly groups = computed(() => groupByType(this.characters()));
 
   /** The model writes "# Title" on the first line; show it as a heading. */
   readonly title = computed(() => {

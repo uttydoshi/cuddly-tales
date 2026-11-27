@@ -1,12 +1,12 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 
 from app.db import get_session
-from app.models import Character, ChildProfile, Story, StoryStatus
-from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary
+from app.models import Character, ChildProfile, Story, StoryStatus, utc_now
+from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
 from app.services import llm
 from app.services.story_prompt import build_story_messages
 from app.services.story_stream import count_words, reading_minutes, split_title, sse, words_from_chunks
@@ -68,6 +68,44 @@ def get_story(story_id: int, session: Session = Depends(get_session)) -> StoryRe
     return to_story_read(story)
 
 
+@router.patch("/{story_id}", response_model=StoryRead)
+def update_story(story_id: int, payload: StoryUpdate, session: Session = Depends(get_session)) -> StoryRead:
+    story = session.get(Story, story_id)
+    if story is None:
+        raise HTTPException(404, "Story not found")
+    changes = payload.model_dump(exclude_unset=True, exclude_none=True)
+    if story.text is None and ("text" in changes or "read" in changes):
+        raise HTTPException(409, "This story has not been written yet")
+
+    if "title" in changes:
+        story.title = changes["title"]
+    if "text" in changes:
+        story.text = changes["text"]
+        story.word_count = count_words(story.text)
+        story.reading_minutes = reading_minutes(story.word_count)
+    if changes.get("read") is True and story.status != StoryStatus.read:
+        story.status = StoryStatus.read
+        story.read_at = utc_now()
+    elif changes.get("read") is False:
+        story.status = StoryStatus.written
+        story.read_at = None
+
+    session.add(story)
+    session.commit()
+    session.refresh(story)
+    return to_story_read(story)
+
+
+@router.delete("/{story_id}", status_code=204)
+def delete_story(story_id: int, session: Session = Depends(get_session)) -> Response:
+    story = session.get(Story, story_id)
+    if story is None:
+        raise HTTPException(404, "Story not found")
+    session.delete(story)  # SQLAlchemy also removes its character links
+    session.commit()
+    return Response(status_code=204)
+
+
 @router.get("/{story_id}/stream")
 def stream_story(
     story_id: int, request: Request, session: Session = Depends(get_session)
@@ -104,6 +142,9 @@ def stream_story(
         # stream leaves the story as "planned", so nothing half-written is kept.
         with Session(engine) as save_session:
             saved = save_session.get(Story, story_id)
+            if saved is None:  # deleted while it was being written
+                yield sse("error", {"message": "This story was deleted while it was being written."})
+                return
             saved.title = title or saved.title
             saved.text = body
             saved.word_count = count_words(body)

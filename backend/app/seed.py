@@ -118,8 +118,13 @@ CAST: list[dict] = [
 
 
 def seed_if_empty(session: Session) -> None:
-    if session.exec(select(ChildProfile)).first() is None:
-        session.add(ChildProfile(**CHILD))
-    if session.exec(select(Character)).first() is None:
-        session.add_all(Character(**data) for data in CAST)
+    """Add the demo family on the very first start only.
+
+    The child profile marks that seeding has happened, so a parent who deletes
+    characters does not get them back on the next restart.
+    """
+    if session.exec(select(ChildProfile)).first() is not None:
+        return
+    session.add(ChildProfile(**CHILD))
+    session.add_all(Character(**data) for data in CAST)
     session.commit()

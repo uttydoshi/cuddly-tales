@@ -48,3 +48,40 @@ button:disabled {
 .muted {
   color: var(--muted);
 }
+
+button.plain {
+  background: var(--surface);
+  color: var(--fg);
+  border-color: var(--line);
+}
+
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+input[type='text'],
+input[type='number'],
+select,
+textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.hint {
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: var(--muted);
+}

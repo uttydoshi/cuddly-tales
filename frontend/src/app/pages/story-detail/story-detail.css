@@ -3,3 +3,22 @@
   font-size: 1.125rem;
   line-height: 1.7;
 }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.edit textarea {
+  line-height: 1.6;
+}

@@ -1,0 +1,44 @@
+<div class="heading">
+  <h1>Characters</h1>
+  <a class="add" routerLink="/characters/new">Add character</a>
+</div>
+
+@if (errorMessage()) {
+  <p class="error" role="alert">{{ errorMessage() }}</p>
+}
+
+@if (characters() === null) {
+  @if (!errorMessage()) {
+    <p class="muted">Loading…</p>
+  }
+} @else if (characters()!.length === 0) {
+  <p class="muted">No characters yet. <a routerLink="/characters/new">Add the first one</a>.</p>
+} @else {
+  @for (group of groups(); track group.type) {
+    <section>
+      <h2>{{ group.label }}</h2>
+      <ul class="cast">
+        @for (character of group.characters; track character.id) {
+          <li>
+            <h3>{{ character.name }}</h3>
+            <p>{{ character.description }}</p>
+            @if (character.traits.length) {
+              <p class="muted">{{ character.traits.join(' · ') }}</p>
+            }
+            @if (character.rules.length) {
+              <ul class="rules">
+                @for (rule of character.rules; track $index) {
+                  <li>{{ rule }}</li>
+                }
+              </ul>
+            }
+            <div class="actions">
+              <a [routerLink]="['/characters', character.id, 'edit']">Edit</a>
+              <app-confirm-delete (confirmed)="remove(character)" />
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+}
