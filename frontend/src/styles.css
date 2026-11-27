@@ -26,6 +26,8 @@
   --focus: #1a1a2e; /* focus ring on things that use the accent for "chosen" */
   --chip-on-bg: #1a1a2e;
   --chip-on-text: #ffffff;
+  --bedtime: #6d28d9; /* violet moon */
+  --anytime: #b45309; /* amber sun */
   --bg: radial-gradient(circle at 20% 15%, #ede9fe, transparent 45%),
     radial-gradient(circle at 85% 85%, #e0f2fe, transparent 45%), var(--page-bg);
   --font-heading: 'Source Serif 4 Variable', Georgia, serif;
@@ -56,6 +58,8 @@
   --focus: #f3eefa;
   --chip-on-bg: #f3eefa;
   --chip-on-text: #0b0b16;
+  --bedtime: #c4b5fd;
+  --anytime: #fcd34d;
   --text: #e9e4f2;
   --heading: #f3eefa;
   --muted: #a3a8c3;

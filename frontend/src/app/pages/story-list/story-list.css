@@ -114,6 +114,33 @@
   }
 }
 
-.pill.bedtime svg {
+/* Story type: an outlined label with its own icon colour, so it reads apart from the status pill. */
+.type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem 0.15rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.type svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
   stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.type.bedtime svg {
+  stroke: var(--bedtime);
+}
+
+.type.anytime svg {
+  stroke: var(--anytime);
 }

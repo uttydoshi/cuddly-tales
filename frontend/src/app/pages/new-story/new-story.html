@@ -77,7 +77,7 @@
       @if (count() === 0) {
         <span class="muted">Pick up to six friends to join {{ shell.child()?.name ?? 'your child' }}.</span>
       } @else {
-        <span class="names">With {{ chosenNames() }}</span>
+        <span class="names">{{ bedtime() ? 'Bedtime' : 'Anytime' }} story with {{ chosenNames() }}</span>
         <span class="muted">{{ count() }} of {{ maxFriends }}</span>
       }
     </p>
