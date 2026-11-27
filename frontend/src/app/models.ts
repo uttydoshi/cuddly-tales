@@ -24,6 +24,7 @@ export type CharacterInput = Pick<Character, 'name' | 'type' | 'description' | '
 export interface CharacterRef {
   id: number;
   name: string;
+  type: CharacterType;
 }
 
 export interface StorySummary {

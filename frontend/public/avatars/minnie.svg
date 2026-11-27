@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Minnie, a toy poodle with her red ball">
+  <defs><clipPath id="clip-minnie"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#ffd9e8"/>
+  <g clip-path="url(#clip-minnie)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="60" cy="106" rx="32" ry="28" fill="#fff6ec"/>
+    <ellipse cx="35" cy="66" rx="11" ry="18" fill="#fff6ec"/>
+    <ellipse cx="85" cy="66" rx="11" ry="18" fill="#fff6ec"/>
+    <circle cx="60" cy="60" r="21" fill="#fff6ec"/>
+    <circle cx="47" cy="38" r="10" fill="#fff6ec"/>
+    <circle cx="73" cy="38" r="10" fill="#fff6ec"/>
+    <circle cx="60" cy="33" r="12" fill="#fff6ec"/>
+    <ellipse cx="60" cy="70" rx="11" ry="8" fill="#ffffff"/>
+    <ellipse cx="60" cy="66" rx="4.5" ry="3.2" fill="#2b2340"/>
+    <path d="M55 73 Q60 77 65 73" fill="none"/>
+    <circle cx="90" cy="98" r="13" fill="#ef4444"/>
+    <path d="M78 94 Q90 102 102 94" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  </g>
+  <g fill="#2b2340"><ellipse cx="52" cy="57" rx="3" ry="3.8"/><ellipse cx="68" cy="57" rx="3" ry="3.8"/></g>
+  <g fill="#ffffff"><circle cx="53" cy="55.6" r="1"/><circle cx="69" cy="55.6" r="1"/></g>
+  <g fill="#f9a8c9" opacity="0.7"><circle cx="45" cy="66" r="4"/><circle cx="75" cy="66" r="4"/></g>
+</svg>

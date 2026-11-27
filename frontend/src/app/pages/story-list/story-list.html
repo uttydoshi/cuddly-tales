@@ -60,7 +60,14 @@
             </span>
             <span class="title">{{ card.story.title }}</span>
             @if (card.cast) {
-              <span class="cast">With {{ card.cast }}</span>
+              <span class="cast">
+                <span class="faces">
+                  @for (character of card.story.characters; track character.id) {
+                    <app-avatar [name]="character.name" [type]="character.type" [size]="30" />
+                  }
+                </span>
+                With {{ card.cast }}
+              </span>
             }
           </a>
         </li>

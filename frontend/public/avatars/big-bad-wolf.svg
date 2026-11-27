@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="The Big Bad Wolf, a grumpy but soft-hearted grey wolf">
+  <defs><clipPath id="clip-big-bad-wolf"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#dbe6f3"/>
+  <g clip-path="url(#clip-big-bad-wolf)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="60" cy="118" rx="34" ry="28" fill="#9aa5b4"/>
+    <path d="M36 48 L34 18 L54 38 Z" fill="#9aa5b4"/>
+    <path d="M84 48 L86 18 L66 38 Z" fill="#9aa5b4"/>
+    <path d="M39 42 L38 27 L48 37 Z" fill="#f4c6d2" stroke-width="2"/>
+    <path d="M81 42 L82 27 L72 37 Z" fill="#f4c6d2" stroke-width="2"/>
+    <path d="M34 62 Q34 36 60 36 Q86 36 86 62 Q86 82 74 88 L60 92 L46 88 Q34 82 34 62 Z" fill="#9aa5b4"/>
+    <ellipse cx="60" cy="74" rx="15" ry="12" fill="#e7ebf1"/>
+    <ellipse cx="60" cy="68" rx="6.5" ry="4.5" fill="#2b2340"/>
+    <path d="M54 80 Q60 84 66 80" fill="none"/>
+    <path d="M45 51 Q50 51 54 53 M75 51 Q70 51 66 53" fill="none" stroke-width="2.5"/>
+  </g>
+  <g fill="#2b2340"><ellipse cx="50" cy="59" rx="3" ry="3.4"/><ellipse cx="70" cy="59" rx="3" ry="3.4"/></g>
+  <g fill="#ffffff"><circle cx="51" cy="57.8" r="1"/><circle cx="71" cy="57.8" r="1"/></g>
+  <g fill="#f4a6bd" opacity="0.6"><circle cx="43" cy="70" r="4"/><circle cx="77" cy="70" r="4"/></g>
+</svg>

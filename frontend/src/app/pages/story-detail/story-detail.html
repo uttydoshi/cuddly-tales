@@ -59,6 +59,13 @@
       </form>
     } @else {
       <article class="story" [attr.aria-busy]="writing() === 'streaming'">
+        @if (s.characters.length) {
+          <div class="faces">
+            @for (character of s.characters; track character.id) {
+              <app-avatar [name]="character.name" [type]="character.type" [size]="44" />
+            }
+          </div>
+        }
         <p class="kicker">{{ s.bedtime ? 'Bedtime' : 'Anytime' }} story · With {{ cast() || 'no characters' }}</p>
         <h1>{{ title() }}</h1>
 

@@ -4,11 +4,12 @@ import { RouterLink } from '@angular/router';
 import { Character } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { groupByType } from '../../shared/character-groups';
+import { Avatar } from '../../shared/avatar';
 import { ConfirmDelete } from '../../shared/confirm-delete';
 
 @Component({
   selector: 'app-characters',
-  imports: [RouterLink, ConfirmDelete],
+  imports: [RouterLink, Avatar, ConfirmDelete],
   templateUrl: './characters.html',
   styleUrl: './characters.css',
 })

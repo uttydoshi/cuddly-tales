@@ -21,6 +21,16 @@
   stroke-linejoin: round;
 }
 
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.preview p {
+  margin: 0;
+}
+
 form {
   box-sizing: border-box;
   display: flex;

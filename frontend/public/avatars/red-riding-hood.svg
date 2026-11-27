@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Red Riding Hood, a brave girl in a red hood with a basket of treats">
+  <defs><clipPath id="clip-red-riding-hood"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#ffe0d2"/>
+  <g clip-path="url(#clip-red-riding-hood)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M26 120 Q28 94 60 92 Q92 94 94 120 Z" fill="#dc2626"/>
+    <path d="M28 76 Q24 32 60 26 Q96 32 92 76 Q86 96 60 96 Q34 96 28 76 Z" fill="#dc2626"/>
+    <circle cx="60" cy="66" r="21" fill="#f2c4a4"/>
+    <path d="M40 60 Q44 44 60 44 Q76 44 80 60 Q72 52 60 54 Q48 52 40 60 Z" fill="#7a4a2a"/>
+    <path d="M54 76 Q60 81 66 76" fill="none"/>
+    <path d="M76 92 H102 L98 110 H80 Z" fill="#c68a4e"/>
+    <path d="M78 92 Q89 76 100 92" fill="none"/>
+    <path d="M79 92 Q89 86 99 92" fill="#ffffff" stroke-width="2.5"/>
+    <path d="M80 100 H98" fill="none" stroke-width="2" opacity="0.5"/>
+  </g>
+  <g fill="#2b2340"><ellipse cx="52" cy="66" rx="3" ry="3.8"/><ellipse cx="68" cy="66" rx="3" ry="3.8"/></g>
+  <g fill="#ffffff"><circle cx="53" cy="64.6" r="1"/><circle cx="69" cy="64.6" r="1"/></g>
+  <g fill="#f87171" opacity="0.45"><circle cx="45" cy="74" r="4"/><circle cx="75" cy="74" r="4"/></g>
+  <g fill="#ef4444"><circle cx="85" cy="88" r="2"/><circle cx="93" cy="88" r="2"/></g>
+</svg>

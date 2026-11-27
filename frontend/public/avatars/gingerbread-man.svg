@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="The Gingerbread Man, a cheerful biscuit with white icing">
+  <defs><clipPath id="clip-gingerbread-man"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#fff3c4"/>
+  <g clip-path="url(#clip-gingerbread-man)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M40 76 Q20 70 16 82 Q14 92 28 92 L42 90 L42 124 H78 L78 90 L92 92 Q106 92 104 82 Q100 70 80 76 Z" fill="#c8834b"/>
+    <circle cx="60" cy="50" r="23" fill="#c8834b"/>
+    <path d="M20 82 Q23 79 26 82 Q29 85 32 82" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+    <path d="M88 82 Q91 79 94 82 Q97 85 100 82" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+    <path d="M50 58 Q60 66 70 58" fill="none" stroke="#ffffff" stroke-width="3.5"/>
+  </g>
+  <g fill="#2b2340"><circle cx="52" cy="46" r="3.6"/><circle cx="68" cy="46" r="3.6"/></g>
+  <g fill="#ffffff"><circle cx="53" cy="44.8" r="1"/><circle cx="69" cy="44.8" r="1"/></g>
+  <g stroke="#2b2340" stroke-width="2.5"><circle cx="60" cy="92" r="4.5" fill="#f472b6"/><circle cx="60" cy="106" r="4.5" fill="#34d399"/></g>
+  <g fill="#f8b4b4" opacity="0.7"><circle cx="46" cy="55" r="3.5"/><circle cx="74" cy="55" r="3.5"/></g>
+</svg>

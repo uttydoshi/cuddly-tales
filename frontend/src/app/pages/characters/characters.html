@@ -22,7 +22,10 @@
         <ul class="cast">
           @for (character of group.characters; track character.id) {
             <li class="panel character">
-              <h3>{{ character.name }}</h3>
+              <div class="who">
+                <app-avatar [name]="character.name" [type]="character.type" [size]="64" />
+                <h3>{{ character.name }}</h3>
+              </div>
               <p class="muted">{{ character.description }}</p>
               @if (character.traits.length) {
                 <ul class="traits" aria-label="Personality">

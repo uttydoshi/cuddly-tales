@@ -9,8 +9,20 @@
     <p class="muted">Loading…</p>
   } @else {
     <form class="panel" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="preview span-2">
+        <app-avatar [name]="previewName()" [type]="value().type" [size]="72" />
+        <p class="muted">
+          @if (value().name?.trim()) {
+            This is how <strong>{{ value().name }}</strong> will look in the app.
+          } @else {
+            Characters you add get a badge with their first letter.
+          }
+        </p>
+      </div>
+
       <label class="field" for="name" [class.span-2]="isLatteMonster()">
         Name
+        <span class="hint">What your child calls them.</span>
         <input id="name" type="text" formControlName="name" maxlength="60" autocomplete="off" />
         @if (form.controls.name.touched && form.controls.name.invalid) {
           <span class="error">Give the character a name.</span>
@@ -20,6 +32,7 @@
       @if (!isLatteMonster()) {
         <label class="field" for="type">
           Kind
+          <span class="hint">Family is for the real people and pets in your child's life.</span>
           <select id="type" formControlName="type">
             @for (type of types; track type.value) {
               <option [value]="type.value">{{ type.label }}</option>
@@ -30,10 +43,15 @@
 
       <label class="field span-2" for="description">
         Description
-        <span class="hint">Who they are, in a sentence or two.</span>
+        <span class="hint">
+          Start with what they are (a cat, a grandma, a dragon), then what makes them special. Stories keep
+          them exactly as you describe them. For example: "A sleepy koala who naps in the washing basket."
+        </span>
         <textarea id="description" formControlName="description" rows="3" maxlength="500"></textarea>
-        @if (form.controls.description.touched && form.controls.description.invalid) {
+        @if (form.controls.description.touched && form.controls.description.errors?.['required']) {
           <span class="error">Add a short description.</span>
+        } @else if (form.controls.description.touched && form.controls.description.errors?.['minlength']) {
+          <span class="error">Tell us a little more: what they are, and one thing they love.</span>
         }
       </label>
 

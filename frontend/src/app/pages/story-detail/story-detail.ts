@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { Story } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { StoryStreamService } from '../../services/story-stream.service';
+import { Avatar } from '../../shared/avatar';
 import { ConfirmDelete } from '../../shared/confirm-delete';
 import { ShellService } from '../../shared/shell.service';
 import { countWords, friendlyDate, joinNames, toParagraphs } from '../../shared/story-format';
@@ -21,7 +22,7 @@ type Writing = 'idle' | 'streaming' | 'failed';
 /** Reading a story: full screen, large type, night mode for bedtime stories. Also where a new story streams in. */
 @Component({
   selector: 'app-story-detail',
-  imports: [RouterLink, StoryText, ReactiveFormsModule, ConfirmDelete],
+  imports: [RouterLink, Avatar, StoryText, ReactiveFormsModule, ConfirmDelete],
   templateUrl: './story-detail.html',
   styleUrl: './story-detail.css',
 })

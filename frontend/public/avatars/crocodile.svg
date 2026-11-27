@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="The Crocodile, a big friendly crocodile with a toothless smile">
+  <defs><clipPath id="clip-crocodile"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#ccf2ef"/>
+  <g clip-path="url(#clip-crocodile)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M0 112 Q20 100 40 106 Q60 112 80 104 Q100 98 120 108 V130 H0 Z" fill="#7dd3c8"/>
+    <ellipse cx="60" cy="104" rx="36" ry="26" fill="#4fae64"/>
+    <path d="M14 104 L20 96 L26 104 M28 100 L34 92 L40 100" fill="#3f9455" stroke-width="2.5"/>
+    <path d="M18 74 Q18 58 36 58 H104 Q116 58 116 70 Q116 84 102 86 H36 Q18 86 18 74 Z" fill="#4fae64"/>
+    <path d="M22 76 Q66 84 112 72" fill="none"/>
+    <path d="M100 62 Q104 58 108 62" fill="none" stroke-width="2.5"/>
+    <circle cx="40" cy="56" r="8" fill="#4fae64"/>
+    <circle cx="58" cy="56" r="8" fill="#4fae64"/>
+    <circle cx="40" cy="57" r="4.5" fill="#ffffff" stroke-width="2.2"/>
+    <circle cx="58" cy="57" r="4.5" fill="#ffffff" stroke-width="2.2"/>
+    <path d="M33 54 Q40 49 47 54 M51 54 Q58 49 65 54" fill="#4fae64" stroke-width="2.5"/>
+  </g>
+  <g fill="#2b2340"><circle cx="41" cy="58" r="2.4"/><circle cx="59" cy="58" r="2.4"/><circle cx="106" cy="66" r="1.6"/><circle cx="111" cy="68" r="1.6"/></g>
+  <g fill="#ffffff"><circle cx="41.8" cy="57.2" r="0.8"/><circle cx="59.8" cy="57.2" r="0.8"/></g>
+  <g fill="#f4a6bd" opacity="0.6"><circle cx="32" cy="76" r="4"/></g>
+</svg>

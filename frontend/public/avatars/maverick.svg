@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Maverick, a sleepy toy poodle on his couch cushion">
+  <defs><clipPath id="clip-maverick"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#e4dcff"/>
+  <g clip-path="url(#clip-maverick)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="8" y="90" width="104" height="40" rx="16" fill="#a78bfa"/>
+    <path d="M20 100 H100" fill="none" stroke-width="2" opacity="0.5"/>
+    <ellipse cx="35" cy="70" rx="11" ry="17" fill="#f3d3a8"/>
+    <ellipse cx="85" cy="70" rx="11" ry="17" fill="#f3d3a8"/>
+    <circle cx="60" cy="64" r="21" fill="#f3d3a8"/>
+    <circle cx="47" cy="43" r="10" fill="#f3d3a8"/>
+    <circle cx="73" cy="43" r="10" fill="#f3d3a8"/>
+    <circle cx="60" cy="38" r="12" fill="#f3d3a8"/>
+    <ellipse cx="60" cy="75" rx="11" ry="8" fill="#fbe6c8"/>
+    <ellipse cx="60" cy="71" rx="4.5" ry="3.2" fill="#2b2340"/>
+    <path d="M55 78 Q60 81 65 78" fill="none"/>
+    <path d="M47 62 Q52 66 57 62" fill="none"/>
+    <path d="M63 62 Q68 66 73 62" fill="none"/>
+    <ellipse cx="44" cy="92" rx="9" ry="6" fill="#f3d3a8"/>
+    <ellipse cx="76" cy="92" rx="9" ry="6" fill="#f3d3a8"/>
+  </g>
+  <g fill="#f4a6bd" opacity="0.7"><circle cx="45" cy="71" r="4"/><circle cx="75" cy="71" r="4"/></g>
+  <g fill="none" stroke="#2b2340" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M84 30 H92 L84 38 H92"/>
+    <path d="M96 18 H102 L96 24 H102"/>
+  </g>
+</svg>

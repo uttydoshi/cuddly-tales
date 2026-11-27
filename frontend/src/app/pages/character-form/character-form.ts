@@ -1,10 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { CharacterInput, CharacterType } from '../../models';
 import { ApiService } from '../../services/api.service';
+import { Avatar } from '../../shared/avatar';
 import { fromLines, toLines } from '../../shared/lines';
 
 /** Types a parent can choose. Latte monsters come from the photo creator. */
@@ -17,7 +19,7 @@ const EDITABLE_TYPES: { value: CharacterType; label: string }[] = [
 
 @Component({
   selector: 'app-character-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, Avatar],
   templateUrl: './character-form.html',
   styleUrl: './character-form.css',
 })
@@ -38,10 +40,14 @@ export class CharacterForm implements OnInit {
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(60)]],
     type: ['custom' as CharacterType, Validators.required],
-    description: ['', [Validators.required, Validators.maxLength(500)]],
+    description: ['', [Validators.required, Validators.minLength(15), Validators.maxLength(500)]],
     traits: [''],
     rules: [''],
   });
+
+  /** The form as it is typed, for the live avatar preview. */
+  readonly value = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+  readonly previewName = computed(() => this.value().name?.trim() || '?');
 
   ngOnInit(): void {
     const id = this.id();
