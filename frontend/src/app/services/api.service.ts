@@ -43,4 +43,12 @@ export class ApiService {
   getStory(id: number): Observable<Story> {
     return this.http.get<Story>(`/api/stories/${id}`);
   }
+
+  updateStory(id: number, changes: { title?: string; text?: string; read?: boolean }): Observable<Story> {
+    return this.http.patch<Story>(`/api/stories/${id}`, changes);
+  }
+
+  deleteStory(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/stories/${id}`);
+  }
 }
