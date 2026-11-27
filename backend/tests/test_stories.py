@@ -1,9 +1,10 @@
 import json
+from datetime import timedelta
 
 import pytest
 from sqlmodel import Session
 
-from app.models import Story, StoryStatus
+from app.models import Story, StoryStatus, utc_now
 from app.services import llm
 
 STORY_CHUNKS = ["# The Ball ", "Hunt\n\nMin", "nie chased", " her ball.\n\n", "Every", "one yawned."]
@@ -188,3 +189,31 @@ def test_delete_story_keeps_its_characters(client, character_ids, monkeypatch):
     assert client.get("/api/stories").json() == []
     assert len(client.get("/api/characters").json()) == 10
     assert client.delete(f"/api/stories/{story_id}").status_code == 404
+
+
+def test_daily_limit_stops_new_stories(client, character_ids, monkeypatch):
+    monkeypatch.setenv("MAX_STORIES_PER_DAY", "2")
+    for _ in range(2):
+        assert client.post("/api/stories", json={"character_ids": character_ids}).status_code == 201
+
+    response = client.post("/api/stories", json={"character_ids": character_ids})
+    assert response.status_code == 429
+    assert "Come back tomorrow" in response.json()["detail"]
+
+
+def test_daily_limit_counts_only_the_last_24_hours(client, engine, character_ids, monkeypatch):
+    monkeypatch.setenv("MAX_STORIES_PER_DAY", "1")
+    story_id = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
+    with Session(engine) as session:
+        story = session.get(Story, story_id)
+        story.created_at = utc_now() - timedelta(hours=25)
+        session.add(story)
+        session.commit()
+
+    assert client.post("/api/stories", json={"character_ids": character_ids}).status_code == 201
+
+
+def test_daily_limit_of_zero_means_no_limit(client, character_ids, monkeypatch):
+    monkeypatch.setenv("MAX_STORIES_PER_DAY", "0")
+    for _ in range(3):
+        assert client.post("/api/stories", json={"character_ids": character_ids}).status_code == 201

@@ -1,9 +1,11 @@
 import logging
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
+from app.config import get_settings
 from app.db import get_session
 from app.models import Character, ChildProfile, Story, StoryStatus, utc_now
 from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
@@ -36,8 +38,25 @@ def placeholder_title(names: list[str]) -> str:
     return f"A story with {', '.join(names[:-1])} and {names[-1]}"
 
 
+DAILY_LIMIT_MESSAGE = (
+    "That's all the new stories for today. Come back tomorrow for more, "
+    "or read one of your saved stories tonight."
+)
+
+
+def check_daily_limit(session: Session) -> None:
+    limit = get_settings().max_stories_per_day
+    if limit is None:
+        return
+    since = utc_now() - timedelta(hours=24)
+    started = session.exec(select(func.count()).select_from(Story).where(Story.created_at >= since)).one()
+    if started >= limit:
+        raise HTTPException(429, DAILY_LIMIT_MESSAGE)
+
+
 @router.post("", response_model=StoryRead, status_code=201)
 def create_story(payload: StoryCreate, session: Session = Depends(get_session)) -> StoryRead:
+    check_daily_limit(session)
     ids = list(dict.fromkeys(payload.character_ids))
     characters = session.exec(select(Character).where(Character.id.in_(ids))).all()
     found = {c.id for c in characters}
