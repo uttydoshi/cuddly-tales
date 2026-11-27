@@ -20,7 +20,7 @@ def test_stream_text_sends_settings_and_yields_text(monkeypatch):
 
         return chunks()
 
-    monkeypatch.setattr(llm.litellm, "acompletion", fake_acompletion)
+    monkeypatch.setattr(llm.load_litellm(), "acompletion", fake_acompletion)
     monkeypatch.setenv("LLM_MODEL", "anthropic/claude-opus-5-5")
     monkeypatch.setenv("LLM_REASONING_EFFORT", "low")
 
@@ -32,3 +32,13 @@ def test_stream_text_sends_settings_and_yields_text(monkeypatch):
     assert calls["stream"] is True
     assert calls["reasoning_effort"] == "low"
     assert "temperature" not in calls
+
+
+def test_app_starts_without_importing_litellm():
+    """LiteLLM is slow to import, so the app must not load it until a story is written."""
+    import subprocess
+    import sys
+
+    code = "import sys, app.main; print('litellm' in sys.modules)"
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
+    assert result.stdout.strip() == "False"
