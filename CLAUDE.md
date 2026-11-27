@@ -18,17 +18,21 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
 
 ## Stack
 - Frontend: Angular (standalone components), Angular CDK for drag and drop, Chart.js (ng2-charts) for the dashboard.
-  The built Angular app is served by FastAPI, so the whole app deploys as a single service.
-- Backend: Python, FastAPI, SQLModel. SQLite locally; hosted Postgres (Neon or Supabase free tier) in production.
-  The only difference is `DATABASE_URL`.
+  In production it is served from S3 through CloudFront. Locally FastAPI can also serve the build (one process).
+- Backend: Python, FastAPI, SQLModel, Alembic migrations (run at startup). SQLite locally; Neon Postgres (free tier,
+  AWS us-east-1) in production. The only difference is `DATABASE_URL`.
 - LLM access: LiteLLM SDK (model-agnostic; model name set in env config).
 - Streaming: Server-Sent Events from FastAPI to Angular.
-- Scheduling: APScheduler inside the FastAPI app, plus a "Run now" endpoint so reviewers can trigger it.
+- Scheduling: EventBridge Scheduler (18:30 Australia/Melbourne) invokes the API on Lambda, plus a "Run now" endpoint
+  so reviewers can trigger it.
 - Observability: Langfuse tracing on every LLM call, tagged with feature name and story id.
-- Deploy: a single Render web service, auto-deployed from GitHub, on the custom domain `cuddly-tales.ukdoshi.com`
-  (a CNAME record in Route 53 pointing to Render). Secrets in env vars only, never committed.
-- Free hosting tiers may sleep when idle, so the scheduled job also has a "Run now" button for the demo.
-- Future: move to AWS (App Runner) alongside ukdoshi.com.
+- Deploy: AWS, defined with the AWS CDK in `infra/` (same patterns as ukdoshi-site and ukdoshi-lab, same account):
+  FastAPI on Lambda via the Lambda Web Adapter behind a streaming Function URL, CloudFront in front of S3 and the API,
+  on `cuddly-tales.ukdoshi.com` (records in the existing Route 53 zone, made by the CDK). GitHub Actions tests every
+  PR and deploys `main` (OIDC, no stored keys). One live copy; staging can be added later.
+- Secrets (Claude key, database URL) live in AWS Secrets Manager, set with `scripts/`; locally in `.env`. Never committed.
+- The site is public with no sign-in, so new stories are capped (`MAX_STORIES_PER_DAY`, default 30) and the Claude
+  key has its own spend limit.
 
 ## Domain model
 - **ChildProfile**: name, age (2–6), favourite things. One per deployment for now; the hero of every story.

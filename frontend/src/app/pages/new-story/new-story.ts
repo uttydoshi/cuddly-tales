@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -89,7 +90,12 @@ export class NewStory {
             this.fail(event.message);
           }
         },
-        error: () => this.fail('Could not start the story. Please try again.'),
+        error: (error: HttpErrorResponse) =>
+          this.fail(
+            error.status === 429 && error.error?.detail
+              ? error.error.detail
+              : 'Could not start the story. Please try again.',
+          ),
       });
   }
 

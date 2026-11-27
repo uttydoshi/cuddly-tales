@@ -1,17 +1,29 @@
 import logging
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
+from app.config import get_settings
 from app.db import get_session
 from app.models import Character, ChildProfile, Story, StoryStatus, utc_now
 from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
 from app.services import llm
 from app.services.story_prompt import build_story_messages
-from app.services.story_stream import count_words, reading_minutes, split_title, sse, words_from_chunks
+from app.services.story_stream import (
+    KEEPALIVE,
+    count_words,
+    reading_minutes,
+    split_title,
+    sse,
+    with_keepalive,
+    words_from_chunks,
+)
 
 logger = logging.getLogger(__name__)
+
+KEEPALIVE_SECONDS = 15  # well inside CloudFront's 60-second wait between bytes
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
 
@@ -36,8 +48,25 @@ def placeholder_title(names: list[str]) -> str:
     return f"A story with {', '.join(names[:-1])} and {names[-1]}"
 
 
+DAILY_LIMIT_MESSAGE = (
+    "That's all the new stories for today. Come back tomorrow for more, "
+    "or read one of your saved stories tonight."
+)
+
+
+def check_daily_limit(session: Session) -> None:
+    limit = get_settings().max_stories_per_day
+    if limit is None:
+        return
+    since = utc_now() - timedelta(hours=24)
+    started = session.exec(select(func.count()).select_from(Story).where(Story.created_at >= since)).one()
+    if started >= limit:
+        raise HTTPException(429, DAILY_LIMIT_MESSAGE)
+
+
 @router.post("", response_model=StoryRead, status_code=201)
 def create_story(payload: StoryCreate, session: Session = Depends(get_session)) -> StoryRead:
+    check_daily_limit(session)
     ids = list(dict.fromkeys(payload.character_ids))
     characters = session.exec(select(Character).where(Character.id.in_(ids))).all()
     found = {c.id for c in characters}
@@ -125,7 +154,11 @@ def stream_story(
     async def events():
         parts: list[str] = []
         try:
-            async for word in words_from_chunks(llm.stream_text(messages)):
+            words = words_from_chunks(llm.stream_text(messages))
+            async for word in with_keepalive(words, KEEPALIVE_SECONDS):
+                if word is None:
+                    yield KEEPALIVE
+                    continue
                 parts.append(word)
                 yield sse("word", {"text": word})
         except Exception:
