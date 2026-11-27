@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Character, ChildProfile, Story, StorySummary } from '../models';
+import { Character, CharacterInput, ChildProfile, Story, StorySummary } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -14,6 +14,22 @@ export class ApiService {
 
   listCharacters(): Observable<Character[]> {
     return this.http.get<Character[]>('/api/characters');
+  }
+
+  getCharacter(id: number): Observable<Character> {
+    return this.http.get<Character>(`/api/characters/${id}`);
+  }
+
+  createCharacter(character: CharacterInput): Observable<Character> {
+    return this.http.post<Character>('/api/characters', character);
+  }
+
+  updateCharacter(id: number, changes: Partial<CharacterInput>): Observable<Character> {
+    return this.http.patch<Character>(`/api/characters/${id}`, changes);
+  }
+
+  deleteCharacter(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/characters/${id}`);
   }
 
   createStory(characterIds: number[]): Observable<Story> {

@@ -1,0 +1,57 @@
+<a routerLink="/characters">← All characters</a>
+<h1>{{ id() ? 'Edit character' : 'Add a character' }}</h1>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <label for="name">
+      Name
+      <input id="name" type="text" formControlName="name" maxlength="60" autocomplete="off" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <span class="error">Give the character a name.</span>
+      }
+    </label>
+
+    @if (!isLatteMonster()) {
+      <label for="type">
+        Kind
+        <select id="type" formControlName="type">
+          @for (type of types; track type.value) {
+            <option [value]="type.value">{{ type.label }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <label for="description">
+      Description
+      <span class="hint">Who they are, in a sentence or two.</span>
+      <textarea id="description" formControlName="description" rows="3" maxlength="500"></textarea>
+      @if (form.controls.description.touched && form.controls.description.invalid) {
+        <span class="error">Add a short description.</span>
+      }
+    </label>
+
+    <label for="traits">
+      Personality
+      <span class="hint">One trait per line, for example "brave" or "always hungry".</span>
+      <textarea id="traits" formControlName="traits" rows="3"></textarea>
+    </label>
+
+    <label for="rules">
+      Running jokes and rules
+      <span class="hint">One per line. The story always follows these, for example "Always loses one shoe".</span>
+      <textarea id="rules" formControlName="rules" rows="4"></textarea>
+    </label>
+
+    @if (errorMessage()) {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <div class="actions">
+      <button type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save character' }}</button>
+      <a routerLink="/characters">Cancel</a>
+    </div>
+  </form>
+}

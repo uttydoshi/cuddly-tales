@@ -17,5 +17,20 @@ export const routes: Routes = [
     title: 'Story · Cuddly Tales',
     loadComponent: () => import('./pages/story-detail/story-detail').then((m) => m.StoryDetail),
   },
+  {
+    path: 'characters',
+    title: 'Characters · Cuddly Tales',
+    loadComponent: () => import('./pages/characters/characters').then((m) => m.Characters),
+  },
+  {
+    path: 'characters/new',
+    title: 'Add a character · Cuddly Tales',
+    loadComponent: () => import('./pages/character-form/character-form').then((m) => m.CharacterForm),
+  },
+  {
+    path: 'characters/:id/edit',
+    title: 'Edit character · Cuddly Tales',
+    loadComponent: () => import('./pages/character-form/character-form').then((m) => m.CharacterForm),
+  },
   { path: '**', redirectTo: 'new' },
 ];

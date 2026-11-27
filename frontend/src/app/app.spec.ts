@@ -11,12 +11,12 @@ describe('App', () => {
     }).compileComponents();
   });
 
-  it('shows links to the two main pages', async () => {
+  it('shows links to the main pages', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const links = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
     ).map((a) => a.textContent?.trim());
-    expect(links).toEqual(['New story', 'Stories']);
+    expect(links).toEqual(['New story', 'Stories', 'Characters']);
   });
 });
