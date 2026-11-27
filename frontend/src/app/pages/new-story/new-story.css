@@ -1,0 +1,76 @@
+.group h2 {
+  font-size: 1rem;
+  color: var(--muted);
+  margin: 24px 0 8px;
+}
+
+.cast {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.card.chosen {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.card input {
+  margin-top: 4px;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.description {
+  grid-column: 2;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.story .text {
+  white-space: pre-line;
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.cursor {
+  color: var(--accent);
+  animation: blink 1s steps(2) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+  }
+}

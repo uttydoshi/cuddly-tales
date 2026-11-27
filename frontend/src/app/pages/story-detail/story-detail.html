@@ -1,0 +1,22 @@
+<a routerLink="/stories">← All stories</a>
+
+@if (errorMessage()) {
+  <p class="error" role="alert">{{ errorMessage() }}</p>
+} @else if (story(); as s) {
+  <article>
+    <h1>{{ s.title }}</h1>
+    <p class="muted">
+      With {{ names(s) }}
+      @if (s.reading_minutes) {
+        · {{ s.reading_minutes }} min read · {{ s.word_count }} words
+      }
+    </p>
+    @if (s.text) {
+      <div class="text"><app-story-text [text]="s.text" /></div>
+    } @else {
+      <p class="muted">This story has not been written yet.</p>
+    }
+  </article>
+} @else {
+  <p class="muted">Loading…</p>
+}
