@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 
 from app.db import get_session
 from app.models import Character, ChildProfile, Story, StoryStatus
-from app.schemas import CharacterRef, StoryCreate, StoryRead
+from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary
 from app.services import llm
 from app.services.story_prompt import build_story_messages
 from app.services.story_stream import count_words, reading_minutes, split_title, sse, words_from_chunks
@@ -51,6 +51,20 @@ def create_story(payload: StoryCreate, session: Session = Depends(get_session)) 
     session.add(story)
     session.commit()
     session.refresh(story)
+    return to_story_read(story)
+
+
+@router.get("", response_model=list[StorySummary])
+def list_stories(session: Session = Depends(get_session)) -> list[StorySummary]:
+    stories = session.exec(select(Story).order_by(Story.created_at.desc(), Story.id.desc())).all()
+    return [StorySummary(**to_story_read(s).model_dump()) for s in stories]
+
+
+@router.get("/{story_id}", response_model=StoryRead)
+def get_story(story_id: int, session: Session = Depends(get_session)) -> StoryRead:
+    story = session.get(Story, story_id)
+    if story is None:
+        raise HTTPException(404, "Story not found")
     return to_story_read(story)
 
 

@@ -103,3 +103,30 @@ def test_stream_failure_sends_error_and_keeps_story_planned(client, engine, char
 
 def test_stream_unknown_story_is_404(client):
     assert client.get("/api/stories/9999/stream").status_code == 404
+
+
+def test_list_stories_newest_first(client, character_ids, monkeypatch):
+    monkeypatch.setattr(llm, "stream_text", fake_stream(STORY_CHUNKS))
+    first = client.post("/api/stories", json={"character_ids": character_ids[:1]}).json()["id"]
+    second = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
+    client.get(f"/api/stories/{second}/stream")
+
+    stories = client.get("/api/stories").json()
+    assert [s["id"] for s in stories] == [second, first]
+    assert stories[0]["title"] == "The Ball Hunt"
+    assert stories[0]["status"] == "written"
+    assert "text" not in stories[0]
+
+
+def test_get_story_returns_text(client, character_ids, monkeypatch):
+    monkeypatch.setattr(llm, "stream_text", fake_stream(STORY_CHUNKS))
+    story_id = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
+    client.get(f"/api/stories/{story_id}/stream")
+
+    story = client.get(f"/api/stories/{story_id}").json()
+    assert story["text"].startswith("Minnie chased her ball.")
+    assert story["reading_minutes"] == 1
+
+
+def test_get_unknown_story_is_404(client):
+    assert client.get("/api/stories/9999").status_code == 404
