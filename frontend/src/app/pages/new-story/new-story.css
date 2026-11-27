@@ -133,86 +133,9 @@
   overflow: hidden;
 }
 
-/* --- The pen button: part of the card. Sticky, so it floats at the bottom right while the
-   cast scrolls (above the tab bar on phones) and stops in the card's corner at the end. --- */
-.write {
-  position: sticky;
-  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 1rem);
-  z-index: 20;
-  align-self: flex-end;
-  margin-top: 0.5rem;
-}
-
-.fab {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 3.75rem;
-  height: 3.75rem;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--fab-bg);
-  color: var(--fab-fg);
-  box-shadow: 0 12px 28px -8px rgb(26 26 46 / 0.55);
-  cursor: pointer;
-  transition: transform 0.15s;
-}
-
-.fab:not(.off):hover {
-  transform: scale(1.05);
-}
-
-.fab svg {
-  width: 1.6rem;
-  height: 1.6rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.fab:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 3px;
-}
-
-.fab.busy {
-  opacity: 0.7;
-  cursor: progress;
-}
-
-/* Grey until a friend is picked. */
-.fab.off {
-  background: var(--fab-off-bg);
-  color: var(--fab-off-fg);
-  box-shadow: 0 8px 20px -10px rgb(26 26 46 / 0.35);
-  cursor: default;
-}
-
-/* How many friends are coming, in a magenta badge on the button. */
-.badge {
-  position: absolute;
-  top: -0.2rem;
-  right: -0.2rem;
-  display: grid;
-  place-items: center;
-  min-width: 1.4rem;
-  height: 1.4rem;
-  padding: 0 0.3rem;
-  box-sizing: border-box;
-  border: 2px solid var(--page-bg);
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
 /* A problem (like the daily limit), or a nudge, pops up just above the button. */
-.write .error,
-.write .toast {
+.fab-dock .error,
+.fab-dock .toast {
   position: absolute;
   right: 0;
   bottom: calc(100% + 0.75rem);
@@ -228,17 +151,6 @@
   font-weight: 600;
 }
 
-/* Wider screens: a slightly bigger button, a little further from the bottom. */
-@media (min-width: 768px) {
-  .write {
-    bottom: 2rem;
-  }
-
-  .fab {
-    width: 4rem;
-    height: 4rem;
-  }
-}
 
 /* --- When is it for: Anytime or Bedtime --- */
 .when {

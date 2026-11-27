@@ -1,11 +1,5 @@
 <div class="page">
-  <div class="heading">
-    <h1>Characters</h1>
-    <a class="btn" routerLink="/characters/new">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-      Add
-    </a>
-  </div>
+  <h1>Characters</h1>
   <p class="muted">Each character's running jokes are rules every story follows.</p>
 
   @if (errorMessage()) {
@@ -54,4 +48,15 @@
       </section>
     }
   }
+
+  <!-- The same round action button as the pen on the New story page: bottom right of the card. -->
+  <div class="fab-dock">
+    <a class="fab" routerLink="/characters/new" aria-label="Add a character" title="Add a character">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="9" cy="7" r="4" />
+        <path d="M2 21v-1.5A4.5 4.5 0 0 1 6.5 15h5a4.5 4.5 0 0 1 4.5 4.5V21" />
+        <path d="M19 8v6M16 11h6" />
+      </svg>
+    </a>
+  </div>
 </div>

@@ -344,6 +344,96 @@ a {
   font-size: 0.875rem;
 }
 
+/* --- The round action button (write a story, add a character): part of the page card.
+   Sticky, so it floats at the bottom right while the page scrolls (above the tab bar on phones)
+   and rests in the card's corner at the end, never over the footer. --- */
+.fab-dock {
+  position: sticky;
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 1rem);
+  z-index: 20;
+  align-self: flex-end;
+  margin-top: 0.5rem;
+}
+
+.fab {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fab-bg);
+  color: var(--fab-fg);
+  box-shadow: 0 12px 28px -8px rgb(26 26 46 / 0.55);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.fab:not(.off):hover {
+  transform: scale(1.05);
+}
+
+.fab svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.fab.busy {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* Greyed out until it can be used (the pen: until a friend is picked). */
+.fab.off {
+  background: var(--fab-off-bg);
+  color: var(--fab-off-fg);
+  box-shadow: 0 8px 20px -10px rgb(26 26 46 / 0.35);
+  cursor: default;
+}
+
+/* A count on the button (how many friends are coming), in a magenta badge. */
+.fab .badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.2rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.3rem;
+  box-sizing: border-box;
+  border: 2px solid var(--page-bg);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+@media (min-width: 768px) {
+  .fab-dock {
+    bottom: 2rem;
+  }
+
+  .fab {
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
