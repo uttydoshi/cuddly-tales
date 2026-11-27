@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Baba Yaga, a silly old woman in a polka-dot headscarf">
+  <defs><clipPath id="clip-baba-yaga"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#eadcf8"/>
+  <g clip-path="url(#clip-baba-yaga)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="60" cy="120" rx="34" ry="28" fill="#7c3aed"/>
+    <path d="M30 70 Q28 30 60 26 Q92 30 90 70 Q86 92 60 94 Q34 92 30 70 Z" fill="#7c3aed"/>
+    <ellipse cx="60" cy="64" rx="21" ry="22" fill="#f6d7c3"/>
+    <path d="M40 54 Q38 62 41 66 M80 54 Q82 62 79 66" fill="none" stroke="#c9c3d1" stroke-width="3.5"/>
+    <path d="M50 92 L60 84 L70 92 L64 100 L60 94 L56 100 Z" fill="#7c3aed"/>
+    <ellipse cx="60" cy="67" rx="6.5" ry="5.5" fill="#eab69a"/>
+    <path d="M50 76 Q60 85 70 76" fill="#ffffff"/>
+    <path d="M49 59 Q52 55 55 59 M65 59 Q68 55 71 59" fill="none"/>
+  </g>
+  <g fill="#ffffff" opacity="0.9"><circle cx="42" cy="40" r="3"/><circle cx="56" cy="34" r="3"/><circle cx="72" cy="36" r="3"/><circle cx="84" cy="48" r="3"/><circle cx="36" cy="56" r="2.5"/><circle cx="84" cy="64" r="2.5"/><circle cx="48" cy="106" r="3"/><circle cx="72" cy="108" r="3"/></g>
+  <g fill="#f9a8c9" opacity="0.7"><circle cx="46" cy="70" r="4"/><circle cx="74" cy="70" r="4"/></g>
+</svg>

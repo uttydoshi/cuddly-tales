@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { Character } from '../../models';
 import { ApiService } from '../../services/api.service';
+import { Avatar } from '../../shared/avatar';
 import { groupByType } from '../../shared/character-groups';
 import { ShellService } from '../../shared/shell.service';
 
@@ -19,7 +20,7 @@ export function isEvening(now: Date = new Date()): boolean {
 /** Pick the cast and when the story is for. Writing and reading happen on the story page. */
 @Component({
   selector: 'app-new-story',
-  imports: [RouterLink],
+  imports: [RouterLink, Avatar],
   templateUrl: './new-story.html',
   styleUrl: './new-story.css',
 })

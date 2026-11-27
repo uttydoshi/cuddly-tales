@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Tosia, a tidy grey cat with a pink bow">
+  <defs><clipPath id="clip-tosia"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#d6f5e6"/>
+  <g clip-path="url(#clip-tosia)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="60" cy="106" rx="31" ry="28" fill="#c9ced8"/>
+    <ellipse cx="60" cy="102" rx="14" ry="13" fill="#eef0f4"/>
+    <path d="M36 52 L39 24 L57 40 Z" fill="#c9ced8"/>
+    <path d="M84 52 L81 24 L63 40 Z" fill="#c9ced8"/>
+    <path d="M41 46 L42 32 L51 40 Z" fill="#f9b4cf" stroke-width="2"/>
+    <path d="M79 46 L78 32 L69 40 Z" fill="#f9b4cf" stroke-width="2"/>
+    <ellipse cx="60" cy="62" rx="27" ry="23" fill="#c9ced8"/>
+    <ellipse cx="60" cy="70" rx="12" ry="9" fill="#eef0f4"/>
+    <path d="M57 66 L63 66 L60 70 Z" fill="#f472b6" stroke-width="2"/>
+    <path d="M60 70 Q56 75 52 72 M60 70 Q64 75 68 72" fill="none" stroke-width="2.5"/>
+    <path d="M34 66 H44 M34 72 L44 70 M86 66 H76 M86 72 L76 70" fill="none" stroke-width="2"/>
+    <path d="M74 30 L82 24 L82 36 Z" fill="#f472b6" stroke-width="2.5"/>
+    <path d="M90 30 L82 24 L82 36 Z" fill="#f472b6" stroke-width="2.5" transform="translate(0 0)"/>
+    <circle cx="82" cy="30" r="3" fill="#f9a8d4" stroke-width="2"/>
+  </g>
+  <g fill="#2b2340"><ellipse cx="50" cy="58" rx="3" ry="4.2"/><ellipse cx="70" cy="58" rx="3" ry="4.2"/></g>
+  <g fill="#ffffff"><circle cx="51" cy="56.5" r="1"/><circle cx="71" cy="56.5" r="1"/></g>
+  <g fill="#f9a8c9" opacity="0.6"><circle cx="43" cy="67" r="4"/><circle cx="77" cy="67" r="4"/></g>
+</svg>

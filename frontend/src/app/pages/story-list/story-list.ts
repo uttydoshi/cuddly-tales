@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { StorySummary } from '../../models';
 import { ApiService } from '../../services/api.service';
+import { Avatar } from '../../shared/avatar';
 import { friendlyDate, joinNames } from '../../shared/story-format';
 
 type Filter = 'all' | 'unread' | 'read';
@@ -16,7 +17,7 @@ interface StoryCard {
 
 @Component({
   selector: 'app-story-list',
-  imports: [RouterLink],
+  imports: [RouterLink, Avatar],
   templateUrl: './story-list.html',
   styleUrl: './story-list.css',
 })

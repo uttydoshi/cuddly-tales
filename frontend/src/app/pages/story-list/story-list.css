@@ -87,8 +87,26 @@
 }
 
 .cast {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   font-size: 0.875rem;
   color: var(--muted);
+}
+
+/* Small faces that overlap like a group photo, each with a ring in the card's colour. */
+.faces {
+  display: flex;
+  flex: none;
+}
+
+.faces app-avatar {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.faces app-avatar + app-avatar {
+  margin-left: -0.5rem;
 }
 
 .empty {
@@ -149,4 +167,8 @@
   .stories {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+.story.done .faces app-avatar {
+  box-shadow: 0 0 0 2px var(--surface-soft);
 }
