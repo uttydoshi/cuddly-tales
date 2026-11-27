@@ -13,6 +13,7 @@ load_dotenv(REPO_ROOT / ".env")
 @dataclass(frozen=True)
 class Settings:
     llm_model: str
+    llm_reasoning_effort: str | None
     database_url: str
     frontend_dist: Path
 
@@ -20,6 +21,9 @@ class Settings:
 def get_settings() -> Settings:
     return Settings(
         llm_model=os.getenv("LLM_MODEL", "anthropic/claude-opus-5-5"),
+        # How long the model thinks before writing. "low" gets the first word on screen
+        # quickly; a bedtime story does not need deep reasoning. Empty = provider default.
+        llm_reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "low") or None,
         database_url=os.getenv("DATABASE_URL", "sqlite:///./cuddly_tales.db"),
         frontend_dist=Path(
             os.getenv("FRONTEND_DIST", REPO_ROOT / "frontend" / "dist" / "frontend" / "browser")
