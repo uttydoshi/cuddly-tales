@@ -129,11 +129,6 @@
 
 /* --- Phones: a round floating button with a pen, above the tab bar --- */
 
-/* Room at the end of the page so the button never covers the last cards. */
-.page {
-  padding-bottom: 6rem;
-}
-
 .action {
   box-sizing: border-box;
   max-width: var(--content-width);
@@ -184,6 +179,14 @@
   cursor: progress;
 }
 
+/* Grey until a friend is picked, like the desktop button's disabled look. */
+.fab.off {
+  background: var(--fab-off-bg);
+  color: var(--fab-off-fg);
+  box-shadow: 0 8px 20px -10px rgb(26 26 46 / 0.35);
+  cursor: default;
+}
+
 /* How many friends are coming, in a magenta badge on the button. */
 .badge {
   position: absolute;
@@ -210,8 +213,9 @@
   }
 }
 
-/* A problem (like the daily limit) pops up just above the button. */
-.action .error {
+/* A problem (like the daily limit), or a hint, pops up just above the button. */
+.action .error,
+.action .toast {
   position: fixed;
   left: max(1rem, env(safe-area-inset-left, 0px));
   right: max(1rem, env(safe-area-inset-right, 0px));
@@ -227,10 +231,6 @@
 
 /* --- Wider screens: a floating bar that names who's coming, with the button beside it --- */
 @media (min-width: 768px) {
-  .page {
-    padding-bottom: 3rem;
-  }
-
   .fab {
     display: none;
   }
@@ -273,6 +273,10 @@
     min-width: 14rem;
     padding: 0 1.75rem;
     box-shadow: none;
+  }
+
+  .action .toast {
+    display: none; /* wider screens show the disabled button and its bar instead */
   }
 
   .action .error {

@@ -36,6 +36,9 @@ export class NewStory {
   readonly selected = signal<ReadonlySet<number>>(new Set());
   readonly bedtime = signal(isEvening());
   readonly errorMessage = signal('');
+  /** A short nudge when the pen button is tapped before anyone is picked. */
+  readonly hint = signal('');
+  private hintTimer?: ReturnType<typeof setTimeout>;
 
   readonly groups = computed(() => groupByType(this.characters()));
   readonly count = computed(() => this.selected().size);
@@ -79,7 +82,22 @@ export class NewStory {
     this.selected.set(next);
   }
 
+  /** The pen button on phones: always visible, greyed out until a friend is picked. */
+  pressWrite(): void {
+    if (this.starting()) {
+      return;
+    }
+    if (this.count() === 0) {
+      this.hint.set('Pick at least one friend first.');
+      clearTimeout(this.hintTimer);
+      this.hintTimer = setTimeout(() => this.hint.set(''), 2500);
+      return;
+    }
+    this.generate();
+  }
+
   generate(): void {
+    this.hint.set('');
     this.starting.set(true);
     this.errorMessage.set('');
     this.api.createStory([...this.selected()], this.bedtime()).subscribe({
