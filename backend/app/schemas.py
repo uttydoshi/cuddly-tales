@@ -61,6 +61,7 @@ class CharacterUpdate(CharacterCreate):
 class CharacterRef(BaseModel):
     id: int
     name: str
+    type: CharacterType
 
 
 class StoryCreate(BaseModel):

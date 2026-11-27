@@ -50,6 +50,13 @@ def test_create_story_is_planned_with_characters(client, character_ids):
     assert story["text"] is None
 
 
+def test_story_characters_carry_their_type(client, character_ids):
+    """The type picks a character's placeholder badge on story cards."""
+    client.post("/api/stories", json={"character_ids": character_ids})
+    story = client.get("/api/stories").json()[0]
+    assert [c["type"] for c in story["characters"]] == ["family", "family"]
+
+
 def test_create_story_rejects_unknown_character(client):
     response = client.post("/api/stories", json={"character_ids": [9999]})
     assert response.status_code == 404

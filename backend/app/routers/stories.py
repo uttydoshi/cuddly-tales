@@ -39,7 +39,7 @@ def to_story_read(story: Story) -> StoryRead:
         bedtime=story.bedtime,
         read_at=story.read_at,
         text=story.text,
-        characters=[CharacterRef(id=c.id, name=c.name) for c in story.characters],
+        characters=[CharacterRef(id=c.id, name=c.name, type=c.type) for c in story.characters],
     )
 
 
