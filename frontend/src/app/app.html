@@ -1,13 +1,61 @@
-<header class="bar">
-  <a class="brand" routerLink="/new">Cuddly Tales</a>
-  <nav>
-    <a routerLink="/new" routerLinkActive="active">New story</a>
-    <a routerLink="/stories" routerLinkActive="active">Stories</a>
-    <a routerLink="/characters" routerLinkActive="active">Characters</a>
-    <a routerLink="/profile" routerLinkActive="active">Your child</a>
-  </nav>
-</header>
+@if (!shell.reading()) {
+  <header class="site-header">
+    <a class="brand" routerLink="/new">
+      <!-- A hexagon badge like ukdoshi.com's, with a crescent moon -->
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M20 3 L35 11.5 V28.5 L20 37 L5 28.5 V11.5 Z" stroke-width="2.5" />
+        <path d="M24.5 13.5 a7.5 7.5 0 1 0 2.8 11.6 a6 6 0 0 1 -2.8 -11.6 Z" stroke-width="2.2" />
+      </svg>
+      Cuddly Tales
+    </a>
+    <nav class="top-nav" aria-label="Main">
+      <a class="cta" routerLink="/new" routerLinkActive="active" ariaCurrentWhenActive="page">New story</a>
+      <a routerLink="/stories" routerLinkActive="active" ariaCurrentWhenActive="page">Stories</a>
+      <a routerLink="/characters" routerLinkActive="active" ariaCurrentWhenActive="page">Characters</a>
+      <a routerLink="/profile" routerLinkActive="active" ariaCurrentWhenActive="page">Your child</a>
+    </nav>
+    @if (shell.child(); as child) {
+      <a class="child" routerLink="/profile" [attr.aria-label]="'Profile: ' + child.name + ', ' + child.age">
+        {{ child.name }} · {{ child.age }}
+      </a>
+    }
+  </header>
+}
 
-<main class="page">
+<main [class.with-tabs]="!shell.reading()">
   <router-outlet />
 </main>
+
+@if (!shell.reading()) {
+  <nav class="tabs" aria-label="Main">
+    <a routerLink="/new" routerLinkActive="active" ariaCurrentWhenActive="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+        <path d="M17 3v4M15 5h4" />
+      </svg>
+      New story
+    </a>
+    <a routerLink="/stories" routerLinkActive="active" ariaCurrentWhenActive="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+        <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+      </svg>
+      Stories
+    </a>
+    <a routerLink="/characters" routerLinkActive="active" ariaCurrentWhenActive="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+        <circle cx="17" cy="9" r="2.5" />
+        <path d="M16 14.2a5 5 0 0 1 5.5 4.8" />
+      </svg>
+      Characters
+    </a>
+    <a routerLink="/profile" routerLinkActive="active" ariaCurrentWhenActive="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7.5 2.5c0 5.4-7.5 10-7.5 10Z" />
+      </svg>
+      Your child
+    </a>
+  </nav>
+}

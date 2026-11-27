@@ -32,7 +32,7 @@ export function toParts(text: string): TextPart[] {
 @Component({
   selector: 'app-story-text',
   template: `@for (part of parts(); track $index) {@if (part.italic) {<em>{{ part.text }}</em>} @else {<span>{{ part.text }}</span>}}`,
-  styles: ':host { display: inline; }',
+  styles: ':host { display: inline; } em { font-style: italic; color: var(--accent); }',
 })
 export class StoryText {
   readonly text = input.required<string>();

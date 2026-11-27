@@ -1,42 +1,52 @@
-<h1>Your child</h1>
-<p class="muted">Every story stars your child. Their age sets the story length and how simple the words are.</p>
+<div class="page">
+  <div class="intro">
+    <h1>Your child</h1>
+    <p class="muted">Every story stars your child. Their age sets how long the story is and how simple the words are.</p>
+  </div>
 
-@if (loading()) {
-  <p class="muted">Loading…</p>
-} @else {
-  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-    <label for="name">
-      First name
-      <input id="name" type="text" formControlName="name" maxlength="40" autocomplete="off" />
-      @if (form.controls.name.touched && form.controls.name.invalid) {
-        <span class="error">Add your child's first name.</span>
-      }
-    </label>
-
-    <label for="age">
-      Age
-      <select id="age" formControlName="age">
-        @for (age of ages; track age) {
-          <option [ngValue]="age">{{ age }}</option>
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    <form class="panel" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <label class="field" for="name">
+        First name
+        <input id="name" type="text" formControlName="name" maxlength="40" autocomplete="off" />
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          <span class="error">Add your child's first name.</span>
         }
-      </select>
-    </label>
+      </label>
 
-    <label for="favourites">
-      Favourite things
-      <span class="hint">One per line, for example "bubbles" or "trains". Stories may weave these in.</span>
-      <textarea id="favourites" formControlName="favouriteThings" rows="5"></textarea>
-    </label>
+      <fieldset class="ages">
+        <legend>Age</legend>
+        <div class="age-options">
+          @for (age of ages; track age) {
+            <label class="age" [class.chosen]="form.controls.age.value === age">
+              <input type="radio" formControlName="age" [value]="age" />
+              {{ age }}
+            </label>
+          }
+        </div>
+      </fieldset>
 
-    @if (errorMessage()) {
-      <p class="error" role="alert">{{ errorMessage() }}</p>
-    }
+      <label class="field" for="favourites">
+        Favourite things
+        <span class="hint">One per line, for example "bubbles" or "trains". Stories may weave these in.</span>
+        <textarea id="favourites" formControlName="favouriteThings" rows="5"></textarea>
+      </label>
 
-    <div class="actions">
-      <button type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
-      @if (saved()) {
-        <span class="muted" role="status">Saved.</span>
+      @if (errorMessage()) {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
       }
-    </div>
-  </form>
-}
+
+      <div class="actions">
+        <button type="submit" class="btn" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+        @if (saved()) {
+          <span class="saved" role="status">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+            Saved
+          </span>
+        }
+      </div>
+    </form>
+  }
+</div>

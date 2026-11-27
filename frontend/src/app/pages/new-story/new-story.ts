@@ -1,58 +1,58 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
-import { forkJoin, switchMap } from 'rxjs';
+import { Router, RouterLink } from '@angular/router';
 
-import { Character, ChildProfile } from '../../models';
+import { Character } from '../../models';
 import { ApiService } from '../../services/api.service';
-import { StoryStreamService } from '../../services/story-stream.service';
 import { groupByType } from '../../shared/character-groups';
-import { StoryText } from '../../story-text/story-text';
+import { ShellService } from '../../shared/shell.service';
 
-type Phase = 'loading' | 'pick' | 'streaming' | 'done' | 'error';
+export const MAX_FRIENDS = 6;
 
+/** Pick tonight's cast. Writing and reading happen on the story page, in night mode. */
 @Component({
   selector: 'app-new-story',
-  imports: [RouterLink, StoryText],
+  imports: [RouterLink],
   templateUrl: './new-story.html',
   styleUrl: './new-story.css',
 })
 export class NewStory {
   private readonly api = inject(ApiService);
-  private readonly streams = inject(StoryStreamService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  protected readonly shell = inject(ShellService);
 
-  readonly phase = signal<Phase>('loading');
-  readonly child = signal<ChildProfile | null>(null);
+  readonly maxFriends = MAX_FRIENDS;
+  readonly loading = signal(true);
+  readonly starting = signal(false);
   readonly characters = signal<Character[]>([]);
   readonly selected = signal<ReadonlySet<number>>(new Set());
-  readonly streamedText = signal('');
-  readonly storyId = signal<number | null>(null);
   readonly errorMessage = signal('');
 
   readonly groups = computed(() => groupByType(this.characters()));
-
-  /** The model writes "# Title" on the first line; show it as a heading. */
-  readonly title = computed(() => {
-    const [first] = this.streamedText().split('\n', 1);
-    return first.startsWith('# ') ? first.slice(2) : '';
-  });
-  readonly body = computed(() => {
-    const text = this.streamedText();
-    return text.startsWith('# ') ? text.slice(text.indexOf('\n') + 1 || text.length).trimStart() : text;
+  readonly count = computed(() => this.selected().size);
+  readonly full = computed(() => this.count() >= MAX_FRIENDS);
+  readonly buttonLabel = computed(() => {
+    const n = this.count();
+    if (n === 0) {
+      return 'Pick at least one friend';
+    }
+    return `Write the story with ${n} ${n === 1 ? 'friend' : 'friends'}`;
   });
 
   constructor() {
-    forkJoin([this.api.getProfile(), this.api.listCharacters()])
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.api
+      .listCharacters()
+      .pipe(takeUntilDestroyed())
       .subscribe({
-        next: ([child, characters]) => {
-          this.child.set(child);
+        next: (characters) => {
           this.characters.set(characters);
-          this.phase.set('pick');
+          this.loading.set(false);
         },
-        error: () => this.fail('Could not load the characters. Is the server running?'),
+        error: () => {
+          this.errorMessage.set('Could not load the characters. Please check your connection and try again.');
+          this.loading.set(false);
+        },
       });
   }
 
@@ -60,54 +60,26 @@ export class NewStory {
     const next = new Set(this.selected());
     if (next.has(id)) {
       next.delete(id);
-    } else {
+    } else if (next.size < MAX_FRIENDS) {
       next.add(id);
     }
     this.selected.set(next);
   }
 
   generate(): void {
-    this.phase.set('streaming');
-    this.streamedText.set('');
+    this.starting.set(true);
     this.errorMessage.set('');
-
-    this.api
-      .createStory([...this.selected()])
-      .pipe(
-        switchMap((story) => {
-          this.storyId.set(story.id);
-          return this.streams.stream(story.id);
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (event) => {
-          if (event.type === 'word') {
-            this.streamedText.update((text) => text + event.text);
-          } else if (event.type === 'done') {
-            this.phase.set('done');
-          } else {
-            this.fail(event.message);
-          }
-        },
-        error: (error: HttpErrorResponse) =>
-          this.fail(
-            error.status === 429 && error.error?.detail
-              ? error.error.detail
-              : 'Could not start the story. Please try again.',
-          ),
-      });
-  }
-
-  startOver(): void {
-    this.selected.set(new Set());
-    this.streamedText.set('');
-    this.storyId.set(null);
-    this.phase.set('pick');
-  }
-
-  private fail(message: string): void {
-    this.errorMessage.set(message);
-    this.phase.set('error');
+    this.api.createStory([...this.selected()]).subscribe({
+      // The story page starts the stream when it's opened this way (and only then).
+      next: (story) => this.router.navigate(['/stories', story.id], { state: { stream: true } }),
+      error: (error: HttpErrorResponse) => {
+        this.starting.set(false);
+        this.errorMessage.set(
+          error.status === 429 && error.error?.detail
+            ? error.error.detail
+            : 'Could not start the story. Please try again.',
+        );
+      },
+    });
   }
 }

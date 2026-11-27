@@ -1,44 +1,57 @@
-<div class="heading">
-  <h1>Characters</h1>
-  <a class="add" routerLink="/characters/new">Add character</a>
+<div class="page">
+  <div class="heading">
+    <h1>Characters</h1>
+    <a class="btn" routerLink="/characters/new">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+      Add
+    </a>
+  </div>
+  <p class="muted">Each character's running jokes are rules every story follows.</p>
+
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (characters() === null) {
+    @if (!errorMessage()) {
+      <p class="muted">Gathering the cast…</p>
+    }
+  } @else if (characters()!.length === 0) {
+    <div class="panel empty">
+      <p>No characters yet.</p>
+      <a class="btn" routerLink="/characters/new">Add the first one</a>
+    </div>
+  } @else {
+    @for (group of groups(); track group.type) {
+      <section class="group" [attr.aria-labelledby]="'chars-' + group.type">
+        <h2 class="group-label" [id]="'chars-' + group.type">{{ group.label }}</h2>
+        <ul class="cast">
+          @for (character of group.characters; track character.id) {
+            <li class="panel character">
+              <h3>{{ character.name }}</h3>
+              <p class="muted">{{ character.description }}</p>
+              @if (character.traits.length) {
+                <ul class="traits" aria-label="Personality">
+                  @for (trait of character.traits; track $index) {
+                    <li class="pill quiet">{{ trait }}</li>
+                  }
+                </ul>
+              }
+              @if (character.rules.length) {
+                <ul class="rules" aria-label="Running jokes and rules">
+                  @for (rule of character.rules; track $index) {
+                    <li>{{ rule }}</li>
+                  }
+                </ul>
+              }
+              <div class="actions">
+                <a class="btn quiet" [routerLink]="['/characters', character.id, 'edit']">Edit</a>
+                <app-confirm-delete (confirmed)="remove(character)" />
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
 </div>
-
-@if (errorMessage()) {
-  <p class="error" role="alert">{{ errorMessage() }}</p>
-}
-
-@if (characters() === null) {
-  @if (!errorMessage()) {
-    <p class="muted">Loading…</p>
-  }
-} @else if (characters()!.length === 0) {
-  <p class="muted">No characters yet. <a routerLink="/characters/new">Add the first one</a>.</p>
-} @else {
-  @for (group of groups(); track group.type) {
-    <section>
-      <h2>{{ group.label }}</h2>
-      <ul class="cast">
-        @for (character of group.characters; track character.id) {
-          <li>
-            <h3>{{ character.name }}</h3>
-            <p>{{ character.description }}</p>
-            @if (character.traits.length) {
-              <p class="muted">{{ character.traits.join(' · ') }}</p>
-            }
-            @if (character.rules.length) {
-              <ul class="rules">
-                @for (rule of character.rules; track $index) {
-                  <li>{{ rule }}</li>
-                }
-              </ul>
-            }
-            <div class="actions">
-              <a [routerLink]="['/characters', character.id, 'edit']">Edit</a>
-              <app-confirm-delete (confirmed)="remove(character)" />
-            </div>
-          </li>
-        }
-      </ul>
-    </section>
-  }
-}

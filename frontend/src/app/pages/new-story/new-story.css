@@ -1,76 +1,162 @@
-.group h2 {
-  font-size: 1rem;
-  color: var(--muted);
-  margin: 24px 0 8px;
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.25rem;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .cast {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
-.card {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2px 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
-  cursor: pointer;
-  height: 100%;
-  box-sizing: border-box;
-}
-
-.card.chosen {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.card input {
-  margin-top: 4px;
-}
-
-.name {
-  font-weight: 600;
-}
-
-.description {
-  grid-column: 2;
-  font-size: 0.875rem;
-  color: var(--muted);
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.story .text {
-  white-space: pre-line;
-  font-size: 1.125rem;
-  line-height: 1.7;
-}
-
-.cursor {
-  color: var(--accent);
-  animation: blink 1s steps(2) infinite;
-}
-
-@keyframes blink {
-  50% {
-    opacity: 0;
+@media (min-width: 560px) {
+  .cast {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cursor {
-    animation: none;
+@media (min-width: 1024px) {
+  .cast {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.cast li {
+  display: flex;
+}
+
+/* A whole card is the checkbox's label, so the full card is the tap target. */
+.card {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-height: 4.5rem;
+  padding: 0.75rem 0.75rem 0.8rem 0.9rem;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.card:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.card.chosen {
+  border: 2px solid var(--accent);
+  padding: calc(0.75rem - 1px) calc(0.75rem - 1px) calc(0.8rem - 1px) calc(0.9rem - 1px);
+  background: var(--accent-08);
+}
+
+.name {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.tick {
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.tick .ring {
+  fill: none;
+  stroke: rgb(26 26 46 / 0.25);
+  stroke-width: 1.5;
+}
+
+.tick .check {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chosen .tick .ring {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.chosen .tick .check {
+  stroke: #ffffff;
+}
+
+.description {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The button sits just above the tab bar, where a thumb can reach it. */
+.action {
+  position: sticky;
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
+  z-index: 5;
+  box-sizing: border-box;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1rem 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: linear-gradient(to bottom, transparent, var(--page-bg) 30%);
+}
+
+.action .error {
+  font-weight: 600;
+}
+
+/* Wider screens: an ordinary button under the cards, not a bar stuck to the bottom. */
+@media (min-width: 768px) {
+  .action {
+    position: static;
+    padding: 0 1.5rem 3rem;
+    background: none;
+    align-items: flex-start;
+  }
+
+  .action .btn.big {
+    width: auto;
+    min-width: 22rem;
+    padding: 0 2rem;
   }
 }
