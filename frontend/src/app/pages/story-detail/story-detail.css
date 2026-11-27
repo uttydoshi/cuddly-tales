@@ -5,13 +5,18 @@
 }
 
 /* --- Top: back link and reading controls, nothing else --- */
+/* Stays at the top while the story scrolls, so text size and day/night are always in reach.
+   The fade spans the full width; its content keeps to the page column. */
 .toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   box-sizing: border-box;
   width: 100%;
-  max-width: 42rem;
-  margin: 0 auto;
-  padding: calc(env(safe-area-inset-top, 0px) + 0.75rem) max(0.75rem, env(safe-area-inset-right, 0px)) 0.25rem
-    max(0.75rem, env(safe-area-inset-left, 0px));
+  padding: calc(env(safe-area-inset-top, 0px) + 0.75rem) max(0.75rem, calc((100% - var(--content-width)) / 2 + 0.75rem))
+    1.1rem;
+  /* Solid behind the buttons, fading out just below them. */
+  background: linear-gradient(to bottom, var(--page-bg) 75%, transparent);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -78,9 +83,9 @@
   flex: 1;
   box-sizing: border-box;
   width: 100%;
-  max-width: 42rem;
+  max-width: var(--content-width);
   margin: 0 auto;
-  padding: 0.75rem 1.6rem 1.5rem;
+  padding: 0 1.6rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -161,11 +166,24 @@
   box-sizing: border-box;
   width: 100%;
   /* The fade spans the full width (so it has no edges); its content keeps to the reading column. */
-  padding: 1.25rem max(1rem, calc((100% - 40rem) / 2)) calc(0.9rem + var(--safe-bottom));
+  padding: 1.25rem max(1rem, calc((100% - var(--content-width)) / 2 + 1rem)) calc(0.9rem + var(--safe-bottom));
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   background: linear-gradient(to bottom, transparent, var(--page-bg) 35%);
+}
+
+.footer .fab {
+  align-self: flex-end;
+}
+
+.footer:has(> .fab) {
+  background: none;
+  pointer-events: none;
+}
+
+.footer > .fab {
+  pointer-events: auto;
 }
 
 .status {
@@ -203,4 +221,27 @@
 .footer .error {
   text-align: center;
   font-weight: 600;
+}
+
+/* Wider screens: the story lines up with the other pages' content (same width and margins as
+   their card: the .page width and its ukdoshi.com padding), without the card itself. */
+@media (min-width: 768px) {
+  .reader {
+    --edge: calc(max(0.75rem, (100% - var(--content-width)) / 2) + clamp(2rem, 5vw, 4.5rem));
+  }
+
+  .toolbar {
+    padding-left: calc(var(--edge) - 0.35rem);
+    padding-right: var(--edge);
+  }
+
+  .story {
+    max-width: none;
+    padding: 0.5rem var(--edge) 2rem;
+  }
+
+  .footer {
+    padding-left: var(--edge);
+    padding-right: var(--edge);
+  }
 }
