@@ -44,12 +44,11 @@
 
 @if (!shell.reading()) {
   <app-footer />
-  <!-- Room for the fixed tab bar on phones (0 on wider screens) -->
-  <div class="tab-space" aria-hidden="true"></div>
 }
 
 @if (!shell.reading()) {
-  <nav class="tabs" aria-label="Main">
+  <nav class="tabs" aria-label="Main" [class.over-dark]="tabsOverDark()" [style.--tab]="tabIndex()">
+    <span class="lens" [class.none]="tabIndex() < 0" aria-hidden="true"></span>
     <a routerLink="/new" routerLinkActive="active" ariaCurrentWhenActive="page">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />

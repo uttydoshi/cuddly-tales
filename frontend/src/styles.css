@@ -34,10 +34,41 @@
   --fab-fg: #ffffff;
   --fab-off-bg: #dfe0e8;
   --fab-off-fg: #6b6f85;
-  --glass-bg: rgb(255 255 255 / 0.72); /* the floating tab bar: frosted, but solid enough to read over the dark footer */
-  --glass-edge: rgb(255 255 255 / 0.7);
-  --glass-shadow: rgb(26 26 46 / 0.28);
-  --tab-on-bg: rgb(181 24 111 / 0.12); /* the current tab's capsule */
+  /* Liquid-glass tab bar: two fixed sets, light glass (--lgl-) and dark glass (--lgd-), so the bar
+     can switch to dark glass over the dark footer even in light mode. --lg- is the set in use. */
+  --lgl-tint: rgb(255 255 255 / 0.3);
+  --lgl-sheen-top: rgb(255 255 255 / 0.55);
+  --lgl-sheen-mid: rgb(255 255 255 / 0.1);
+  --lgl-edge: rgb(255 255 255 / 0.55);
+  --lgl-highlight: rgb(255 255 255 / 0.95);
+  --lgl-shadow: rgb(26 26 46 / 0.25);
+  --lgl-label: #1a1a2e;
+  --lgl-label-glow: rgb(255 255 255 / 0.7);
+  --lgl-lens-top: rgb(255 255 255 / 0.8);
+  --lgl-lens-bottom: rgb(255 255 255 / 0.35);
+  --lgl-active: #b5186f;
+  --lgd-tint: rgb(22 22 42 / 0.45);
+  --lgd-sheen-top: rgb(255 255 255 / 0.16);
+  --lgd-sheen-mid: rgb(255 255 255 / 0.03);
+  --lgd-edge: rgb(255 255 255 / 0.18);
+  --lgd-highlight: rgb(255 255 255 / 0.4);
+  --lgd-shadow: rgb(0 0 0 / 0.55);
+  --lgd-label: #f3eefa;
+  --lgd-label-glow: rgb(0 0 0 / 0.45);
+  --lgd-lens-top: rgb(255 255 255 / 0.24);
+  --lgd-lens-bottom: rgb(255 255 255 / 0.07);
+  --lgd-active: #f2a7cf;
+  --lg-tint: var(--lgl-tint);
+  --lg-sheen-top: var(--lgl-sheen-top);
+  --lg-sheen-mid: var(--lgl-sheen-mid);
+  --lg-edge: var(--lgl-edge);
+  --lg-highlight: var(--lgl-highlight);
+  --lg-shadow: var(--lgl-shadow);
+  --lg-label: var(--lgl-label);
+  --lg-label-glow: var(--lgl-label-glow);
+  --lg-lens-top: var(--lgl-lens-top);
+  --lg-lens-bottom: var(--lgl-lens-bottom);
+  --lg-active: var(--lgl-active);
   --bg: radial-gradient(circle at 20% 15%, #ede9fe, transparent 45%),
     radial-gradient(circle at 85% 85%, #e0f2fe, transparent 45%), var(--page-bg);
   --font-heading: 'Source Serif 4 Variable', Georgia, serif;
@@ -79,10 +110,17 @@
   --fab-fg: #0b0b16;
   --fab-off-bg: #2a2a44;
   --fab-off-fg: #8d8aa3;
-  --glass-bg: rgb(28 28 50 / 0.72);
-  --glass-edge: rgb(255 255 255 / 0.14);
-  --glass-shadow: rgb(0 0 0 / 0.55);
-  --tab-on-bg: rgb(242 167 207 / 0.16);
+  --lg-tint: var(--lgd-tint);
+  --lg-sheen-top: var(--lgd-sheen-top);
+  --lg-sheen-mid: var(--lgd-sheen-mid);
+  --lg-edge: var(--lgd-edge);
+  --lg-highlight: var(--lgd-highlight);
+  --lg-shadow: var(--lgd-shadow);
+  --lg-label: var(--lgd-label);
+  --lg-label-glow: var(--lgd-label-glow);
+  --lg-lens-top: var(--lgd-lens-top);
+  --lg-lens-bottom: var(--lgd-lens-bottom);
+  --lg-active: var(--lgd-active);
   --text: #e9e4f2;
   --heading: #f3eefa;
   --muted: #a3a8c3;

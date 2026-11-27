@@ -49,6 +49,9 @@ import { RouterLink } from '@angular/router';
 
     .site-footer {
       margin-top: 2.5rem;
+      /* Room for the floating tab bar on phones (0 on wider screens), inside the dark band,
+         so at the end of the page the bar sits over dark and its dark glass reads cleanly. */
+      padding-bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
       background: var(--dark);
       color: rgb(255 255 255 / 0.6);
       font-size: 0.9rem;
