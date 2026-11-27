@@ -204,19 +204,6 @@ main {
     font-weight: 700;
   }
 
-  /* The primary action stands out as the bar's one button, white on navy. */
-  .top-nav a.cta {
-    margin-right: 0.25rem;
-    background: #ffffff;
-    color: var(--dark);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .top-nav a.cta.active {
-    background: var(--accent);
-    color: var(--on-accent); /* white on magenta; dark on night mode's pale pink */
-  }
 
   .child {
     margin-left: 0.25rem;
