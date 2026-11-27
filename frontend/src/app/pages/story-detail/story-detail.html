@@ -116,7 +116,23 @@
             <button type="button" class="link" [disabled]="busy()" (click)="setRead(s, false)">Mark as not read</button>
           </p>
         } @else {
-          <button type="button" class="btn big" [disabled]="busy()" (click)="setRead(s, true)">Mark as read</button>
+          <!-- The same round action button as the pen and add-character buttons. -->
+          <button
+            type="button"
+            class="fab"
+            [class.busy]="busy()"
+            [disabled]="busy()"
+            (click)="setRead(s, true)"
+            aria-label="Mark as read"
+            title="Mark as read"
+          >
+            <!-- The Stories tab's book, with a tick on the cover -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+              <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+              <path d="M8.8 10.6l2.4 2.4 4.6-4.8" />
+            </svg>
+          </button>
         }
       </footer>
     }
