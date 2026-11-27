@@ -1,0 +1,116 @@
+name: Test and deploy
+
+# Pull requests: backend and frontend tests.
+# Pushes to main: the same tests, then a production build and a CDK deploy to
+# cuddly-tales.ukdoshi.com. A failing test stops the deploy.
+# "Run workflow" on the Actions tab redeploys main by hand.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One run per branch at a time; a newer push waits instead of cancelling a deploy midway.
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write # lets the deploy job log in to AWS via OIDC
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Test backend
+        working-directory: backend
+        run: |
+          pip install -r requirements-dev.txt
+          python -m pytest
+
+      - name: Test frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm test -- --watch=false
+
+  deploy:
+    needs: test
+    if: github.ref_name == 'main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        id: python
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            infra/requirements.txt
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      # The CDK tools are a big download; keep them between runs (same as ukdoshi-lab).
+      - name: Restore CDK CLI
+        id: cdk-cli
+        uses: actions/cache@v4
+        with:
+          path: ~/.cdk-cli
+          key: cdk-cli-2.1146.1-node24
+
+      - name: Restore CDK Python environment
+        id: cdk-venv
+        uses: actions/cache@v4
+        with:
+          path: infra/.venv
+          key: cdk-venv-${{ runner.os }}-py${{ steps.python.outputs.python-version }}-${{ hashFiles('infra/requirements.txt') }}
+
+      - name: Install CDK
+        working-directory: infra
+        run: |
+          if [ "${{ steps.cdk-cli.outputs.cache-hit }}" != "true" ]; then
+            npm install --prefix ~/.cdk-cli aws-cdk@2.1146.1
+          fi
+          echo "$HOME/.cdk-cli/node_modules/.bin" >> "$GITHUB_PATH"
+          if [ "${{ steps.cdk-venv.outputs.cache-hit }}" != "true" ]; then
+            python -m venv .venv
+            .venv/bin/pip install -r requirements.txt
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::652284808153:role/cuddly-tales-github-deploy
+          aws-region: us-east-1
+
+      - name: Deploy cuddly-tales.ukdoshi.com
+        working-directory: infra
+        run: cdk deploy CuddlyTalesSite --require-approval never
