@@ -20,7 +20,6 @@
   --ok-12: rgb(22 163 74 / 0.12);
   --error: #b91c1c;
   --page-bg: #f8fafc;
-  --bar-bg: rgb(255 255 255 / 0.97); /* bottom tab bar */
   --border-strong: rgb(26 26 46 / 0.25); /* empty tick circles */
   --on-accent: #ffffff; /* a tick on the accent colour */
   --focus: #1a1a2e; /* focus ring on things that use the accent for "chosen" */
@@ -35,12 +34,48 @@
   --fab-fg: #ffffff;
   --fab-off-bg: #dfe0e8;
   --fab-off-fg: #6b6f85;
+  /* Liquid-glass tab bar: two fixed sets, light glass (--lgl-) and dark glass (--lgd-), so the bar
+     can switch to dark glass over the dark footer even in light mode. --lg- is the set in use. */
+  --lgl-tint: rgb(220 220 234 / 0.72); /* a cool grey, so the bar shows up on white cards */
+  --lgl-sheen-top: rgb(255 255 255 / 0.6);
+  --lgl-sheen-mid: rgb(255 255 255 / 0.12);
+  --lgl-edge: rgb(26 26 46 / 0.1); /* a dark hairline outline */
+  --lgl-highlight: rgb(255 255 255 / 0.95);
+  --lgl-shadow: rgb(26 26 46 / 0.38);
+  --lgl-label: #1a1a2e;
+  --lgl-label-glow: rgb(255 255 255 / 0.7);
+  --lgl-lens-top: rgb(255 255 255 / 0.95);
+  --lgl-lens-bottom: rgb(251 231 243 / 0.85); /* a hint of magenta */
+  --lgl-active: #b5186f;
+  --lgd-tint: rgb(22 22 42 / 0.45);
+  --lgd-sheen-top: rgb(255 255 255 / 0.16);
+  --lgd-sheen-mid: rgb(255 255 255 / 0.03);
+  --lgd-edge: rgb(255 255 255 / 0.18);
+  --lgd-highlight: rgb(255 255 255 / 0.4);
+  --lgd-shadow: rgb(0 0 0 / 0.55);
+  --lgd-label: #f3eefa;
+  --lgd-label-glow: rgb(0 0 0 / 0.45);
+  --lgd-lens-top: rgb(255 255 255 / 0.24);
+  --lgd-lens-bottom: rgb(255 255 255 / 0.07);
+  --lgd-active: #f2a7cf;
+  --lg-tint: var(--lgl-tint);
+  --lg-sheen-top: var(--lgl-sheen-top);
+  --lg-sheen-mid: var(--lgl-sheen-mid);
+  --lg-edge: var(--lgl-edge);
+  --lg-highlight: var(--lgl-highlight);
+  --lg-shadow: var(--lgl-shadow);
+  --lg-label: var(--lgl-label);
+  --lg-label-glow: var(--lgl-label-glow);
+  --lg-lens-top: var(--lgl-lens-top);
+  --lg-lens-bottom: var(--lgl-lens-bottom);
+  --lg-active: var(--lgl-active);
   --bg: radial-gradient(circle at 20% 15%, #ede9fe, transparent 45%),
     radial-gradient(circle at 85% 85%, #e0f2fe, transparent 45%), var(--page-bg);
   --font-heading: 'Source Serif 4 Variable', Georgia, serif;
   --font-body: 'Figtree Variable', Helvetica, Arial, sans-serif;
   --font-script: 'Mrs Saint Delafield', cursive;
-  --tab-bar-height: 64px;
+  /* The floating tab bar's height plus its gap above the screen's bottom edge. */
+  --tab-bar-height: 4.6rem;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --content-width: 40rem;
   color-scheme: light;
@@ -61,7 +96,6 @@
    own styles never matches, because Angular scopes it to the component. */
 :root.night {
   --dark: #20203a; /* the top bar, lifted a little off the dark page */
-  --bar-bg: rgb(16 16 31 / 0.97);
   --border-strong: rgb(255 255 255 / 0.3);
   --on-accent: #0b0b16;
   --focus: #f3eefa;
@@ -76,6 +110,17 @@
   --fab-fg: #0b0b16;
   --fab-off-bg: #2a2a44;
   --fab-off-fg: #8d8aa3;
+  --lg-tint: var(--lgd-tint);
+  --lg-sheen-top: var(--lgd-sheen-top);
+  --lg-sheen-mid: var(--lgd-sheen-mid);
+  --lg-edge: var(--lgd-edge);
+  --lg-highlight: var(--lgd-highlight);
+  --lg-shadow: var(--lgd-shadow);
+  --lg-label: var(--lgd-label);
+  --lg-label-glow: var(--lgd-label-glow);
+  --lg-lens-top: var(--lgd-lens-top);
+  --lg-lens-bottom: var(--lgd-lens-bottom);
+  --lg-active: var(--lgd-active);
   --text: #e9e4f2;
   --heading: #f3eefa;
   --muted: #a3a8c3;
