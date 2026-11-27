@@ -2,7 +2,8 @@
 
 ## What this is
 A take-home assessment app (due in 3 days) for a Head of Engineering (AI) role.
-"Cuddly Tales" generates short, gentle bedtime stories for young children (ages 2–6), starring
+"Cuddly Tales" generates short, gentle stories for young children (ages 2–6), for any time of day or
+as a calm bedtime story, starring
 the child as the hero, their family and pets, original characters, public-domain folklore, and
 "latte monsters" created from photos of latte art. Any family can use it: a parent sets up
 the child's profile (name, age, favourite things) and their own characters. The seed data is
@@ -39,7 +40,7 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
   Age drives story length, vocabulary and the scariness limit.
 - **Character**: name, type (family | original | folklore | latte_monster | custom), description,
   personality traits, running gags / consistency rules, image (optional, latte monsters only).
-- **Story**: title, characters (many-to-many), plot cards (ordered), status
+- **Story**: title, characters (many-to-many), plot cards (ordered), bedtime (yes/no), status
   (idea | planned | written | read), text, reading time, safety check result, created/read dates.
 - **PlotCard**: story id, position, short beat text.
 - **AgentRun**: goal, status, ordered steps (tool name, input summary, output summary, timestamps).
@@ -61,7 +62,8 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
   Parents may add custom characters at runtime; those are user data and never committed.
 - No real children's names or family photos in the repo.
 - Stories match the child's age (default 3): a 3–5 minute read (roughly 300–600 words for age 3),
-  simple vocabulary, nothing frightening, a warm and calm ending suitable for sleep.
+  simple vocabulary, nothing frightening, and a warm, happy ending. A bedtime story (the parent's choice per
+  story) ends calm and ready for sleep, and reads in night mode.
 
 ## AI features
 1. **Story generation (streaming)**: build the prompt from the selected characters, their rules and the ordered plot cards; stream the text.
