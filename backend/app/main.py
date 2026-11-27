@@ -8,6 +8,7 @@ from sqlmodel import Session
 
 from app.config import get_settings
 from app.db import create_tables, make_engine
+from app.routers import characters, profile
 from app.seed import seed_if_empty
 
 
@@ -28,6 +29,9 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     @app.get("/api/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    app.include_router(profile.router)
+    app.include_router(characters.router)
 
     return app
 
