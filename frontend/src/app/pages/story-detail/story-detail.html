@@ -58,7 +58,22 @@
         </div>
       </form>
     } @else {
-      <article class="story" [attr.aria-busy]="writing() === 'streaming'">
+      <article class="story" [attr.aria-busy]="live()">
+        @if (!live() && s.safety_status === 'needs_review') {
+          <section class="review" aria-labelledby="review-title">
+            <h2 id="review-title">Please read this one first</h2>
+            <p>The safety check wasn't sure this story is right for {{ childName() }}. Here's what it found:</p>
+            <ul>
+              @for (problem of problems(); track $index) {
+                <li>{{ problem }}</li>
+              }
+            </ul>
+            <div class="row">
+              <button type="button" class="btn" [disabled]="busy()" (click)="approve(s)">It's fine</button>
+              <button type="button" class="btn quiet" [disabled]="busy()" (click)="startEditing(s)">Edit it</button>
+            </div>
+          </section>
+        }
         @if (s.characters.length) {
           <div class="faces">
             @for (character of s.characters; track character.id) {
@@ -73,7 +88,7 @@
           @for (paragraph of paragraphs(); track $index; let last = $last) {
             <p>
               <app-story-text [text]="paragraph" />
-              @if (last && writing() === 'streaming') {
+              @if (last && live()) {
                 <span class="cursor" aria-hidden="true"></span>
               }
             </p>
@@ -85,6 +100,13 @@
             }
           }
         </div>
+
+        @if (writing() === 'idle' && checkedNote()) {
+          <p class="checked">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z" /><path d="M8.8 12.2l2.2 2.2 4.2-4.4" /></svg>
+            {{ checkedNote() }}
+          </p>
+        }
 
         @if (writing() === 'idle' && s.text !== null) {
           <div class="row quiet-actions">
@@ -103,7 +125,13 @@
         @if (writing() === 'streaming') {
           <p class="status" role="status">
             <span class="dot" aria-hidden="true"></span>
-            Still writing · {{ wordsSoFar() }} {{ wordsSoFar() === 1 ? 'word' : 'words' }} so far
+            {{ rewriting() ? 'Making it just right for ' + childName() : 'Still writing' }} · {{ wordsSoFar() }}
+            {{ wordsSoFar() === 1 ? 'word' : 'words' }} so far
+          </p>
+        } @else if (writing() === 'checking') {
+          <p class="status" role="status">
+            <span class="dot" aria-hidden="true"></span>
+            Checking it's just right for {{ childName() }}…
           </p>
         } @else if (writing() === 'failed') {
           <p class="error" role="alert">{{ writeError() }}</p>

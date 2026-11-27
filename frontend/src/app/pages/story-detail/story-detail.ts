@@ -8,6 +8,7 @@ import { ApiService } from '../../services/api.service';
 import { StoryStreamService } from '../../services/story-stream.service';
 import { Avatar } from '../../shared/avatar';
 import { ConfirmDelete } from '../../shared/confirm-delete';
+import { safetyNote } from '../../shared/safety-note';
 import { ShellService } from '../../shared/shell.service';
 import { countWords, friendlyDate, joinNames, toParagraphs } from '../../shared/story-format';
 import { StoryText } from '../../story-text/story-text';
@@ -17,7 +18,8 @@ export const TEXT_SIZES = [18, 19.5, 21, 23, 25];
 const DEFAULT_SIZE_INDEX = 2;
 const SIZE_KEY = 'cuddly-tales.text-size';
 
-type Writing = 'idle' | 'streaming' | 'failed';
+/** streaming: words arriving (first version or the rewrite). checking: the safety and age check. */
+type Writing = 'idle' | 'streaming' | 'checking' | 'failed';
 
 /** Reading a story: full screen, large type, night mode for bedtime stories. Also where a new story streams in. */
 @Component({
@@ -44,6 +46,8 @@ export class StoryDetail {
   readonly editing = signal(false);
   readonly busy = signal(false);
   readonly sizeIndex = signal(loadSizeIndex());
+  /** The check found problems and the story is being rewritten once to fix them. */
+  readonly rewriting = signal(false);
 
   readonly textSize = computed(() => TEXT_SIZES[this.sizeIndex()]);
   readonly cast = computed(() => joinNames(this.story()?.characters.map((c) => c.name) ?? []));
@@ -62,12 +66,16 @@ export class StoryDetail {
     return newline === -1 ? '' : text.slice(newline + 1);
   });
 
+  /** Showing the text as it streams (and while it's checked), not the saved story. */
+  readonly live = computed(() => this.writing() === 'streaming' || this.writing() === 'checking');
   readonly title = computed(() =>
-    this.writing() === 'streaming' ? this.streamedTitle() || 'Writing your story…' : (this.story()?.title ?? ''),
+    this.live() ? this.streamedTitle() || 'Writing your story…' : (this.story()?.title ?? ''),
   );
-  readonly paragraphs = computed(() =>
-    toParagraphs(this.writing() === 'streaming' ? this.streamedBody() : (this.story()?.text ?? '')),
-  );
+  readonly paragraphs = computed(() => toParagraphs(this.live() ? this.streamedBody() : (this.story()?.text ?? '')));
+  /** What the safety check found in the version that was kept (the last one it looked at). */
+  readonly problems = computed(() => this.story()?.safety?.attempts.at(-1)?.problems ?? []);
+  readonly childName = computed(() => this.shell.child()?.name ?? 'your child');
+  readonly checkedNote = computed(() => safetyNote(this.story()?.safety_status, this.shell.child()?.age));
   readonly wordsSoFar = computed(() => countWords(this.streamedBody()));
   readonly readOn = computed(() => {
     const readAt = this.story()?.read_at;
@@ -119,10 +127,18 @@ export class StoryDetail {
     this.stream?.unsubscribe();
     this.streamed.set('');
     this.writeError.set('');
+    this.rewriting.set(false);
     this.writing.set('streaming');
     this.stream = this.streams.stream(story.id).subscribe((event) => {
       if (event.type === 'word') {
         this.streamed.update((text) => text + event.text);
+      } else if (event.type === 'checking') {
+        this.writing.set('checking');
+      } else if (event.type === 'rewriting') {
+        // The rewrite streams in place of the first version.
+        this.streamed.set('');
+        this.rewriting.set(true);
+        this.writing.set('streaming');
       } else if (event.type === 'done') {
         // Swap the streamed text for the saved story (title, word count, reading time).
         this.api.getStory(story.id).subscribe({
@@ -172,6 +188,11 @@ export class StoryDetail {
     this.update(story, { read });
   }
 
+  /** A parent has read a story the check flagged and says it's fine. */
+  approve(story: Story): void {
+    this.update(story, { approve: true });
+  }
+
   remove(story: Story): void {
     this.busy.set(true);
     this.api.deleteStory(story.id).subscribe({
@@ -183,7 +204,11 @@ export class StoryDetail {
     });
   }
 
-  private update(story: Story, changes: { title?: string; text?: string; read?: boolean }, done?: () => void): void {
+  private update(
+    story: Story,
+    changes: { title?: string; text?: string; read?: boolean; approve?: boolean },
+    done?: () => void,
+  ): void {
     this.busy.set(true);
     this.actionError.set('');
     this.api.updateStory(story.id, changes).subscribe({
@@ -205,6 +230,7 @@ export class StoryDetail {
     this.notFound.set(false);
     this.editing.set(false);
     this.writing.set('idle');
+    this.rewriting.set(false);
     this.streamed.set('');
   }
 

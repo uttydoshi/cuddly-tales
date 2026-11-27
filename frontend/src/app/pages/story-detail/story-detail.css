@@ -151,6 +151,56 @@
   gap: 0.6rem;
 }
 
+.checked {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ok);
+}
+
+.checked svg {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A story the check flagged: the parent reads it first, then approves or edits it. */
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--warn);
+  border-radius: 1rem;
+  background: var(--warn-12);
+}
+
+.review h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--warn);
+}
+
+.review p,
+.review ul {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.review ul {
+  padding-left: 1.2rem;
+}
+
 .quiet-actions {
   margin-top: 1.5rem;
 }
