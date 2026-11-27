@@ -153,9 +153,8 @@
   bottom: 0;
   box-sizing: border-box;
   width: 100%;
-  max-width: 42rem;
-  margin: 0 auto;
-  padding: 1.25rem 1rem calc(0.9rem + var(--safe-bottom));
+  /* The fade spans the full width (so it has no edges); its content keeps to the reading column. */
+  padding: 1.25rem max(1rem, calc((100% - 40rem) / 2)) calc(0.9rem + var(--safe-bottom));
   display: flex;
   flex-direction: column;
   gap: 0.6rem;

@@ -11,11 +11,11 @@ describe('App', () => {
     }).compileComponents();
   });
 
-  it('shows links to the main pages', async () => {
+  it('shows the main pages in the tab bar', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const links = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll('nav.tabs a'),
     ).map((a) => a.textContent?.trim());
     expect(links).toEqual(['New story', 'Stories', 'Characters', 'Your child']);
   });

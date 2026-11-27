@@ -5,7 +5,7 @@
   z-index: 10;
   box-sizing: border-box;
   width: calc(100% - 1.5rem);
-  max-width: 40rem;
+  max-width: calc(var(--content-width) - 1rem);
   margin: calc(env(safe-area-inset-top, 0px) + 0.75rem) auto 0;
   display: flex;
   align-items: center;
@@ -113,4 +113,62 @@ main.with-tabs {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* --- Top-bar links: tablets and up, in place of the tab bar (as on ukdoshi.com) --- */
+.top-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .tabs {
+    display: none;
+  }
+
+  .top-nav {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: auto;
+  }
+
+  .top-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 0.85rem;
+    border-radius: 0.6rem;
+    color: #ffffff;
+    font-size: 0.95rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .top-nav a:hover,
+  .top-nav a.active {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+  }
+
+  .top-nav a.active {
+    font-weight: 700;
+  }
+
+  /* The primary action stands out as the bar's one button, white on navy. */
+  .top-nav a.cta {
+    margin-right: 0.25rem;
+    background: #ffffff;
+    color: var(--dark);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .top-nav a.cta.active {
+    background: var(--accent);
+    color: #ffffff;
+  }
+
+  .child {
+    margin-left: 0.5rem;
+  }
 }

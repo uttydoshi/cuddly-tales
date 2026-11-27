@@ -97,3 +97,19 @@
   align-items: flex-start;
   gap: 0.75rem;
 }
+
+@media (min-width: 768px) {
+  .stories {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .stories li {
+    display: flex;
+  }
+
+  .story {
+    flex: 1;
+  }
+}

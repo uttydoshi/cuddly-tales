@@ -8,6 +8,12 @@
       </svg>
       Cuddly Tales
     </a>
+    <nav class="top-nav" aria-label="Main">
+      <a class="cta" routerLink="/new" routerLinkActive="active" ariaCurrentWhenActive="page">New story</a>
+      <a routerLink="/stories" routerLinkActive="active" ariaCurrentWhenActive="page">Stories</a>
+      <a routerLink="/characters" routerLinkActive="active" ariaCurrentWhenActive="page">Characters</a>
+      <a routerLink="/profile" routerLinkActive="active" ariaCurrentWhenActive="page">Your child</a>
+    </nav>
     @if (shell.child(); as child) {
       <a class="child" routerLink="/profile" [attr.aria-label]="'Profile: ' + child.name + ', ' + child.age">
         {{ child.name }} · {{ child.age }}

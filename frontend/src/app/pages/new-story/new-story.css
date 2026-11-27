@@ -26,6 +26,12 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .cast {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .cast li {
   display: flex;
 }
@@ -126,7 +132,7 @@
   bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
   z-index: 5;
   box-sizing: border-box;
-  max-width: 40rem;
+  max-width: var(--content-width);
   margin: 0 auto;
   padding: 1rem 1rem 0.75rem;
   display: flex;
@@ -137,4 +143,20 @@
 
 .action .error {
   font-weight: 600;
+}
+
+/* Wider screens: an ordinary button under the cards, not a bar stuck to the bottom. */
+@media (min-width: 768px) {
+  .action {
+    position: static;
+    padding: 0 1.5rem 3rem;
+    background: none;
+    align-items: flex-start;
+  }
+
+  .action .btn.big {
+    width: auto;
+    min-width: 22rem;
+    padding: 0 2rem;
+  }
 }
