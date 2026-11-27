@@ -4,7 +4,9 @@ run and checked on its own:
     python infra/stacks/bundle.py /tmp/bundle
 """
 
+import compileall
 import os
+import py_compile
 import shutil
 import subprocess
 import sys
@@ -25,6 +27,28 @@ MAX_BUNDLE_MB = 235
 
 def folder_size_mb(folder: Path) -> float:
     return sum(f.stat().st_size for f in folder.rglob("*") if f.is_file()) / 1_000_000
+
+
+def precompile(folder: Path) -> None:
+    """Precompile every .py file so Lambda can use the bytecode as shipped.
+
+    Lambda can't write to its code folder, and the CDK gives every file in the
+    package the same fixed timestamp. Ordinary .pyc files are checked against
+    the source's timestamp, so Python would reject them all and recompile on every
+    cold start. Unchecked-hash .pyc files skip that check, which is safe because
+    the package never changes after it's built. Measured: about half the import time.
+    """
+    if sys.version_info[:2] != tuple(int(p) for p in PYTHON_VERSION.split(".")):
+        raise RuntimeError(f"Build with Python {PYTHON_VERSION} so the bytecode matches Lambda's runtime.")
+    ok = compileall.compile_dir(
+        str(folder),
+        quiet=1,
+        force=True,  # replace pip's timestamp-checked .pyc files too
+        workers=0,
+        invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH,
+    )
+    if not ok:
+        raise RuntimeError("Precompiling the Lambda package failed.")
 
 
 def bundle_backend(output_dir: str) -> float:
@@ -51,6 +75,7 @@ def bundle_backend(output_dir: str) -> float:
     )
     shutil.copy2(BACKEND_DIR / "run.sh", out / "run.sh")
     os.chmod(out / "run.sh", 0o755)
+    precompile(out)
 
     size = folder_size_mb(out)
     if size > MAX_BUNDLE_MB:
