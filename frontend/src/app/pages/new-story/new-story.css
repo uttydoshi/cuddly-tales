@@ -32,6 +32,12 @@
   }
 }
 
+@media (min-width: 1280px) {
+  .cast {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
 .cast li {
   display: flex;
 }
@@ -127,24 +133,18 @@
   overflow: hidden;
 }
 
-/* --- Phones: a round floating button with a pen, above the tab bar --- */
-
-.action {
-  box-sizing: border-box;
-  max-width: var(--content-width);
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-.bar {
-  display: none;
+/* --- The pen button: part of the card. Sticky, so it floats at the bottom right while the
+   cast scrolls (above the tab bar on phones) and stops in the card's corner at the end. --- */
+.write {
+  position: sticky;
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 1rem);
+  z-index: 20;
+  align-self: flex-end;
+  margin-top: 0.5rem;
 }
 
 .fab {
-  position: fixed;
-  right: max(1rem, env(safe-area-inset-right, 0px));
-  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 1rem);
-  z-index: 20;
+  position: relative;
   display: grid;
   place-items: center;
   width: 3.75rem;
@@ -156,7 +156,11 @@
   color: var(--fab-fg);
   box-shadow: 0 12px 28px -8px rgb(26 26 46 / 0.55);
   cursor: pointer;
-  animation: fab-in 0.18s ease-out;
+  transition: transform 0.15s;
+}
+
+.fab:not(.off):hover {
+  transform: scale(1.05);
 }
 
 .fab svg {
@@ -179,7 +183,7 @@
   cursor: progress;
 }
 
-/* Grey until a friend is picked, like the desktop button's disabled look. */
+/* Grey until a friend is picked. */
 .fab.off {
   background: var(--fab-off-bg);
   color: var(--fab-off-fg);
@@ -206,22 +210,17 @@
   font-weight: 800;
 }
 
-@keyframes fab-in {
-  from {
-    transform: scale(0.6);
-    opacity: 0;
-  }
-}
-
-/* A problem (like the daily limit), or a hint, pops up just above the button. */
-.action .error,
-.action .toast {
-  position: fixed;
-  left: max(1rem, env(safe-area-inset-left, 0px));
-  right: max(1rem, env(safe-area-inset-right, 0px));
-  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 5.5rem);
-  z-index: 20;
+/* A problem (like the daily limit), or a nudge, pops up just above the button. */
+.write .error,
+.write .toast {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.75rem);
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 3rem));
+  margin: 0;
   padding: 0.75rem 1rem;
+  box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: 0.875rem;
   background: var(--surface-raised);
@@ -229,64 +228,15 @@
   font-weight: 600;
 }
 
-/* --- Wider screens: a floating bar that names who's coming, with the button beside it --- */
+/* Wider screens: a slightly bigger button, a little further from the bottom. */
 @media (min-width: 768px) {
+  .write {
+    bottom: 2rem;
+  }
+
   .fab {
-    display: none;
-  }
-
-  .action {
-    position: sticky;
-    bottom: calc(1rem + var(--safe-bottom));
-    z-index: 5;
-    padding: 1.5rem 1.5rem 0;
-    pointer-events: none; /* only the bar itself takes clicks */
-  }
-
-  .bar {
-    pointer-events: auto;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.6rem 0.6rem 0.6rem 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: 1.1rem;
-    background: var(--surface-raised);
-    box-shadow: 0 18px 40px -18px rgb(26 26 46 / 0.45);
-  }
-
-  .summary {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.15rem 0.75rem;
-  }
-
-  .names {
-    font-weight: 700;
-  }
-
-  .action .btn.big {
-    width: auto;
-    min-width: 14rem;
-    padding: 0 1.75rem;
-    box-shadow: none;
-  }
-
-  .action .toast {
-    display: none; /* wider screens show the disabled button and its bar instead */
-  }
-
-  .action .error {
-    position: static;
-    pointer-events: auto;
-    margin-top: 0.5rem;
-    border: 0;
-    background: none;
-    box-shadow: none;
-    padding: 0 0.25rem;
+    width: 4rem;
+    height: 4rem;
   }
 }
 

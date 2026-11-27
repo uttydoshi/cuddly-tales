@@ -6,7 +6,6 @@ import { Router, RouterLink } from '@angular/router';
 import { Character } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { groupByType } from '../../shared/character-groups';
-import { joinNames } from '../../shared/story-format';
 import { ShellService } from '../../shared/shell.service';
 
 export const MAX_FRIENDS = 6;
@@ -43,11 +42,6 @@ export class NewStory {
   readonly groups = computed(() => groupByType(this.characters()));
   readonly count = computed(() => this.selected().size);
   readonly full = computed(() => this.count() >= MAX_FRIENDS);
-  /** "Minnie, Maverick and Tosia", in the order they were picked. */
-  readonly chosenNames = computed(() => {
-    const byId = new Map(this.characters().map((c) => [c.id, c.name]));
-    return joinNames([...this.selected()].map((id) => byId.get(id) ?? '').filter(Boolean));
-  });
   readonly buttonLabel = computed(() => {
     const n = this.count();
     if (n === 0) {
