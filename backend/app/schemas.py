@@ -5,7 +5,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
-from app.models import CharacterType, StoryStatus
+from app.models import CharacterType, SafetyStatus, StoryStatus
 
 ShortText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 
@@ -78,11 +78,15 @@ class StorySummary(BaseModel):
     created_at: datetime
     bedtime: bool
     characters: list[CharacterRef]
+    # None for stories written before the safety check existed, or not written yet.
+    safety_status: SafetyStatus | None
 
 
 class StoryRead(StorySummary):
     text: str | None
     read_at: datetime | None
+    # Every version the check looked at: scores, character rules and problems found.
+    safety: dict | None
 
 
 class StoryUpdate(BaseModel):
@@ -91,3 +95,5 @@ class StoryUpdate(BaseModel):
     title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)] | None = None
     text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20000)] | None = None
     read: bool | None = None
+    # A parent has read a story the safety check flagged, and says it's fine.
+    approve: bool | None = None

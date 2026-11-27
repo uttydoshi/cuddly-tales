@@ -19,6 +19,13 @@ export class StoryStreamService {
         subscriber.next({ type: 'word', text: data.text });
       });
 
+      // After writing, the safety and age check runs; a story that fails is rewritten once.
+      source.addEventListener('checking', () => subscriber.next({ type: 'checking' }));
+      source.addEventListener('rewriting', (event) => {
+        const data = JSON.parse((event as MessageEvent).data);
+        subscriber.next({ type: 'rewriting', problems: data.problems });
+      });
+
       source.addEventListener('done', (event) => {
         const data = JSON.parse((event as MessageEvent).data);
         subscriber.next({ type: 'done', id: data.id, title: data.title });

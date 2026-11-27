@@ -42,6 +42,9 @@
                   <span class="pill quiet">Not written yet</span>
                 }
               }
+              @if (card.story.safety_status === 'needs_review') {
+                <span class="pill warn">Read first</span>
+              }
               @if (card.story.bedtime) {
                 <span class="type bedtime">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" /></svg>

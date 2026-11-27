@@ -18,6 +18,8 @@
   --accent-12: color-mix(in srgb, var(--accent) 12%, transparent);
   --ok: #15803d;
   --ok-12: rgb(22 163 74 / 0.12);
+  --warn: #a14207; /* amber: a parent should read this first */
+  --warn-12: rgb(245 158 11 / 0.16);
   --error: #b91c1c;
   --page-bg: #f8fafc;
   --border-strong: rgb(26 26 46 / 0.25); /* empty tick circles */
@@ -130,6 +132,8 @@
   --accent: #f2a7cf; /* a pink that reads easily on the dark ground */
   --ok: #86efac;
   --ok-12: rgb(134 239 172 / 0.12);
+  --warn: #fcd34d;
+  --warn-12: rgb(252 211 77 / 0.14);
   --error: #fca5a5;
   --page-bg: #0b0b16;
   --bg: radial-gradient(circle at 20% 10%, rgb(46 16 101 / 0.55), transparent 50%),
@@ -341,6 +345,11 @@ a {
 .pill.ok {
   background: var(--ok-12);
   color: var(--ok);
+}
+
+.pill.warn {
+  background: var(--warn-12);
+  color: var(--warn);
 }
 
 .pill.quiet {

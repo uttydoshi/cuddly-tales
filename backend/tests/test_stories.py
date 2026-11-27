@@ -5,7 +5,7 @@ import pytest
 from sqlmodel import Session
 
 from app.models import Story, StoryStatus, utc_now
-from app.services import llm
+from app.services import llm, safety
 
 STORY_CHUNKS = ["# The Ball ", "Hunt\n\nMin", "nie chased", " her ball.\n\n", "Every", "one yawned."]
 
@@ -32,6 +32,16 @@ def parse_events(body: str) -> list[tuple[str, dict]]:
         lines = dict(line.split(": ", 1) for line in block.splitlines())
         events.append((lines["event"], json.loads(lines["data"])))
     return events
+
+
+@pytest.fixture(autouse=True)
+def check_passes(monkeypatch):
+    """These tests are about writing and saving; the safety check has its own tests."""
+
+    async def check_story(title, body, child, characters, *, bedtime):
+        return safety.Attempt(passed=True, word_count=len(body.split()), scariness=1)
+
+    monkeypatch.setattr(safety, "check_story", check_story)
 
 
 @pytest.fixture
@@ -78,7 +88,7 @@ def test_stream_sends_whole_words_then_saves(client, engine, character_ids, monk
     events = parse_events(response.text)
     words = [data["text"] for name, data in events if name == "word"]
     assert words == ["# ", "The ", "Ball ", "Hunt\n\n", "Minnie ", "chased ", "her ", "ball.\n\n", "Everyone ", "yawned."]
-    assert events[-1] == ("done", {"id": story_id, "title": "The Ball Hunt"})
+    assert events[-1] == ("done", {"id": story_id, "title": "The Ball Hunt", "safety": "passed"})
 
     with Session(engine) as session:
         story = session.get(Story, story_id)
