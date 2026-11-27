@@ -1,0 +1,25 @@
+<h1>Stories</h1>
+
+@if (errorMessage()) {
+  <p class="error" role="alert">{{ errorMessage() }}</p>
+} @else if (stories() === null) {
+  <p class="muted">Loading…</p>
+} @else if (stories()!.length === 0) {
+  <p class="muted">No stories yet. <a routerLink="/new">Write the first one</a>.</p>
+} @else {
+  <ul class="stories">
+    @for (story of stories(); track story.id) {
+      <li>
+        <a [routerLink]="['/stories', story.id]">{{ story.title }}</a>
+        <span class="meta">
+          <span class="status" [attr.data-status]="story.status">{{ story.status }}</span>
+          @if (story.reading_minutes) {
+            · {{ story.reading_minutes }} min read
+          }
+          · {{ story.created_at | date: 'd MMM, h:mm a' }}
+        </span>
+        <span class="muted">With {{ names(story) }}</span>
+      </li>
+    }
+  </ul>
+}
