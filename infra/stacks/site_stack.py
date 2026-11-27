@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import jsii
 from aws_cdk import (
     Annotations,
@@ -19,10 +22,11 @@ from aws_cdk import aws_s3_deployment as s3deploy
 from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
-from stacks.bundle import BACKEND_DIR, REPO_ROOT, UNUSED_PATHS, bundle_backend
+from stacks.bundle import BACKEND_DIR, REPO_ROOT, UNUSED_PATHS
 from stacks.stage import ZONE_NAME, Stage
 
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist" / "frontend" / "browser"
+BUNDLE_SCRIPT = REPO_ROOT / "infra" / "stacks" / "bundle.py"
 
 LAMBDA_RUNTIME = lambda_.Runtime.PYTHON_3_13
 
@@ -45,10 +49,16 @@ function handler(event) {
 
 @jsii.implements(ILocalBundling)
 class PipLocalBundling:
-    """Bundles the Lambda without Docker, using the local pip to fetch Linux arm64 wheels."""
+    """Bundles the Lambda without Docker, using the local pip to fetch Linux arm64 wheels.
+
+    Runs stacks/bundle.py as a separate process. This code runs inside the CDK, which
+    talks to its Node.js engine over a pipe; processes forked from here (as parallel
+    compiling did on Linux) inherit that pipe and break it when they exit
+    ("@jsii/kernel.RuntimeError: unexpected EOF").
+    """
 
     def try_bundle(self, output_dir: str, *args, **kwargs) -> bool:
-        bundle_backend(output_dir)
+        subprocess.run([sys.executable, str(BUNDLE_SCRIPT), output_dir], check=True)
         return True
 
 

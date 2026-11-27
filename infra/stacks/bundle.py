@@ -44,7 +44,7 @@ def precompile(folder: Path) -> None:
         str(folder),
         quiet=1,
         force=True,  # replace pip's timestamp-checked .pyc files too
-        workers=0,
+        workers=1,  # no worker processes: see site_stack.PipLocalBundling
         invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH,
     )
     if not ok:
