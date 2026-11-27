@@ -1,20 +1,22 @@
 # Cuddly Tales
 
-Gentle bedtime stories for young children (ages 2–6), with the child as the hero alongside their
-family, pets, original characters and public-domain folklore. A parent picks tonight's cast, and the
-story is written by an LLM and streamed to the screen word by word, ready to read aloud.
+Gentle stories for young children (ages 2–6), with the child as the hero alongside their family,
+pets, original characters and public-domain folklore. A parent picks the cast and whether it's for
+any time of day or bedtime, and the story is written by an LLM and streamed to the screen word by
+word, ready to read aloud.
 
 **Live: https://cuddly-tales.ukdoshi.com** (public; new stories are capped at 30 a day)
 
 <p>
-  <img src="docs/screenshots/pick-the-cast.png" width="200" alt="Picking tonight's cast: Minnie, Maverick and Tosia chosen, with a 'Write the story with 3 friends' button">
+  <img src="docs/screenshots/pick-the-cast.png" width="200" alt="Picking the cast: 'Dear Mira, who's in Mira's story?', Anytime or Bedtime, Minnie and Diggles chosen, and a 'Write the story with 2 friends' button">
   <img src="docs/screenshots/story-streaming.png" width="200" alt="The story arriving word by word in night mode, with 'Still writing · 32 words so far'">
   <img src="docs/screenshots/reading-night-mode.png" width="200" alt="Reading the finished story in night mode, with the Polish word gwiazda in italics">
   <img src="docs/screenshots/your-stories.png" width="200" alt="Your stories: filter chips and story cards marked Not read yet or Read">
 </p>
 
-Designed for a parent's phone at bedtime, in the style of [ukdoshi.com](https://ukdoshi.com): pick the
-cast, watch the story arrive in night mode, then read it aloud in large type.
+Designed for a parent's phone, in the style of [ukdoshi.com](https://ukdoshi.com): pick the cast,
+watch the story arrive, then read it aloud in large type. Bedtime stories end calm and sleepy and open
+in night mode; the whole site has a light and a dark theme.
 
 > Built for a take-home assessment over three days. Day 1 is done; this README grows with each
 > feature, and the table below shows what's in place and what's next.

@@ -59,7 +59,7 @@
       </form>
     } @else {
       <article class="story" [attr.aria-busy]="writing() === 'streaming'">
-        <p class="kicker">With {{ cast() || 'no characters' }}</p>
+        <p class="kicker">{{ s.bedtime ? 'Bedtime' : 'Anytime' }} story · With {{ cast() || 'no characters' }}</p>
         <h1>{{ title() }}</h1>
 
         <div class="text" [style.font-size.px]="textSize()">

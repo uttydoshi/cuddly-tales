@@ -5,7 +5,7 @@
   z-index: 10;
   box-sizing: border-box;
   width: calc(100% - 1.5rem);
-  max-width: calc(var(--content-width) - 1rem);
+  max-width: var(--content-width);
   margin: calc(env(safe-area-inset-top, 0px) + 0.75rem) auto 0;
   display: flex;
   align-items: center;
@@ -193,29 +193,15 @@ main {
     white-space: nowrap;
   }
 
-  .top-nav a:hover,
+  .top-nav a:hover {
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  /* The current page is a magenta pill, as the current tab is magenta on phones. */
   .top-nav a.active {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.35em;
-  }
-
-  .top-nav a.active {
-    font-weight: 700;
-  }
-
-  /* The primary action stands out as the bar's one button, white on navy. */
-  .top-nav a.cta {
-    margin-right: 0.25rem;
-    background: #ffffff;
-    color: var(--dark);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .top-nav a.cta.active {
     background: var(--accent);
     color: var(--on-accent); /* white on magenta; dark on night mode's pale pink */
+    font-weight: 700;
   }
 
   .child {

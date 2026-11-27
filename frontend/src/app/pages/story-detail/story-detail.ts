@@ -18,7 +18,7 @@ const SIZE_KEY = 'cuddly-tales.text-size';
 
 type Writing = 'idle' | 'streaming' | 'failed';
 
-/** Reading a story at bedtime: full screen, night mode, large type. Also where a new story streams in. */
+/** Reading a story: full screen, large type, night mode for bedtime stories. Also where a new story streams in. */
 @Component({
   selector: 'app-story-detail',
   imports: [RouterLink, StoryText, ReactiveFormsModule, ConfirmDelete],
@@ -96,6 +96,7 @@ export class StoryDetail {
       const sub = this.api.getStory(id).subscribe({
         next: (story) => {
           this.story.set(story);
+          this.shell.readingStory(story.bedtime);
           // Stream only when opened straight from "Write the story", never on a reload,
           // so a refresh can't start a second copy of the same story.
           if (story.status === 'planned' && takeStreamFlag()) {

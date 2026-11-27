@@ -38,3 +38,23 @@ def test_prompt_allows_only_italics_for_foreign_words():
     system, _ = build_story_messages(CHILD, [MINNIE])
     assert "*single asterisks*" in system["content"]
     assert "No other headings, lists, bold or markdown." in system["content"]
+
+
+def test_bedtime_story_asks_for_a_sleepy_ending():
+    _, user = build_story_messages(CHILD, [MINNIE], bedtime=True)
+    assert "bedtime story" in user["content"]
+    assert "ready for bed" in user["content"]
+
+
+def test_anytime_story_does_not_send_anyone_to_sleep():
+    system, user = build_story_messages(CHILD, [MINNIE])
+    assert "not bedtime" in user["content"]
+    assert "ready for bed" not in user["content"]
+    assert "bedtime stories" not in system["content"]
+
+
+def test_system_prompt_is_the_same_for_every_story():
+    """Everything that varies goes in the user message, so the system prompt can be cached."""
+    bedtime_system, _ = build_story_messages(CHILD, [MINNIE], bedtime=True)
+    anytime_system, _ = build_story_messages(CHILD, [MAVERICK])
+    assert bedtime_system == anytime_system

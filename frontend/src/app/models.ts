@@ -33,6 +33,8 @@ export interface StorySummary {
   word_count: number | null;
   reading_minutes: number | null;
   created_at: string;
+  /** Bedtime stories end calm and sleepy and open in night mode; others are for any time. */
+  bedtime: boolean;
   characters: CharacterRef[];
 }
 

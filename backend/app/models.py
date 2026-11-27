@@ -54,6 +54,8 @@ class Story(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     title: str
     status: StoryStatus = StoryStatus.planned
+    # A bedtime story ends calm and sleepy and opens in night mode; otherwise it's for any time.
+    bedtime: bool = False
     text: str | None = None
     word_count: int | None = None
     reading_minutes: int | None = None

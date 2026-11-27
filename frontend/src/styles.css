@@ -26,6 +26,15 @@
   --focus: #1a1a2e; /* focus ring on things that use the accent for "chosen" */
   --chip-on-bg: #1a1a2e;
   --chip-on-text: #ffffff;
+  --bedtime: #6d28d9; /* violet moon */
+  --anytime: #b45309; /* amber sun */
+  --surface-raised: #ffffff; /* solid: floating bars and messages, nothing shows through */
+  --card: rgb(255 255 255 / 0.7); /* the frosted page card, as on ukdoshi.com */
+  --card-shadow: rgb(60 50 120 / 0.35);
+  --fab-bg: #1a1a2e;
+  --fab-fg: #ffffff;
+  --fab-off-bg: #dfe0e8;
+  --fab-off-fg: #6b6f85;
   --bg: radial-gradient(circle at 20% 15%, #ede9fe, transparent 45%),
     radial-gradient(circle at 85% 85%, #e0f2fe, transparent 45%), var(--page-bg);
   --font-heading: 'Source Serif 4 Variable', Georgia, serif;
@@ -42,12 +51,14 @@
 @media (min-width: 768px) {
   :root {
     --tab-bar-height: 0px;
-    --content-width: 64rem;
+    --content-width: 90rem; /* ukdoshi.com's page width */
   }
 }
 
 /* Night mode: ukdoshi.com's dark theme, dimmed for a dark room. On <html> when the site is in
-   dark mode (the moon button, or the device's setting) and always while reading a story. */
+   dark mode (the moon button, or the device's setting) and for bedtime stories.
+   Colours that differ by theme must be tokens here: a `:root.night` rule inside a component's
+   own styles never matches, because Angular scopes it to the component. */
 :root.night {
   --dark: #20203a; /* the top bar, lifted a little off the dark page */
   --bar-bg: rgb(16 16 31 / 0.97);
@@ -56,6 +67,15 @@
   --focus: #f3eefa;
   --chip-on-bg: #f3eefa;
   --chip-on-text: #0b0b16;
+  --bedtime: #c4b5fd;
+  --anytime: #fcd34d;
+  --surface-raised: #17172b;
+  --card: rgb(22 22 40 / 0.7);
+  --card-shadow: rgb(0 0 0 / 0.6);
+  --fab-bg: #f3eefa;
+  --fab-fg: #0b0b16;
+  --fab-off-bg: #2a2a44;
+  --fab-off-fg: #8d8aa3;
   --text: #e9e4f2;
   --heading: #f3eefa;
   --muted: #a3a8c3;
@@ -131,15 +151,31 @@ a {
 
 /* --- Shared pieces --- */
 
+/* Every page sits in a frosted card on the background glow, as on ukdoshi.com
+   (same radius, border, shadow and blur). The reading page doesn't: a story fills the screen. */
 .page {
-  width: 100%;
+  width: calc(100% - 1.5rem);
   max-width: var(--content-width);
-  margin: 0 auto;
+  margin: 0.75rem auto 0;
   box-sizing: border-box;
-  padding: 1.25rem 1rem 1.5rem;
+  padding: 1.5rem 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  background: var(--card);
+  box-shadow: 0 1.5rem 3rem -1.5rem var(--card-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: rise 0.6s ease-out both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
 }
 
 /* Handwritten greeting, like "Hey there!" on ukdoshi.com */
@@ -308,6 +344,96 @@ a {
   font-size: 0.875rem;
 }
 
+/* --- The round action button (write a story, add a character): part of the page card.
+   Sticky, so it floats at the bottom right while the page scrolls (above the tab bar on phones)
+   and rests in the card's corner at the end, never over the footer. --- */
+.fab-dock {
+  position: sticky;
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 1rem);
+  z-index: 20;
+  align-self: flex-end;
+  margin-top: 0.5rem;
+}
+
+.fab {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fab-bg);
+  color: var(--fab-fg);
+  box-shadow: 0 12px 28px -8px rgb(26 26 46 / 0.55);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.fab:not(.off):hover {
+  transform: scale(1.05);
+}
+
+.fab svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.fab.busy {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* Greyed out until it can be used (the pen: until a friend is picked). */
+.fab.off {
+  background: var(--fab-off-bg);
+  color: var(--fab-off-fg);
+  box-shadow: 0 8px 20px -10px rgb(26 26 46 / 0.35);
+  cursor: default;
+}
+
+/* A count on the button (how many friends are coming), in a magenta badge. */
+.fab .badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.2rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.3rem;
+  box-sizing: border-box;
+  border: 2px solid var(--page-bg);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+@media (min-width: 768px) {
+  .fab-dock {
+    bottom: 2rem;
+  }
+
+  .fab {
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
@@ -317,7 +443,8 @@ a {
 
 @media (min-width: 768px) {
   .page {
-    padding: 2rem 1.5rem 3rem;
+    margin-top: 1rem;
+    padding: 3rem clamp(2rem, 5vw, 4.5rem); /* ukdoshi.com's card padding */
     gap: 1.25rem;
   }
 }

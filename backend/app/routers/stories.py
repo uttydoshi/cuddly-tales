@@ -36,6 +36,7 @@ def to_story_read(story: Story) -> StoryRead:
         word_count=story.word_count,
         reading_minutes=story.reading_minutes,
         created_at=story.created_at,
+        bedtime=story.bedtime,
         read_at=story.read_at,
         text=story.text,
         characters=[CharacterRef(id=c.id, name=c.name) for c in story.characters],
@@ -50,7 +51,7 @@ def placeholder_title(names: list[str]) -> str:
 
 DAILY_LIMIT_MESSAGE = (
     "That's all the new stories for today. Come back tomorrow for more, "
-    "or read one of your saved stories tonight."
+    "or read one of your saved stories."
 )
 
 
@@ -76,7 +77,9 @@ def create_story(payload: StoryCreate, session: Session = Depends(get_session)) 
 
     by_id = {c.id: c for c in characters}
     ordered = [by_id[i] for i in ids]
-    story = Story(title=placeholder_title([c.name for c in ordered]), characters=ordered)
+    story = Story(
+        title=placeholder_title([c.name for c in ordered]), bedtime=payload.bedtime, characters=ordered
+    )
     session.add(story)
     session.commit()
     session.refresh(story)
@@ -148,7 +151,7 @@ def stream_story(
     if child is None:
         raise HTTPException(409, "Set up a child profile first")
 
-    messages = build_story_messages(child, list(story.characters))
+    messages = build_story_messages(child, list(story.characters), bedtime=story.bedtime)
     engine = request.app.state.engine
 
     async def events():

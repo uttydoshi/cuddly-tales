@@ -22,8 +22,8 @@ describe('joinNames', () => {
 describe('friendlyDate', () => {
   const now = new Date(2026, 10, 27, 20, 0); // 27 Nov 2026, 8pm local time
 
-  it('says Tonight and Yesterday', () => {
-    expect(friendlyDate(new Date(2026, 10, 27, 19, 0).toISOString(), now)).toBe('Tonight');
+  it('says Today and Yesterday', () => {
+    expect(friendlyDate(new Date(2026, 10, 27, 19, 0).toISOString(), now)).toBe('Today');
     expect(friendlyDate(new Date(2026, 10, 26, 19, 0).toISOString(), now)).toBe('Yesterday');
   });
 

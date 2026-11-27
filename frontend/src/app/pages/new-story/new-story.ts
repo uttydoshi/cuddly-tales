@@ -6,12 +6,17 @@ import { Router, RouterLink } from '@angular/router';
 import { Character } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { groupByType } from '../../shared/character-groups';
-import { joinNames } from '../../shared/story-format';
 import { ShellService } from '../../shared/shell.service';
 
 export const MAX_FRIENDS = 6;
 
-/** Pick tonight's cast. Writing and reading happen on the story page, in night mode. */
+/** Evenings (6pm to 6am) start on Bedtime; days start on Anytime. Either can be switched. */
+export function isEvening(now: Date = new Date()): boolean {
+  const hour = now.getHours();
+  return hour >= 18 || hour < 6;
+}
+
+/** Pick the cast and when the story is for. Writing and reading happen on the story page. */
 @Component({
   selector: 'app-new-story',
   imports: [RouterLink],
@@ -28,16 +33,15 @@ export class NewStory {
   readonly starting = signal(false);
   readonly characters = signal<Character[]>([]);
   readonly selected = signal<ReadonlySet<number>>(new Set());
+  readonly bedtime = signal(isEvening());
   readonly errorMessage = signal('');
+  /** A short nudge when the pen button is tapped before anyone is picked. */
+  readonly hint = signal('');
+  private hintTimer?: ReturnType<typeof setTimeout>;
 
   readonly groups = computed(() => groupByType(this.characters()));
   readonly count = computed(() => this.selected().size);
   readonly full = computed(() => this.count() >= MAX_FRIENDS);
-  /** "Minnie, Maverick and Tosia", in the order they were picked. */
-  readonly chosenNames = computed(() => {
-    const byId = new Map(this.characters().map((c) => [c.id, c.name]));
-    return joinNames([...this.selected()].map((id) => byId.get(id) ?? '').filter(Boolean));
-  });
   readonly buttonLabel = computed(() => {
     const n = this.count();
     if (n === 0) {
@@ -72,10 +76,25 @@ export class NewStory {
     this.selected.set(next);
   }
 
+  /** The pen button on phones: always visible, greyed out until a friend is picked. */
+  pressWrite(): void {
+    if (this.starting()) {
+      return;
+    }
+    if (this.count() === 0) {
+      this.hint.set('Pick at least one friend first.');
+      clearTimeout(this.hintTimer);
+      this.hintTimer = setTimeout(() => this.hint.set(''), 2500);
+      return;
+    }
+    this.generate();
+  }
+
   generate(): void {
+    this.hint.set('');
     this.starting.set(true);
     this.errorMessage.set('');
-    this.api.createStory([...this.selected()]).subscribe({
+    this.api.createStory([...this.selected()], this.bedtime()).subscribe({
       // The story page starts the stream when it's opened this way (and only then).
       next: (story) => this.router.navigate(['/stories', story.id], { state: { stream: true } }),
       error: (error: HttpErrorResponse) => {

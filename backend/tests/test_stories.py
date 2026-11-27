@@ -217,3 +217,25 @@ def test_daily_limit_of_zero_means_no_limit(client, character_ids, monkeypatch):
     monkeypatch.setenv("MAX_STORIES_PER_DAY", "0")
     for _ in range(3):
         assert client.post("/api/stories", json={"character_ids": character_ids}).status_code == 201
+
+
+def test_story_is_for_any_time_unless_bedtime_is_asked_for(client, character_ids):
+    anytime = client.post("/api/stories", json={"character_ids": character_ids}).json()
+    bedtime = client.post("/api/stories", json={"character_ids": character_ids, "bedtime": True}).json()
+    assert anytime["bedtime"] is False
+    assert bedtime["bedtime"] is True
+    assert client.get(f"/api/stories/{bedtime['id']}").json()["bedtime"] is True
+    assert {s["id"]: s["bedtime"] for s in client.get("/api/stories").json()} == {anytime["id"]: False, bedtime["id"]: True}
+
+
+def test_bedtime_flag_reaches_the_prompt(client, character_ids, monkeypatch):
+    seen = {}
+
+    async def stream_text(messages, **kwargs):
+        seen["user"] = messages[1]["content"]
+        yield "# Sleepy\n\nGoodnight."
+
+    monkeypatch.setattr(llm, "stream_text", stream_text)
+    story_id = client.post("/api/stories", json={"character_ids": character_ids, "bedtime": True}).json()["id"]
+    client.get(f"/api/stories/{story_id}/stream")
+    assert "bedtime story" in seen["user"]

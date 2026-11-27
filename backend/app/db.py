@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import Request
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, create_engine
 
 MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 BASELINE_REVISION = "0001"
@@ -54,13 +54,6 @@ def migrate(engine: Engine) -> None:
             command.stamp(config, BASELINE_REVISION)
         command.upgrade(config, "head")
 
-
-def create_tables(engine: Engine) -> None:
-    """Create tables straight from the models, skipping migrations. Only for tests
-    that need a pre-migrations database."""
-    from app import models  # noqa: F401
-
-    SQLModel.metadata.create_all(engine)
 
 
 def get_session(request: Request) -> Iterator[Session]:
