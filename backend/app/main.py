@@ -10,7 +10,7 @@ from sqlmodel import Session
 
 from app import aws_secrets
 from app.config import get_settings
-from app.db import create_tables, make_engine
+from app.db import make_engine, migrate
 from app.origin import CloudFrontOnly
 from app.routers import characters, profile, stories
 from app.seed import seed_if_empty
@@ -23,7 +23,7 @@ def create_app(engine: Engine | None = None, frontend_dist: Path | None = None) 
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        create_tables(engine)
+        migrate(engine)
         with Session(engine) as session:
             seed_if_empty(session)
         yield

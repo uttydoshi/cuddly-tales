@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from enum import StrEnum
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -57,7 +57,7 @@ class Story(SQLModel, table=True):
     text: str | None = None
     word_count: int | None = None
     reading_minutes: int | None = None
-    created_at: datetime = Field(default_factory=utc_now)
-    read_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utc_now, sa_type=DateTime(timezone=True))
+    read_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
 
     characters: list[Character] = Relationship(back_populates="stories", link_model=StoryCharacterLink)
