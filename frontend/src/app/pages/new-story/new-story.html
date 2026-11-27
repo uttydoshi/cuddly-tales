@@ -1,14 +1,23 @@
-@if (phase() === 'loading') {
-  <p class="muted">Loading the cast…</p>
-} @else if (phase() === 'pick') {
-  <h1>Who is in tonight's story?</h1>
-  @if (child(); as c) {
-    <p class="muted">{{ c.name }} ({{ c.age }}) is always the hero. Pick up to 6 friends to join.</p>
+<div class="page">
+  <div class="intro">
+    @if (shell.child(); as child) {
+      <p class="script" aria-hidden="true">Goodnight, {{ child.name }}</p>
+    }
+    <h1>Who's in tonight's story?</h1>
+    <p class="muted">
+      {{ shell.child()?.name ?? 'Your child' }} is always the hero. Pick up to six friends to join in.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <p class="muted">Gathering the cast…</p>
+  } @else if (characters().length === 0 && !errorMessage()) {
+    <p class="muted">No characters yet. <a routerLink="/characters/new">Add the first one</a>.</p>
   }
 
   @for (group of groups(); track group.type) {
-    <section class="group">
-      <h2>{{ group.label }}</h2>
+    <section class="group" [attr.aria-labelledby]="'group-' + group.type">
+      <h2 class="group-label" [id]="'group-' + group.type">{{ group.label }}</h2>
       <ul class="cast">
         @for (character of group.characters; track character.id) {
           <li>
@@ -17,10 +26,16 @@
                 type="checkbox"
                 [id]="'character-' + character.id"
                 [checked]="selected().has(character.id)"
-                [disabled]="!selected().has(character.id) && selected().size >= 6"
+                [disabled]="!selected().has(character.id) && full()"
                 (change)="toggle(character.id)"
               />
-              <span class="name">{{ character.name }}</span>
+              <span class="name">
+                {{ character.name }}
+                <svg class="tick" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10.5" class="ring" />
+                  <path d="M7 12.5l3.2 3.2L17 9" class="check" />
+                </svg>
+              </span>
               <span class="description">{{ character.description }}</span>
             </label>
           </li>
@@ -28,29 +43,16 @@
       </ul>
     </section>
   }
+</div>
 
-  <div class="actions">
-    <button type="button" [disabled]="selected().size === 0" (click)="generate()">Write the story</button>
-    <span class="muted">{{ selected().size }} chosen</span>
-  </div>
-} @else {
-  <article class="story" [attr.aria-busy]="phase() === 'streaming'">
-    @if (title()) {
-      <h1>{{ title() }}</h1>
-    } @else if (phase() === 'streaming') {
-      <h1 class="muted">Writing your story…</h1>
-    }
-    <div class="text"><app-story-text [text]="body()" />@if (phase() === 'streaming') {<span class="cursor" aria-hidden="true">▍</span>}</div>
-  </article>
-
-  @if (phase() === 'done') {
-    <div class="actions">
-      <a [routerLink]="['/stories', storyId()]">Saved. Open it in your stories</a>
-      <button type="button" (click)="startOver()">Write another</button>
-    </div>
-  }
-  @if (phase() === 'error') {
+<div class="action">
+  @if (errorMessage()) {
     <p class="error" role="alert">{{ errorMessage() }}</p>
-    <button type="button" (click)="startOver()">Start again</button>
   }
-}
+  <button type="button" class="btn big" [disabled]="count() === 0 || starting()" (click)="generate()">
+    {{ starting() ? 'Starting the story…' : buttonLabel() }}
+    @if (count() > 0 && !starting()) {
+      <span aria-hidden="true">→</span>
+    }
+  </button>
+</div>
