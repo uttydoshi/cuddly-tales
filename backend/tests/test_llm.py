@@ -34,6 +34,25 @@ def test_stream_text_sends_settings_and_yields_text(monkeypatch):
     assert "temperature" not in calls
 
 
+def test_complete_json_asks_for_the_schema_and_reads_the_reply(monkeypatch):
+    calls = {}
+
+    async def fake_acompletion(**kwargs):
+        calls.update(kwargs)
+        message = SimpleNamespace(content='{"scariness": 1}')
+        return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+    monkeypatch.setattr(llm.load_litellm(), "acompletion", fake_acompletion)
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "low")
+    schema = {"type": "object", "properties": {"scariness": {"type": "integer"}}}
+
+    reply = asyncio.run(llm.complete_json([{"role": "user", "content": "hi"}], schema, name="review"))
+    assert reply == {"scariness": 1}
+    assert calls["response_format"]["json_schema"]["schema"] == schema
+    assert calls["reasoning_effort"] == "low"
+    assert "stream" not in calls and "temperature" not in calls
+
+
 def test_app_starts_without_importing_litellm():
     """LiteLLM is slow to import, so the app must not load it until a story is written."""
     import subprocess
