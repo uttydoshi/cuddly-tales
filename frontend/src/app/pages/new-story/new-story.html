@@ -46,13 +46,29 @@
 </div>
 
 <div class="action">
+  <div class="bar">
+    <!-- Wider screens: who's coming along, beside the button -->
+    <p class="summary" aria-live="polite">
+      @if (count() === 0) {
+        <span class="muted">Pick up to six friends to join {{ shell.child()?.name ?? 'your child' }}.</span>
+      } @else {
+        <span class="names">With {{ chosenNames() }}</span>
+        <span class="muted">{{ count() }} of {{ maxFriends }}</span>
+      }
+    </p>
+    <button type="button" class="btn big" [disabled]="count() === 0 || starting()" (click)="generate()">
+      @if (starting()) {
+        Starting the story…
+      } @else {
+        <span class="label-phone">{{ buttonLabel() }}</span>
+        <span class="label-wide">Write the story</span>
+        @if (count() > 0) {
+          <span aria-hidden="true">→</span>
+        }
+      }
+    </button>
+  </div>
   @if (errorMessage()) {
     <p class="error" role="alert">{{ errorMessage() }}</p>
   }
-  <button type="button" class="btn big" [disabled]="count() === 0 || starting()" (click)="generate()">
-    {{ starting() ? 'Starting the story…' : buttonLabel() }}
-    @if (count() > 0 && !starting()) {
-      <span aria-hidden="true">→</span>
-    }
-  </button>
 </div>
