@@ -7,12 +7,13 @@ from sqlmodel import Session, func, select
 
 from app.config import get_settings
 from app.db import get_session
-from app.models import Character, ChildProfile, Story, StoryStatus, utc_now
+from app.models import Character, ChildProfile, SafetyStatus, Story, StoryStatus, utc_now
 from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
-from app.services import llm
+from app.services import llm, safety
 from app.services.story_prompt import build_story_messages
 from app.services.story_stream import (
     KEEPALIVE,
+    await_with_keepalive,
     count_words,
     reading_minutes,
     split_title,
@@ -38,6 +39,8 @@ def to_story_read(story: Story) -> StoryRead:
         created_at=story.created_at,
         bedtime=story.bedtime,
         read_at=story.read_at,
+        safety_status=story.safety_status,
+        safety=story.safety_report,
         text=story.text,
         characters=[CharacterRef(id=c.id, name=c.name, type=c.type) for c in story.characters],
     )
@@ -48,6 +51,8 @@ def placeholder_title(names: list[str]) -> str:
         return f"A story with {names[0]}"
     return f"A story with {', '.join(names[:-1])} and {names[-1]}"
 
+
+CHECK_FAILED = "The safety check couldn't run this time, so please read this story before sharing it."
 
 DAILY_LIMIT_MESSAGE = (
     "That's all the new stories for today. Come back tomorrow for more, "
@@ -115,6 +120,10 @@ def update_story(story_id: int, payload: StoryUpdate, session: Session = Depends
         story.text = changes["text"]
         story.word_count = count_words(story.text)
         story.reading_minutes = reading_minutes(story.word_count)
+    if changes.get("approve") is True:
+        if story.safety_status != SafetyStatus.needs_review:
+            raise HTTPException(409, "Only a story waiting for a parent's review can be approved")
+        story.safety_status = SafetyStatus.approved
     if changes.get("read") is True and story.status != StoryStatus.read:
         story.status = StoryStatus.read
         story.read_at = utc_now()
@@ -154,17 +163,42 @@ def stream_story(
     everyone = session.exec(select(Character)).all()
     messages = build_story_messages(child, list(story.characters), bedtime=story.bedtime, others=everyone)
     engine = request.app.state.engine
+    bedtime = story.bedtime
+    # Plain copies for the check, which runs after this request's database session has closed.
+    hero = ChildProfile(name=child.name, age=child.age, favourite_things=list(child.favourite_things))
+    cast = [
+        Character(name=c.name, type=c.type, description=c.description, traits=list(c.traits), rules=list(c.rules))
+        for c in story.characters
+    ]
+
+    async def stream_words(prompt: list[dict], parts: list[str]):
+        words = words_from_chunks(llm.stream_text(prompt))
+        async for word in with_keepalive(words, KEEPALIVE_SECONDS):
+            if word is None:
+                yield KEEPALIVE
+                continue
+            parts.append(word)
+            yield sse("word", {"text": word})
+
+    async def run_check(title: str | None, body: str, attempts: list[safety.Attempt]):
+        yield sse("checking", {})
+        result = None
+        try:
+            check = safety.check_story(title, body, hero, cast, bedtime=bedtime)
+            async for item in await_with_keepalive(check, KEEPALIVE_SECONDS):
+                if item is None:
+                    yield KEEPALIVE
+                else:
+                    result = item
+        except Exception:
+            logger.exception("Safety check failed for story %s", story_id)
+        attempts.append(result or safety.unchecked(body, CHECK_FAILED))
 
     async def events():
         parts: list[str] = []
         try:
-            words = words_from_chunks(llm.stream_text(messages))
-            async for word in with_keepalive(words, KEEPALIVE_SECONDS):
-                if word is None:
-                    yield KEEPALIVE
-                    continue
-                parts.append(word)
-                yield sse("word", {"text": word})
+            async for event in stream_words(messages, parts):
+                yield event
         except Exception:
             logger.exception("Story generation failed for story %s", story_id)
             yield sse("error", {"message": "The story could not be written. Please try again."})
@@ -175,7 +209,39 @@ def stream_story(
             yield sse("error", {"message": "The story came back empty. Please try again."})
             return
 
-        # Saved only once the whole story has arrived. A failed or abandoned
+        # The safety and age check. A story that fails is rewritten once with the problems as
+        # feedback; if the rewrite fails too, it's saved but flagged for a parent to read first.
+        attempts: list[safety.Attempt] = []
+        async for event in run_check(title, body, attempts):
+            yield event
+        first = attempts[0]
+        if not first.passed and first.scariness is not None:  # checked and failed (not "couldn't check")
+            yield sse("rewriting", {"problems": first.problems})
+            again: list[str] = []
+            try:
+                rewrite = safety.build_rewrite_messages(messages, title, body, first.problems)
+                async for event in stream_words(rewrite, again):
+                    yield event
+                new_title, new_body = split_title("".join(again))
+                if not new_body:
+                    raise ValueError("empty rewrite")
+            except Exception:
+                logger.exception("Rewrite failed for story %s; keeping the first version", story_id)
+            else:
+                async for event in run_check(new_title, new_body, attempts):
+                    yield event
+                # Keep whichever version is safer: the rewrite unless it somehow scored worse.
+                if attempts[-1].passed or (attempts[-1].scariness or 5) <= (first.scariness or 5):
+                    title, body = new_title or title, new_body
+
+        if first.passed:
+            status = SafetyStatus.passed
+        elif len(attempts) > 1 and attempts[-1].passed:
+            status = SafetyStatus.rewritten
+        else:
+            status = SafetyStatus.needs_review
+
+        # Saved only once the whole story has arrived and been checked. A failed or abandoned
         # stream leaves the story as "planned", so nothing half-written is kept.
         with Session(engine) as save_session:
             saved = save_session.get(Story, story_id)
@@ -187,9 +253,11 @@ def stream_story(
             saved.word_count = count_words(body)
             saved.reading_minutes = reading_minutes(saved.word_count)
             saved.status = StoryStatus.written
+            saved.safety_status = status
+            saved.safety_report = safety.report(attempts)
             save_session.add(saved)
             save_session.commit()
-        yield sse("done", {"id": story_id, "title": title})
+        yield sse("done", {"id": story_id, "title": title, "safety": status.value})
 
     return StreamingResponse(
         events(),

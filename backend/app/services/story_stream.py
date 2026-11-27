@@ -3,7 +3,7 @@
 import asyncio
 import json
 import re
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable
 from typing import TypeVar
 
 T = TypeVar("T")
@@ -70,6 +70,17 @@ async def with_keepalive(source: AsyncIterator[T], interval: float) -> AsyncIter
     finally:
         if not pending.done():
             pending.cancel()
+
+
+async def await_with_keepalive(awaitable: Awaitable[T], interval: float) -> AsyncIterator[T | None]:
+    """Wait for one result (like the safety check), yielding None every `interval` seconds
+    meanwhile so the stream stays open. The result is the last item."""
+
+    async def once() -> AsyncIterator[T]:
+        yield await awaitable
+
+    async for item in with_keepalive(once(), interval):
+        yield item
 
 
 KEEPALIVE = ": keepalive\n\n"  # an SSE comment; EventSource ignores it
