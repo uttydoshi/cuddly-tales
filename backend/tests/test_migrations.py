@@ -4,7 +4,7 @@ from sqlalchemy import inspect, text
 from sqlmodel import SQLModel
 
 from app import models  # noqa: F401
-from app.db import create_tables, migrate
+from app.db import migrate
 
 
 def test_migrations_create_every_table(engine):
@@ -27,13 +27,41 @@ def test_migrate_is_safe_to_run_twice(engine):
     migrate(engine)
 
 
+def _upgrade_to(engine, revision):
+    from alembic import command
+    from alembic.config import Config
+
+    from app.db import MIGRATIONS_DIR
+
+    config = Config()
+    config.set_main_option("script_location", str(MIGRATIONS_DIR))
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, revision)
+
+
 def test_database_made_before_migrations_is_adopted(engine):
-    create_tables(engine)  # how the app made tables before Alembic
+    # Before Alembic, the app made the tables directly: the shape of revision 0001,
+    # with no alembic_version table.
+    _upgrade_to(engine, "0001")
+    with engine.begin() as connection:
+        connection.execute(text("DROP TABLE alembic_version"))
     with engine.begin() as connection:
         connection.execute(text("INSERT INTO childprofile (name, age, favourite_things) VALUES ('Mira', 3, '[]')"))
 
     migrate(engine)
 
     with engine.connect() as connection:
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0001"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0002"
         assert connection.execute(text("SELECT name FROM childprofile")).scalar() == "Mira"
+
+
+def test_stories_written_before_the_bedtime_flag_become_bedtime_stories(engine):
+    _upgrade_to(engine, "0001")
+    with engine.begin() as connection:
+        connection.execute(text("INSERT INTO story (title, status, created_at) VALUES ('Old one', 'written', '2026-11-20 08:00:00')"))
+
+    migrate(engine)
+
+    with engine.connect() as connection:
+        assert connection.execute(text("SELECT bedtime FROM story WHERE title = 'Old one'")).scalar() in (1, True)

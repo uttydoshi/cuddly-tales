@@ -65,6 +65,7 @@ class CharacterRef(BaseModel):
 
 class StoryCreate(BaseModel):
     character_ids: list[int] = Field(min_length=1, max_length=6)
+    bedtime: bool = False
 
 
 class StorySummary(BaseModel):
@@ -74,6 +75,7 @@ class StorySummary(BaseModel):
     word_count: int | None
     reading_minutes: int | None
     created_at: datetime
+    bedtime: bool
     characters: list[CharacterRef]
 
 
