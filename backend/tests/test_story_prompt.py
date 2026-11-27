@@ -58,3 +58,50 @@ def test_system_prompt_is_the_same_for_every_story():
     bedtime_system, _ = build_story_messages(CHILD, [MINNIE], bedtime=True)
     anytime_system, _ = build_story_messages(CHILD, [MAVERICK])
     assert bedtime_system == anytime_system
+
+
+TOSIA = Character(
+    id=3,
+    name="Tosia",
+    type=CharacterType.original,
+    description="A tidy, cosy cat who loves routines.",
+)
+DIGGLES = Character(
+    id=4,
+    name="Diggles",
+    type=CharacterType.original,
+    description="A cheeky wombat.",
+    rules=["Digs at least one hole, often in Tosia's garden."],
+)
+
+
+def test_someone_mentioned_in_a_rule_but_not_in_the_story_is_described():
+    """Diggles' rule mentions Tosia's garden; without saying Tosia is a cat, the model
+    turned her into "Babcia Tosia", a grandma."""
+    _, user = build_story_messages(CHILD, [DIGGLES], others=[MINNIE, TOSIA, DIGGLES])
+    content = user["content"]
+    assert "Also mentioned in the rules above, but not in this story" in content
+    assert "- Tosia: A tidy, cosy cat who loves routines." in content
+    assert "- Minnie:" not in content.split("Also mentioned")[1]  # not mentioned, so not listed
+
+
+def test_no_also_mentioned_section_when_they_are_in_the_story_or_not_mentioned():
+    _, both = build_story_messages(CHILD, [DIGGLES, TOSIA], others=[TOSIA, DIGGLES])
+    _, unrelated = build_story_messages(CHILD, [MINNIE], others=[TOSIA, DIGGLES])
+    assert "Also mentioned" not in both["content"]
+    assert "Also mentioned" not in unrelated["content"]
+
+
+def test_characters_keep_who_they_are():
+    system, _ = build_story_messages(CHILD, [MINNIE])
+    assert "a cat stays a cat" in system["content"]
+    assert "Babcia" in system["content"]
+
+
+def test_mentions_matches_whole_names_and_names_without_the():
+    from app.services.story_prompt import mentions
+
+    wolf = Character(name="The Big Bad Wolf", type=CharacterType.folklore, description="Grumpy.")
+    friend = Character(name="X", type=CharacterType.custom, description="Friends with Big Bad Wolf.")
+    assert mentions(friend, wolf.name)
+    assert not mentions(DIGGLES, "Tos")  # part of a word doesn't count

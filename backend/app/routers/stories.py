@@ -151,7 +151,8 @@ def stream_story(
     if child is None:
         raise HTTPException(409, "Set up a child profile first")
 
-    messages = build_story_messages(child, list(story.characters), bedtime=story.bedtime)
+    everyone = session.exec(select(Character)).all()
+    messages = build_story_messages(child, list(story.characters), bedtime=story.bedtime, others=everyone)
     engine = request.app.state.engine
 
     async def events():
