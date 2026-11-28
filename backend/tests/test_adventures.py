@@ -132,6 +132,7 @@ def test_plan_run_plans_every_night_and_writes_the_first(client, monkeypatch, ca
     assert all(s["ok"] for s in run["steps"])
     assert [s["position"] for s in run["steps"]] == list(range(len(tools)))
     assert run["steps"][1]["label"] == "Read Mira's profile"
+    assert run["steps"][1]["started_at"].endswith(("Z", "+00:00"))  # browsers mustn't read it as local time
     assert run["steps"][7]["result"].startswith('"Sandcastle Day", ')
     # Each tool step is streamed twice: once as it starts, once when it's done.
     started = [e for e in streamed if e[0] == "step" and e[1]["tool"] == "write_chapter"]
@@ -147,6 +148,21 @@ def test_plan_run_plans_every_night_and_writes_the_first(client, monkeypatch, ca
     assert first["title"] == "Sandcastle Day"
     assert first["adventure"] == {"id": adventure["id"], "title": "The Great Beach Day", "night": 1, "nights": 3}
     assert "night 1 of 3" in written[0][1]["content"]
+
+
+def test_the_story_list_keeps_an_adventures_nights_together_in_order(client, monkeypatch, cast, written):
+    checks(monkeypatch)
+    client.post("/api/stories", json={"character_ids": [cast["Minnie"]]})
+    run_agent(client, monkeypatch, plan_calls(cast))
+    client.post("/api/stories", json={"character_ids": [cast["Tosia"]]})
+    listed = [(s["title"], (s["adventure"] or {}).get("night")) for s in client.get("/api/stories").json()]
+    assert listed == [
+        ("A story with Tosia", None),
+        ("Night 1", 1),
+        ("Night 2", 2),
+        ("Night 3", 3),
+        ("A story with Minnie", None),
+    ]
 
 
 def test_a_failed_chapter_is_rewritten_once_before_it_is_saved(client, monkeypatch, cast, written):
