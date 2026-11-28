@@ -1,4 +1,4 @@
-# Shared by claude-key.sh and database-url.sh: store one secret, then restart the API.
+# Shared by claude-key.sh, database-url.sh and langfuse-keys.sh: store one secret, then restart the API.
 # Usage (from those scripts): store_secret <secret-name> <description> <value>
 set -euo pipefail
 

@@ -102,6 +102,31 @@ topic only. Planned nights don't count towards the daily story cap; each run doe
 the evening scheduled job or a parent's "Write the next night now". Writing every night in one go
 would take several minutes, close to Lambda's limit, and each night still needs its own check.
 
+## Tracing with Langfuse
+
+Every model call is traced in [Langfuse](https://langfuse.com), through LiteLLM's Langfuse
+integration, so any story or agent run can be looked into afterwards: what the model was asked,
+what it said, tokens, cost and time.
+
+| Trace | Steps inside it |
+|---|---|
+| `story`: one per story written | `write`, `safety-check`, and `rewrite` + `safety-check` if it failed |
+| `adventure-agent`: one per agent run | `agent-turn-1`, `agent-turn-2`… (each choice of tool), `write-chapter`, `safety-check`, and `rewrite-chapter` if it failed |
+
+Traces are tagged with the feature and where the app ran (`live` or `local`), carry the story or
+run id, and an adventure's runs share a Langfuse session, so all its nights can be followed
+together. All model calls go through `backend/app/services/llm.py`, which is the only code that
+knows about tracing.
+
+On Lambda the process is frozen as soon as a response ends, so each story stream and agent run
+sends its traces before it finishes (`tracing.flush()`), instead of leaving them queued.
+
+**What's sent:** prompts include the child's first name, age and favourite things, and replies are
+the stories. They go to a private Langfuse project (US region) that only the owner can see,
+because that's what makes a failed safety check debuggable. `LANGFUSE_LOG_CONTENT=false` sends
+only timings, tokens and cost. Without Langfuse keys, nothing is sent at all (and tests never send
+anything).
+
 ## Architecture
 
 ![Architecture: the Angular app on a phone talks to CloudFront at cuddly-tales.ukdoshi.com, which serves the app from S3 and sends /api requests to FastAPI on AWS Lambda through a streaming Function URL; the Lambda reads secrets from Secrets Manager, calls the Anthropic API through LiteLLM and stores data in Neon Postgres; GitHub Actions deploys it with the CDK](docs/architecture.svg)
@@ -188,6 +213,8 @@ All settings are environment variables, documented in [.env.example](.env.exampl
 | `LLM_REASONING_EFFORT` | How long the model thinks before writing (`low` starts the story sooner) |
 | `MAX_STORIES_PER_DAY` | New stories allowed in any 24 hours across the site (default 30; 0 = no limit) |
 | `DATABASE_URL` | SQLite locally; a Postgres URL in production |
+| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Langfuse project keys and region; tracing is off without them |
+| `LANGFUSE_LOG_CONTENT` | `false` sends only timings, tokens and cost to Langfuse, not prompts or stories |
 
 ## Deployment
 
@@ -220,6 +247,7 @@ export AWS_PROFILE=ukdoshi
 
 scripts/claude-key.sh      # paste a Claude key made just for Cuddly Tales
 scripts/database-url.sh    # paste Neon's pooled connection URL
+scripts/langfuse-keys.sh   # optional: paste the Langfuse project's keys to turn on tracing
 
 cd infra
 python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt

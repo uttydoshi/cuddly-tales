@@ -89,6 +89,10 @@ class SiteStack(Stack):
         database_url = secretsmanager.Secret.from_secret_name_v2(
             self, "DatabaseUrl", stage.secret_name("database-url")
         )
+        # Optional: made by scripts/langfuse-keys.sh. Until it exists, tracing is simply off.
+        langfuse_keys = secretsmanager.Secret.from_secret_name_v2(
+            self, "LangfuseKeys", stage.secret_name("langfuse-keys")
+        )
 
         # --- Backend: FastAPI on Lambda, via the Web Adapter, with a streaming URL ---
         api_fn = lambda_.Function(
@@ -130,6 +134,7 @@ class SiteStack(Stack):
                 "ORIGIN_SECRET_ARN": origin_secret.secret_arn,
                 "CLAUDE_API_KEY_SECRET": stage.secret_name("claude-api-key"),
                 "DATABASE_URL_SECRET": stage.secret_name("database-url"),
+                "LANGFUSE_KEYS_SECRET": stage.secret_name("langfuse-keys"),
                 "LLM_MODEL": "anthropic/claude-opus-5-5",
                 "LLM_REASONING_EFFORT": "low",
                 "MAX_STORIES_PER_DAY": "30",
@@ -138,6 +143,7 @@ class SiteStack(Stack):
         origin_secret.grant_read(api_fn)
         claude_key.grant_read(api_fn)
         database_url.grant_read(api_fn)
+        langfuse_keys.grant_read(api_fn)
 
         function_url = api_fn.add_function_url(
             auth_type=lambda_.FunctionUrlAuthType.NONE,  # protected by the origin secret instead
