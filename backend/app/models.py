@@ -35,8 +35,8 @@ class SafetyStatus(StrEnum):
 
 
 class AdventureStatus(StrEnum):
-    in_progress = "in_progress"  # some nights are still to be written
-    finished = "finished"  # every night has been written
+    in_progress = "in_progress"  # some chapters are still to be written
+    finished = "finished"  # every chapter has been written
 
 
 class AgentRunStatus(StrEnum):
@@ -48,8 +48,8 @@ class AgentRunStatus(StrEnum):
 
 
 class AgentRunKind(StrEnum):
-    plan = "plan"  # plan a new adventure and write its first night
-    next_night = "next_night"  # write the next night of an adventure in progress
+    plan = "plan"  # plan a new adventure and write its first chapter
+    next_chapter = "next_chapter"  # write the next chapter of an adventure in progress
 
 
 class ChildProfile(SQLModel, table=True):
@@ -80,7 +80,7 @@ class Story(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     title: str
     status: StoryStatus = StoryStatus.planned
-    # A bedtime story ends calm and sleepy and opens in night mode; otherwise it's for any time.
+    # A bedtime story ends calm and sleepy and opens in chapter mode; otherwise it's for any time.
     bedtime: bool = False
     # A parent's heart: the story shows under Favourites.
     favourite: bool = False
@@ -93,9 +93,9 @@ class Story(SQLModel, table=True):
     safety_status: SafetyStatus | None = None
     safety_report: dict | None = Field(default=None, sa_column=Column(JSON))
 
-    # Set when the story is one night of an adventure the agent planned.
+    # Set when the story is one chapter of an adventure the agent planned.
     adventure_id: int | None = Field(default=None, foreign_key="adventure.id", ondelete="CASCADE")
-    night: int | None = None
+    chapter: int | None = None
 
     characters: list[Character] = Relationship(back_populates="stories", link_model=StoryCharacterLink)
     adventure: Optional["Adventure"] = Relationship()
@@ -107,7 +107,7 @@ class Story(SQLModel, table=True):
 
 
 class PlotCard(SQLModel, table=True):
-    """One beat of a story's plot, in order. The adventure agent writes these for every night."""
+    """One beat of a story's plot, in order. The adventure agent writes these for every chapter."""
 
     id: int | None = Field(default=None, primary_key=True)
     story_id: int = Field(foreign_key="story.id", ondelete="CASCADE", index=True)
@@ -118,12 +118,12 @@ class PlotCard(SQLModel, table=True):
 
 
 class Adventure(SQLModel, table=True):
-    """A story told over several nights. Each night is a Story with `adventure_id` and `night`."""
+    """A story told over several chapters. Each chapter is a Story with `adventure_id` and `chapter`."""
 
     id: int | None = Field(default=None, primary_key=True)
     title: str
     premise: str  # what the whole adventure is about, in a sentence or two
-    nights: int
+    chapter_count: int
     bedtime: bool = False
     status: AdventureStatus = Field(default=AdventureStatus.in_progress, sa_type=String(20))
     created_at: datetime = Field(default_factory=utc_now, sa_type=DateTime(timezone=True))
@@ -138,7 +138,7 @@ class AgentRun(SQLModel, table=True):
     status: AgentRunStatus = Field(default=AgentRunStatus.pending, sa_type=String(20))
     trigger: str = Field(default="parent", sa_type=String(20))  # parent | schedule | run_now
     # What the parent asked for (plan runs).
-    nights: int | None = None
+    chapter_count: int | None = None
     bedtime: bool = False
     theme: str | None = None
     character_ids: list[int] = Field(default_factory=list, sa_column=Column(JSON))
@@ -156,7 +156,7 @@ class AgentStep(SQLModel, table=True):
     position: int
     # A tool's name, or "message" for what the agent says between tools.
     tool: str = Field(sa_type=String(40))
-    label: str  # what it's doing, for the parent: "Write night 1"
+    label: str  # what it's doing, for the parent: "Write chapter 1"
     result: str | None = None  # what came of it, for the parent: "412 words"
     ok: bool | None = None  # None while running
     detail: dict | None = Field(default=None, sa_column=Column(JSON))  # the tool's input and output

@@ -103,34 +103,34 @@ ANYTIME_ENDING = (
 
 @dataclass
 class Chapter:
-    """One night of an adventure: where it fits, and tonight's plot cards in order."""
+    """One chapter of an adventure: where it fits, and its plot cards in order."""
 
     adventure: str
     premise: str
-    night: int
-    nights: int
+    number: int
+    count: int
     beats: list[str]
-    # The nights already written: (night, title, what happens).
+    # The chapters already written: (number, title, what happens).
     previously: list[tuple[int, str, str]] = field(default_factory=list)
 
 
 def describe_chapter(chapter: Chapter, bedtime: bool) -> str:
-    before = "\n".join(f'- Night {n}, "{t}": {summary}' for n, t, summary in chapter.previously)
+    before = "\n".join(f'- Chapter {n}, "{t}": {summary}' for n, t, summary in chapter.previously)
     beats = "\n".join(f"{i}. {beat}" for i, beat in enumerate(chapter.beats, 1))
-    last = chapter.night == chapter.nights
+    last = chapter.number == chapter.count
     ending = (
-        "This is the last night: the adventure's goal is reached, and it ends happily."
+        "This is the last chapter: the adventure's goal is reached, and it ends happily."
         if last
-        else "It ends warm and happy; a small, gentle hint about tomorrow night is fine."
+        else "It ends warm and happy; a small, gentle hint about the next chapter is fine."
     )
     if bedtime:
         ending += " As a bedtime story, it still ends calm and sleepy."
     return (
-        f'\n\nThis is night {chapter.night} of {chapter.nights} of an adventure called "{chapter.adventure}": '
-        f"{chapter.premise}\n"
-        + (f"\nThe nights so far:\n{before}\n" if before else "")
-        + f"\nTonight's plot, in this order:\n{beats}\n\n"
-        "Write only tonight's chapter, as a complete story on its own with its own title. "
+        f'\n\nThis is chapter {chapter.number} of {chapter.count} of an adventure called "{chapter.adventure}" '
+        f"(one chapter a day): {chapter.premise}\n"
+        + (f"\nThe chapters so far:\n{before}\n" if before else "")
+        + f"\nThis chapter's plot, in this order:\n{beats}\n\n"
+        "Write only this chapter, as a complete story on its own with its own title. "
         f"{ending}"
     )
 
@@ -151,7 +151,7 @@ def build_story_messages(
     briefly, so the model knows who they are without bringing them into the story.
     `plot` is the kind of story to write (one of PLOTS), and `earlier` the family's stories so far
     as (title, what happens), which this one must not repeat or resemble.
-    `chapter` makes it one night of an adventure, following that night's plot cards.
+    `chapter` makes it one chapter of an adventure, following that chapter's plot cards.
     """
     low, high = word_range(child.age)
     favourites = ", ".join(child.favourite_things) or "none given"

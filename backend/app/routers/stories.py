@@ -54,7 +54,7 @@ def adventure_ref(story: Story) -> AdventureRef | None:
     adventure = story.adventure
     if adventure is None:
         return None
-    return AdventureRef(id=adventure.id, title=adventure.title, night=story.night, nights=adventure.nights)
+    return AdventureRef(id=adventure.id, title=adventure.title, chapter=story.chapter, chapter_count=adventure.chapter_count)
 
 
 def placeholder_title(names: list[str]) -> str:
@@ -72,8 +72,8 @@ DAILY_LIMIT_MESSAGE = (
 
 
 def check_daily_limit(session: Session) -> None:
-    """Each story started and each agent run counts (a run writes one night of an adventure).
-    An adventure's planned nights don't count until a run writes them."""
+    """Each story started and each agent run counts (a run writes one chapter of an adventure).
+    An adventure's planned chapters don't count until a run writes them."""
     limit = get_settings().max_stories_per_day
     if limit is None:
         return
@@ -109,10 +109,10 @@ def create_story(payload: StoryCreate, session: Session = Depends(get_session)) 
 
 @router.get("", response_model=list[StorySummary])
 def list_stories(session: Session = Depends(get_session)) -> list[StorySummary]:
-    # Newest first, with an adventure's nights together and in order (at the adventure's place).
+    # Newest first, with an adventure's chapters together and in order (at the adventure's place).
     started = func.coalesce(Adventure.created_at, Story.created_at)
     stories = session.exec(
-        select(Story).outerjoin(Adventure).order_by(started.desc(), Story.night, Story.id.desc())
+        select(Story).outerjoin(Adventure).order_by(started.desc(), Story.chapter, Story.id.desc())
     ).all()
     return [StorySummary(**to_story_read(s).model_dump()) for s in stories]
 
@@ -179,7 +179,7 @@ def stream_story(
     if story.status != StoryStatus.planned:
         raise HTTPException(409, "This story has already been written")
     if story.adventure_id is not None:
-        raise HTTPException(409, "This is a night of an adventure: the adventure agent writes it")
+        raise HTTPException(409, "This is a chapter of an adventure: the adventure agent writes it")
     child = session.exec(select(ChildProfile)).first()
     if child is None:
         raise HTTPException(409, "Set up a child profile first")

@@ -116,7 +116,7 @@ def test_an_agent_run_is_one_trace_in_its_adventures_session(client, monkeypatch
 
     monkeypatch.setattr(llm, "complete_with_tools", complete_with_tools)
     monkeypatch.setattr(tracing, "flush", flush)
-    run = client.post("/api/adventures", json={"nights": 3}).json()
+    run = client.post("/api/adventures", json={"chapter_count": 3}).json()
     client.get(f"/api/agent-runs/{run['id']}/stream")
 
     assert seen[0].feature == "adventure-agent"
