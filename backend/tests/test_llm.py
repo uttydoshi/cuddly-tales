@@ -194,3 +194,65 @@ def test_the_safety_check_request_never_forces_a_tool(monkeypatch):
     body = sent[0]
     assert "tool_choice" not in body and "tools" not in body
     assert body["output_format"]["schema"]["properties"] == {"ok": {"type": "boolean"}}
+
+
+def test_missing_model_prices_are_registered(monkeypatch):
+    registered = {}
+    fake = SimpleNamespace(model_cost={"claude-sonnet-x": {}}, register_model=registered.update)
+    llm._register_missing_prices(fake)
+    assert registered["claude-opus-5-5"]["input_cost_per_token"] == 4e-06
+    already = SimpleNamespace(model_cost={"claude-opus-5-5": {}}, register_model=registered.clear)
+    llm._register_missing_prices(already)  # known already: left alone
+    assert registered
+
+
+def test_traces_reach_the_exporter_as_one_trace_before_flush_returns(monkeypatch):
+    """Real LiteLLM calls with tracing on, and the OpenTelemetry export caught instead of sent:
+    both calls of one story must be one trace, exported by the time flush() returns (on Lambda
+    nothing runs after the response ends)."""
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.trace.export import SpanExportResult
+
+    exported = []
+
+    def catch(self, spans):
+        exported.extend(spans)
+        return SpanExportResult.SUCCESS
+
+    monkeypatch.setattr(OTLPSpanExporter, "export", catch)
+    llm.load_litellm()
+    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER as worker
+
+    asyncio.run(worker.flush())  # earlier tests' queued logging runs now, before tracing is on
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-test")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-test")
+    monkeypatch.setenv("LANGFUSE_HOST", "http://127.0.0.1:9")  # never reached: export is caught
+    litellm = llm.load_litellm()
+    # LiteLLM reads the keys once, when it first makes its Langfuse logger, and keeps that logger
+    # for the process (on Lambda the keys are loaded before LiteLLM). Start this test with none,
+    # and put LiteLLM's lists back afterwards.
+    from litellm.litellm_core_utils import litellm_logging
+
+    monkeypatch.setattr(litellm_logging, "_in_memory_loggers", [])
+    for name in ("callbacks", "success_callback", "failure_callback", "_async_success_callback", "_async_failure_callback"):
+        monkeypatch.setattr(litellm, name, [c for c in getattr(litellm, name) if not hasattr(c, "_tracer_provider")])
+    tracing.setup(litellm)
+    trace = tracing.Trace("story", details={"story_id": 7})
+
+    async def story():
+        for step in ("write", "safety-check"):
+            await litellm.acompletion(
+                model="anthropic/claude-opus-5-5",
+                messages=[{"role": "user", "content": "hi"}],
+                mock_response="Once upon a time.",
+                metadata=trace.at(step).metadata(),
+            )
+        await tracing.flush()
+
+    asyncio.run(story())
+    ours = [s for s in exported if s.context.trace_id == int(trace.id, 16)]
+    assert len(ours) >= 2, f"expected both calls in trace {trace.id}, got {[(s.name, hex(s.context.trace_id)) for s in exported]}"
+    steps = {str(value) for span in ours for value in span.attributes.values()}
+    assert {"write", "safety-check"} <= steps
+    for provider in tracing._span_providers():  # this test's logger: close it now, not at exit
+        provider.shutdown()

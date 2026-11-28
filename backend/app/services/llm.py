@@ -19,10 +19,38 @@ def load_litellm() -> ModuleType:
     Its built-in price list is used, so it doesn't download one from GitHub.
     """
     os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
+    # In its default DEV mode LiteLLM loads a .env file on import, searching upwards from where
+    # it's installed (which finds the repo's). The app loads its own settings (config.py), so
+    # this keeps LiteLLM from quietly adding any: in tests it was putting back Langfuse keys the
+    # test setup had removed.
+    os.environ.setdefault("LITELLM_MODE", "PRODUCTION")
     import litellm
 
+    _register_missing_prices(litellm)
     tracing.setup(litellm)
     return litellm
+
+
+# Prices for models newer than the pinned LiteLLM's built-in price list, so traces show what each
+# call cost. Taken from LiteLLM's own list in a later release (1.111.0), per token in US dollars.
+MISSING_PRICES = {
+    "claude-opus-5-5": {
+        "litellm_provider": "anthropic",
+        "mode": "chat",
+        "input_cost_per_token": 4e-06,
+        "output_cost_per_token": 2e-05,
+        "cache_read_input_token_cost": 2e-07,
+        "cache_creation_input_token_cost": 5e-06,
+        "max_input_tokens": 1_000_000,
+        "max_output_tokens": 128_000,
+    },
+}
+
+
+def _register_missing_prices(litellm) -> None:
+    missing = {name: price for name, price in MISSING_PRICES.items() if name not in litellm.model_cost}
+    if missing:
+        litellm.register_model(missing)
 
 
 def _traced(trace: Trace | None) -> dict:
