@@ -1,4 +1,5 @@
 import logging
+import random
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -10,7 +11,7 @@ from app.db import get_session
 from app.models import Character, ChildProfile, SafetyStatus, Story, StoryStatus, utc_now
 from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
 from app.services import llm, safety
-from app.services.story_prompt import build_story_messages
+from app.services.story_prompt import EARLIER_STORIES, PLOTS, build_story_messages
 from app.services.story_stream import (
     KEEPALIVE,
     await_with_keepalive,
@@ -161,7 +162,22 @@ def stream_story(
         raise HTTPException(409, "Set up a child profile first")
 
     everyone = session.exec(select(Character)).all()
-    messages = build_story_messages(child, list(story.characters), bedtime=story.bedtime, others=everyone)
+    # Every new story is compared with the family's stories so far, so none repeats or resembles another.
+    told = session.exec(
+        select(Story)
+        .where(Story.status != StoryStatus.planned, Story.id != story.id)
+        .order_by(Story.created_at.desc(), Story.id.desc())
+        .limit(EARLIER_STORIES)
+    ).all()
+    earlier = [safety.digest(s) for s in told]
+    messages = build_story_messages(
+        child,
+        list(story.characters),
+        bedtime=story.bedtime,
+        others=everyone,
+        plot=random.choice(PLOTS),
+        earlier=earlier,
+    )
     engine = request.app.state.engine
     bedtime = story.bedtime
     # Plain copies for the check, which runs after this request's database session has closed.
@@ -184,7 +200,7 @@ def stream_story(
         yield sse("checking", {})
         result = None
         try:
-            check = safety.check_story(title, body, hero, cast, bedtime=bedtime)
+            check = safety.check_story(title, body, hero, cast, bedtime=bedtime, earlier=earlier)
             async for item in await_with_keepalive(check, KEEPALIVE_SECONDS):
                 if item is None:
                     yield KEEPALIVE

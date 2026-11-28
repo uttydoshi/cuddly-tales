@@ -105,3 +105,21 @@ def test_mentions_matches_whole_names_and_names_without_the():
     friend = Character(name="X", type=CharacterType.custom, description="Friends with Big Bad Wolf.")
     assert mentions(friend, wolf.name)
     assert not mentions(DIGGLES, "Tos")  # part of a word doesn't count
+
+
+def test_running_jokes_are_moments_not_the_plot():
+    system, _ = build_story_messages(CHILD, [MINNIE])
+    assert "never the main plot" in system["content"]
+
+
+def test_prompt_names_the_kind_of_story_and_avoids_earlier_ones():
+    earlier = [("Mira and the Lost Mortar", "Baba Yaga loses her mortar and Mira helps find it.")]
+    _, user = build_story_messages(CHILD, [MINNIE], plot="cooking or baking something", earlier=earlier)
+    assert "The kind of story: cooking or baking something." in user["content"]
+    assert "not a repeat, and not similar either" in user["content"]
+    assert "- Mira and the Lost Mortar: Baba Yaga loses her mortar and Mira helps find it." in user["content"]
+
+
+def test_no_variety_section_without_a_plot_or_recent_stories():
+    _, user = build_story_messages(CHILD, [MINNIE])
+    assert "kind of story" not in user["content"] and "already told" not in user["content"]
