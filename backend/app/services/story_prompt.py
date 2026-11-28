@@ -2,6 +2,7 @@
 
 import re
 from collections.abc import Iterable
+from dataclasses import dataclass, field
 
 from app.models import Character, ChildProfile
 
@@ -100,6 +101,40 @@ ANYTIME_ENDING = (
 )
 
 
+@dataclass
+class Chapter:
+    """One night of an adventure: where it fits, and tonight's plot cards in order."""
+
+    adventure: str
+    premise: str
+    night: int
+    nights: int
+    beats: list[str]
+    # The nights already written: (night, title, what happens).
+    previously: list[tuple[int, str, str]] = field(default_factory=list)
+
+
+def describe_chapter(chapter: Chapter, bedtime: bool) -> str:
+    before = "\n".join(f'- Night {n}, "{t}": {summary}' for n, t, summary in chapter.previously)
+    beats = "\n".join(f"{i}. {beat}" for i, beat in enumerate(chapter.beats, 1))
+    last = chapter.night == chapter.nights
+    ending = (
+        "This is the last night: the adventure's goal is reached, and it ends happily."
+        if last
+        else "It ends warm and happy; a small, gentle hint about tomorrow night is fine."
+    )
+    if bedtime:
+        ending += " As a bedtime story, it still ends calm and sleepy."
+    return (
+        f'\n\nThis is night {chapter.night} of {chapter.nights} of an adventure called "{chapter.adventure}": '
+        f"{chapter.premise}\n"
+        + (f"\nThe nights so far:\n{before}\n" if before else "")
+        + f"\nTonight's plot, in this order:\n{beats}\n\n"
+        "Write only tonight's chapter, as a complete story on its own with its own title. "
+        f"{ending}"
+    )
+
+
 def build_story_messages(
     child: ChildProfile,
     characters: list[Character],
@@ -108,6 +143,7 @@ def build_story_messages(
     others: Iterable[Character] = (),
     plot: str | None = None,
     earlier: Iterable[tuple[str, str]] = (),
+    chapter: Chapter | None = None,
 ) -> list[dict]:
     """The system prompt is the same for every story; everything that varies is in the user message.
 
@@ -115,6 +151,7 @@ def build_story_messages(
     briefly, so the model knows who they are without bringing them into the story.
     `plot` is the kind of story to write (one of PLOTS), and `earlier` the family's stories so far
     as (title, what happens), which this one must not repeat or resemble.
+    `chapter` makes it one night of an adventure, following that night's plot cards.
     """
     low, high = word_range(child.age)
     favourites = ", ".join(child.favourite_things) or "none given"
@@ -128,7 +165,9 @@ def build_story_messages(
     )
     told = list(earlier)[:EARLIER_STORIES]
     variety = ""
-    if plot:
+    if chapter:
+        variety += describe_chapter(chapter, bedtime)
+    elif plot:
         variety += f"\n\nThe kind of story: {plot}."
     if told:
         listed = "\n".join(f"- {t}: {summary}" for t, summary in told)

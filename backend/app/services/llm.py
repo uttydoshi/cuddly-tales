@@ -3,6 +3,7 @@
 import json
 import os
 from collections.abc import AsyncIterator
+from dataclasses import dataclass, field
 from types import ModuleType
 
 from app.config import get_settings
@@ -59,6 +60,52 @@ async def complete_json(messages: list[dict], schema: dict, *, name: str, max_to
         drop_params=True,
     )
     return parse_json(response.choices[0].message.content or "")
+
+
+@dataclass
+class ToolCall:
+    id: str
+    name: str
+    arguments: dict  # {} with "_invalid" set when the model's arguments weren't valid JSON
+
+
+@dataclass
+class AgentTurn:
+    """One reply in a tool-using conversation."""
+
+    text: str  # what the model said (may be empty)
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    message: dict = field(default_factory=dict)  # the reply as-is, to add to the conversation
+
+
+async def complete_with_tools(messages: list[dict], tools: list[dict], *, max_tokens: int = 4000) -> AgentTurn:
+    """One turn of the agent: the model answers, calling any tools it chooses.
+
+    Tools are OpenAI-style function definitions, which LiteLLM converts for each provider. The
+    model decides whether to call one (current models reject forcing a particular tool).
+    The reply is kept whole for the conversation, so anything the provider needs back next turn
+    (like thinking blocks) is still there.
+    """
+    settings = get_settings()
+    response = await load_litellm().acompletion(
+        model=settings.llm_model,
+        messages=messages,
+        tools=tools,
+        max_tokens=max_tokens,
+        reasoning_effort=settings.llm_reasoning_effort,
+        drop_params=True,
+    )
+    reply = response.choices[0].message
+    calls = []
+    for call in reply.tool_calls or []:
+        try:
+            arguments = json.loads(call.function.arguments or "{}")
+        except json.JSONDecodeError:
+            arguments = {"_invalid": call.function.arguments}
+        calls.append(ToolCall(id=call.id, name=call.function.name, arguments=arguments))
+    message = reply.model_dump(exclude_none=True) if hasattr(reply, "model_dump") else dict(vars(reply))
+    message["role"] = "assistant"
+    return AgentTurn(text=(reply.content or "").strip(), tool_calls=calls, message=message)
 
 
 def parse_json(text: str) -> dict:

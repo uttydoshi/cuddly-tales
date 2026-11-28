@@ -53,6 +53,34 @@ def test_complete_json_asks_for_the_schema_and_reads_the_reply(monkeypatch):
     assert "stream" not in calls and "temperature" not in calls
 
 
+def test_complete_with_tools_reads_tool_calls(monkeypatch):
+    calls = {}
+
+    def tool_call(id, name, arguments):
+        return SimpleNamespace(id=id, function=SimpleNamespace(name=name, arguments=arguments))
+
+    async def fake_acompletion(**kwargs):
+        calls.update(kwargs)
+        message = SimpleNamespace(
+            content="Let me look at the cast.",
+            tool_calls=[tool_call("a", "list_characters", "{}"), tool_call("b", "write_chapter", "{oops")],
+        )
+        return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+    monkeypatch.setattr(llm.load_litellm(), "acompletion", fake_acompletion)
+    tools = [{"type": "function", "function": {"name": "list_characters", "parameters": {"type": "object"}}}]
+
+    turn = asyncio.run(llm.complete_with_tools([{"role": "user", "content": "hi"}], tools))
+    assert turn.text == "Let me look at the cast."
+    assert [(c.id, c.name, c.arguments) for c in turn.tool_calls] == [
+        ("a", "list_characters", {}),
+        ("b", "write_chapter", {"_invalid": "{oops"}),
+    ]
+    assert turn.message["role"] == "assistant"
+    assert calls["tools"] == tools
+    assert "tool_choice" not in calls and "temperature" not in calls
+
+
 def test_app_starts_without_importing_litellm():
     """LiteLLM is slow to import, so the app must not load it until a story is written."""
     import subprocess
