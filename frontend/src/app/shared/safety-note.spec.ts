@@ -4,7 +4,7 @@ describe('safetyNote', () => {
   it('says how the check went, with the child’s age', () => {
     expect(safetyNote('passed', 3)).toBe('Checked: gentle for age 3');
     expect(safetyNote('rewritten', 4)).toBe('Checked: rewritten once to be just right for age 4');
-    expect(safetyNote('approved', 3)).toBe('Checked: you read it and said it’s fine');
+    expect(safetyNote('approved', 3)).toBe('Flagged by the check, then verified by you');
   });
 
   it('works without an age', () => {

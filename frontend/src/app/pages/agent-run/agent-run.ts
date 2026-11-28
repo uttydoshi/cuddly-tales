@@ -25,15 +25,15 @@ export function upsert(steps: AgentStep[], step: AgentStep): AgentStep[] {
   return [...others, step].sort((a, b) => a.position - b.position);
 }
 
-/** How a chapter reads in the plan: "Ready to read", "Read first", "Read" or "Planned". */
+/** How a chapter shows in the plan: "Planned", "To verify" (amber if the check flagged it) or "Verified". */
 export function chapterStatus(chapter: Chapter): { label: string; tone: 'ok' | 'warn' | 'quiet' | '' } {
   if (chapter.status === 'planned') {
     return { label: 'Planned', tone: 'quiet' };
   }
-  if (chapter.safety_status === 'needs_review') {
-    return { label: 'Read first', tone: 'warn' };
+  if (chapter.status === 'verified') {
+    return { label: 'Verified', tone: 'ok' };
   }
-  return chapter.status === 'read' ? { label: 'Read', tone: 'ok' } : { label: 'Ready to read', tone: '' };
+  return chapter.safety_status === 'needs_review' ? { label: 'To verify · flagged', tone: 'warn' } : { label: 'To verify', tone: '' };
 }
 
 /**

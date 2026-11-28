@@ -45,8 +45,8 @@ describe('agent run helpers', () => {
       ...extra,
     });
     expect(chapterStatus(chapter({ status: 'planned', safety_status: null })).label).toBe('Planned');
-    expect(chapterStatus(chapter({ safety_status: 'needs_review' })).label).toBe('Read first');
-    expect(chapterStatus(chapter({ status: 'read' })).label).toBe('Read');
-    expect(chapterStatus(chapter({})).label).toBe('Ready to read');
+    expect(chapterStatus(chapter({ safety_status: 'needs_review' })).label).toBe('To verify · flagged');
+    expect(chapterStatus(chapter({ status: 'verified' })).label).toBe('Verified');
+    expect(chapterStatus(chapter({})).label).toBe('To verify');
   });
 });

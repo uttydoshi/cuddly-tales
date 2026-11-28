@@ -1,5 +1,6 @@
 export type CharacterType = 'family' | 'original' | 'folklore' | 'latte_monster' | 'custom';
-export type StoryStatus = 'idea' | 'planned' | 'written' | 'read';
+/** verified: a parent has read it and says it's fine for their child. */
+export type StoryStatus = 'idea' | 'planned' | 'written' | 'verified';
 /** The safety and age check. null: not written yet, or written before the check existed. */
 export type SafetyStatus = 'passed' | 'rewritten' | 'needs_review' | 'approved';
 
@@ -19,8 +20,8 @@ export interface ChildProfileSaved extends ChildProfile {
 export interface StoryChanges {
   title?: string;
   text?: string;
-  read?: boolean;
-  approve?: boolean;
+  /** A parent's sign-off before reading it to their child (false undoes it). */
+  verified?: boolean;
   favourite?: boolean;
 }
 
@@ -76,7 +77,7 @@ export interface SafetyAttempt {
 
 export interface Story extends StorySummary {
   text: string | null;
-  read_at: string | null;
+  verified_at: string | null;
   /** Every version the check looked at, first to last. */
   safety: { attempts: SafetyAttempt[] } | null;
   /** The plot beat by beat, for adventure chapters. */

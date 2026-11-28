@@ -111,9 +111,9 @@ export class StoryDetail {
   readonly wordsSoFar = computed(() => countWords(this.streamedBody()));
   /** For a planned adventure chapter: which chapter the agent writes next. */
   readonly nextChapter = signal<number | null>(null);
-  readonly readOn = computed(() => {
-    const readAt = this.story()?.read_at;
-    return readAt ? friendlyDate(readAt) : '';
+  readonly verifiedOn = computed(() => {
+    const verifiedAt = this.story()?.verified_at;
+    return verifiedAt ? friendlyDate(verifiedAt) : '';
   });
 
   readonly form = inject(FormBuilder).nonNullable.group({
@@ -331,13 +331,10 @@ export class StoryDetail {
     this.update(story, { favourite: !story.favourite });
   }
 
-  setRead(story: Story, read: boolean): void {
-    this.update(story, { read });
-  }
-
-  /** A parent has read a story the check flagged and says it's fine. */
-  approve(story: Story): void {
-    this.update(story, { approve: true });
+  /** The parent's sign-off: they've read it and it's fine for their child (false undoes it).
+   *  For a story the check flagged, this is also how the parent clears the flag. */
+  setVerified(story: Story, verified: boolean): void {
+    this.update(story, { verified });
   }
 
   remove(story: Story): void {
