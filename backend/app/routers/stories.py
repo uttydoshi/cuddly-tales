@@ -241,7 +241,7 @@ def stream_story(
             async for event in write_and_check():
                 yield event
         finally:
-            await tracing.flush()  # before Lambda freezes the process
+            await tracing.flush(trace)  # before Lambda freezes the process
 
     async def write_and_check():
         parts: list[str] = []

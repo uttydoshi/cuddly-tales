@@ -53,6 +53,23 @@ def test_with_keys_every_call_in_a_trace_shares_one_opentelemetry_parent(monkeyp
     assert tracing.Trace("story").metadata()["litellm_parent_otel_span"].get_span_context().trace_id != parent.trace_id
 
 
+def test_the_root_span_names_the_trace_and_ends_with_flush(monkeypatch):
+    for name, value in REAL_KEYS.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setattr(tracing, "integration_available", lambda: True)
+    trace = tracing.Trace("adventure-agent", details={"run_id": 4})
+    root = tracing.root_span(trace.at("agent-turn-1"))
+    assert root.name == "adventure-agent"
+    assert root.attributes["langfuse.trace.tags"] == ("adventure-agent", "local")  # a real list, not text
+    assert root.attributes["langfuse.trace.metadata.run_id"] == "4"
+    assert root.parent is None  # the trace's root: Langfuse lists traces by their root
+    later = trace.in_session("adventure-9")
+    assert tracing.root_span(later) is root
+    assert root.attributes["session.id"] == "local-adventure-9"
+    tracing._end_root(later)
+    assert root.end_time is not None and trace.id not in tracing._roots
+
+
 def test_content_can_be_kept_out_of_langfuse(monkeypatch):
     monkeypatch.setenv("LANGFUSE_LOG_CONTENT", "false")
     metadata = tracing.Trace("story").metadata()
@@ -105,8 +122,8 @@ def test_a_story_is_one_trace_with_its_check_and_rewrite(client, monkeypatch):
         passed = next(attempts)
         return safety.Attempt(passed=passed, word_count=1, scariness=1 if passed else 3, problems=[] if passed else ["x"])
 
-    async def flush():
-        flushed.append(True)
+    async def flush(trace=None):
+        flushed.append(trace)
 
     monkeypatch.setattr(llm, "stream_text", stream_text)
     monkeypatch.setattr(safety, "check_story", check_story)
@@ -118,7 +135,7 @@ def test_a_story_is_one_trace_with_its_check_and_rewrite(client, monkeypatch):
     assert [t.step for t in traces] == ["write", "safety-check", "rewrite", "safety-check"]
     assert len({t.id for t in traces}) == 1
     assert traces[0].feature == "story" and traces[0].details["story_id"] == story_id
-    assert flushed == [True]
+    assert [t.id for t in flushed] == [traces[0].id]  # the story's own trace is ended and sent
 
 
 def test_an_agent_run_is_one_trace_in_its_adventures_session(client, monkeypatch):
@@ -128,8 +145,8 @@ def test_an_agent_run_is_one_trace_in_its_adventures_session(client, monkeypatch
         seen.append(trace)
         return llm.AgentTurn(text="Done.", tool_calls=[], message={"role": "assistant", "content": "Done."})
 
-    async def flush():
-        flushed.append(True)
+    async def flush(trace=None):
+        flushed.append(trace)
 
     monkeypatch.setattr(llm, "complete_with_tools", complete_with_tools)
     monkeypatch.setattr(tracing, "flush", flush)
@@ -139,15 +156,15 @@ def test_an_agent_run_is_one_trace_in_its_adventures_session(client, monkeypatch
     assert seen[0].feature == "adventure-agent"
     assert seen[0].step == "agent-turn-1"
     assert seen[0].details["run_id"] == run["id"]
-    assert flushed == [True]
+    assert [t.id for t in flushed] == [seen[0].id]
 
 
 def test_langfuse_keys_come_from_an_optional_secret(monkeypatch):
     keys = {"public_key": "pk-lf-1", "secret_key": "sk-lf-2", "host": "https://us.cloud.langfuse.com"}
     monkeypatch.setattr(aws_secrets, "read_secret", lambda secret_id: json.dumps(keys))
     monkeypatch.setenv("LANGFUSE_KEYS_SECRET", "cuddly-tales/langfuse-keys")
+    monkeypatch.delenv("LANGFUSE_HOST")  # the test setup points it at a closed port
     aws_secrets.load_into_env()
-    import os
 
     assert os.environ["LANGFUSE_PUBLIC_KEY"] == "pk-lf-1"
     assert os.environ["LANGFUSE_HOST"] == "https://us.cloud.langfuse.com"
