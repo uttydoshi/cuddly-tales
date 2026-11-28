@@ -16,10 +16,22 @@
         All · {{ counts().all }}
       </button>
       <button type="button" class="chip" [attr.aria-pressed]="filter() === 'unread'" (click)="filter.set('unread')">
-        Not read yet · {{ counts().unread }}
+        Unread · {{ counts().unread }}
       </button>
       <button type="button" class="chip" [attr.aria-pressed]="filter() === 'read'" (click)="filter.set('read')">
         Read · {{ counts().read }}
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [attr.aria-pressed]="filter() === 'favourites'"
+        (click)="filter.set('favourites')"
+        aria-label="Favourites"
+      >
+        <svg class="chip-heart" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z" />
+        </svg>
+        <span class="long">Favourites ·</span> {{ counts().favourites }}
       </button>
     </div>
 
@@ -36,11 +48,16 @@
                   </span>
                 }
                 @case ('written') {
-                  <span class="pill">Not read yet</span>
+                  <span class="pill">Unread</span>
                 }
                 @default {
                   <span class="pill quiet">Not written yet</span>
                 }
+              }
+              @if (card.story.favourite) {
+                <svg class="fav" viewBox="0 0 24 24" role="img" aria-label="A favourite">
+                  <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z" />
+                </svg>
               }
               @if (card.story.safety_status === 'needs_review') {
                 <span class="pill warn">Read first</span>
@@ -75,7 +92,13 @@
           </a>
         </li>
       } @empty {
-        <li class="muted">Nothing here yet.</li>
+        <li class="muted">
+          @if (filter() === 'favourites') {
+            No favourites yet. Tap the heart on a story to keep it here.
+          } @else {
+            Nothing here yet.
+          }
+        </li>
       }
     </ul>
   }

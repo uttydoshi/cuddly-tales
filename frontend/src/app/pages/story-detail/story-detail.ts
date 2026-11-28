@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { Story } from '../../models';
+import { Story, StoryChanges } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { StoryStreamService } from '../../services/story-stream.service';
 import { Avatar } from '../../shared/avatar';
@@ -184,6 +184,11 @@ export class StoryDetail {
     this.update(story, changes, () => this.editing.set(false));
   }
 
+  /** The heart: a favourite story shows under Favourites on the stories page. */
+  toggleFavourite(story: Story): void {
+    this.update(story, { favourite: !story.favourite });
+  }
+
   setRead(story: Story, read: boolean): void {
     this.update(story, { read });
   }
@@ -206,7 +211,7 @@ export class StoryDetail {
 
   private update(
     story: Story,
-    changes: { title?: string; text?: string; read?: boolean; approve?: boolean },
+    changes: StoryChanges,
     done?: () => void,
   ): void {
     this.busy.set(true);

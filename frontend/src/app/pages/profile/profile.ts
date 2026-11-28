@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ApiService } from '../../services/api.service';
@@ -21,11 +22,21 @@ export class Profile {
   readonly saving = signal(false);
   readonly saved = signal(false);
   readonly errorMessage = signal('');
+  /** The name as last saved, so a change can be explained before saving. */
+  readonly savedName = signal('');
+  readonly storiesRenamed = signal(0);
 
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(40)]],
     age: [3, [Validators.required, Validators.min(2), Validators.max(6)]],
     favouriteThings: [''],
+  });
+
+  private readonly typedName = toSignal(this.form.controls.name.valueChanges, { initialValue: '' });
+  /** Set when the parent has typed a different name: stories will change to it on save. */
+  readonly renaming = computed(() => {
+    const typed = this.typedName().trim();
+    return typed && this.savedName() && typed !== this.savedName() ? typed : '';
   });
 
   constructor() {
@@ -36,6 +47,7 @@ export class Profile {
           age: child.age,
           favouriteThings: fromLines(child.favourite_things),
         });
+        this.savedName.set(child.name);
         this.loading.set(false);
       },
       error: () => {
@@ -63,6 +75,8 @@ export class Profile {
     this.api.updateProfile({ name: name.trim(), age: Number(age), favourite_things: favourites }).subscribe({
       next: (child) => {
         this.shell.setChild(child); // the top bar shows the new name and age
+        this.savedName.set(child.name);
+        this.storiesRenamed.set(child.stories_renamed);
         this.saving.set(false);
         this.saved.set(true);
       },

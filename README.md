@@ -11,7 +11,7 @@ word, ready to read aloud.
   <img src="docs/screenshots/pick-the-cast.png" width="200" alt="Picking the cast: 'Dear Mira, who's in Mira's story?', Anytime or Bedtime, Minnie and Diggles chosen, and a 'Write the story with 2 friends' button">
   <img src="docs/screenshots/story-streaming.png" width="200" alt="The story arriving word by word in night mode, with 'Still writing · 32 words so far'">
   <img src="docs/screenshots/reading-night-mode.png" width="200" alt="Reading the finished story in night mode, with the Polish word gwiazda in italics">
-  <img src="docs/screenshots/your-stories.png" width="200" alt="Your stories: filter chips and story cards marked Not read yet or Read">
+  <img src="docs/screenshots/your-stories.png" width="200" alt="Your stories: filter chips and story cards marked Unread or Read">
 </p>
 
 Designed for a parent's phone, in the style of [ukdoshi.com](https://ukdoshi.com): pick the cast,
@@ -27,7 +27,7 @@ The assessment asks for at least three of five capabilities; Cuddly Tales aims f
 
 | Requirement | Status | How it's met |
 | --- | --- | --- |
-| **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. Stories can be marked read. The child's profile (name, age, favourite things) can be edited too. Deleting a character keeps the stories it was in. |
+| **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. Stories can be marked read, and hearted to keep them under Favourites. The child's profile (name, age, favourite things) can be edited too; a new name is also changed in every story and character that used the old one. Deleting a character keeps the stories it was in. |
 | **2. In-app analytics** | Day 3 | A dashboard with charts from real app data (stories read, character appearances, Polish words learned). |
 | **3. Drag and drop** | Day 3 | A storyboard of plot cards that can be reordered, with the order saved. |
 | **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare tonight's chapter, with a "Run now" button. |

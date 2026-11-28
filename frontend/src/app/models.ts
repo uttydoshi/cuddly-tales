@@ -10,6 +10,20 @@ export interface ChildProfile {
   favourite_things: string[];
 }
 
+/** What saving the profile returns: how many stories now say the new name. */
+export interface ChildProfileSaved extends ChildProfile {
+  stories_renamed: number;
+}
+
+/** A parent's changes to a story. Only the fields sent are changed. */
+export interface StoryChanges {
+  title?: string;
+  text?: string;
+  read?: boolean;
+  approve?: boolean;
+  favourite?: boolean;
+}
+
 export interface Character {
   id: number;
   name: string;
@@ -38,6 +52,8 @@ export interface StorySummary {
   created_at: string;
   /** Bedtime stories end calm and sleepy and open in night mode; others are for any time. */
   bedtime: boolean;
+  /** A parent's heart: the story shows under Favourites. */
+  favourite: boolean;
   characters: CharacterRef[];
   safety_status: SafetyStatus | null;
 }

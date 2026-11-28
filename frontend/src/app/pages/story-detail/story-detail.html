@@ -5,6 +5,22 @@
       Stories
     </a>
     <div class="tools">
+      @if (story(); as s) {
+        <button
+          type="button"
+          class="tool heart"
+          [class.on]="s.favourite"
+          (click)="toggleFavourite(s)"
+          [disabled]="busy()"
+          [attr.aria-pressed]="s.favourite"
+          [attr.aria-label]="s.favourite ? 'Remove from favourites' : 'Add to favourites'"
+          [title]="s.favourite ? 'A favourite' : 'Add to favourites'"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z" />
+          </svg>
+        </button>
+      }
       <button type="button" class="tool small-a" (click)="smaller()" [disabled]="sizeIndex() === 0" aria-label="Smaller text">A</button>
       <button type="button" class="tool big-a" (click)="larger()" [disabled]="sizeIndex() === 4" aria-label="Larger text">A</button>
       <button
@@ -141,7 +157,7 @@
         } @else if (s.status === 'read') {
           <p class="status">
             <span class="pill ok">Read {{ readOn() }}</span>
-            <button type="button" class="link" [disabled]="busy()" (click)="setRead(s, false)">Mark as not read</button>
+            <button type="button" class="link" [disabled]="busy()" (click)="setRead(s, false)">Mark as unread</button>
           </p>
         } @else {
           <!-- The same round action button as the pen and add-character buttons. -->

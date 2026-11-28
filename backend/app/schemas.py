@@ -17,6 +17,11 @@ class ChildProfileRead(BaseModel):
     favourite_things: list[str]
 
 
+class ChildProfileSaved(ChildProfileRead):
+    # How many stories had the child's old name changed to the new one.
+    stories_renamed: int = 0
+
+
 class ChildProfileUpdate(BaseModel):
     name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
     age: int = Field(ge=2, le=6)
@@ -77,6 +82,7 @@ class StorySummary(BaseModel):
     reading_minutes: int | None
     created_at: datetime
     bedtime: bool
+    favourite: bool
     characters: list[CharacterRef]
     # None for stories written before the safety check existed, or not written yet.
     safety_status: SafetyStatus | None
@@ -97,3 +103,4 @@ class StoryUpdate(BaseModel):
     read: bool | None = None
     # A parent has read a story the safety check flagged, and says it's fine.
     approve: bool | None = None
+    favourite: bool | None = None

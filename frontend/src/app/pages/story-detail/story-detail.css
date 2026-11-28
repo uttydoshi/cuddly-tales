@@ -70,6 +70,18 @@
   cursor: default;
 }
 
+.heart.on {
+  color: var(--accent);
+}
+
+.heart.on svg {
+  fill: currentColor;
+}
+
+.heart:disabled {
+  opacity: 1; /* saving the heart shouldn't make it flash */
+}
+
 .small-a {
   font-size: 0.95rem;
 }

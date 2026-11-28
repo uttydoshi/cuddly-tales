@@ -7,7 +7,14 @@ import { ApiService } from '../../services/api.service';
 import { Avatar } from '../../shared/avatar';
 import { friendlyDate, joinNames } from '../../shared/story-format';
 
-type Filter = 'all' | 'unread' | 'read';
+type Filter = 'all' | 'unread' | 'read' | 'favourites';
+
+const SHOWS: Record<Filter, (story: StorySummary) => boolean> = {
+  all: () => true,
+  unread: (s) => s.status !== 'read',
+  read: (s) => s.status === 'read',
+  favourites: (s) => s.favourite,
+};
 
 interface StoryCard {
   story: StorySummary;
@@ -30,14 +37,15 @@ export class StoryList {
     const all = this.stories() ?? [];
     return {
       all: all.length,
-      unread: all.filter((s) => s.status !== 'read').length,
-      read: all.filter((s) => s.status === 'read').length,
+      unread: all.filter(SHOWS.unread).length,
+      read: all.filter(SHOWS.read).length,
+      favourites: all.filter(SHOWS.favourites).length,
     };
   });
 
   readonly cards = computed<StoryCard[]>(() =>
     (this.stories() ?? [])
-      .filter((s) => this.filter() === 'all' || (this.filter() === 'read') === (s.status === 'read'))
+      .filter(SHOWS[this.filter()])
       .map((story) => ({
         story,
         when: friendlyDate(story.created_at),

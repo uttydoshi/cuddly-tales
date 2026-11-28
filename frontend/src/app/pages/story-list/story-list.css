@@ -1,10 +1,6 @@
 .filters {
   display: flex;
   gap: 0.5rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin: 0 -1rem;
-  padding: 0 1rem 0.15rem;
 }
 
 .chip {
@@ -27,6 +23,17 @@
   background: var(--chip-on-bg);
   color: var(--chip-on-text);
   font-weight: 700;
+}
+
+.chip-heart {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin: 0 0.15rem -0.15rem 0;
+  fill: var(--accent);
+}
+
+.chip[aria-pressed='true'] .chip-heart {
+  fill: currentColor;
 }
 
 .stories {
@@ -84,6 +91,12 @@
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.25;
+}
+
+.fav {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: var(--accent);
 }
 
 .cast {
@@ -171,4 +184,20 @@
 
 .story.done .faces app-avatar {
   box-shadow: 0 0 0 2px var(--surface-soft);
+}
+
+/* Phones: tighter pills and a heart for Favourites, so all four fit on one line. */
+@media (max-width: 479px) {
+  .filters {
+    gap: 0.375rem;
+  }
+
+  .chip {
+    flex: 1 1 auto; /* fill the row evenly */
+    padding: 0 0.7rem;
+  }
+
+  .long {
+    display: none;
+  }
 }

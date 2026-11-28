@@ -39,6 +39,7 @@ def to_story_read(story: Story) -> StoryRead:
         reading_minutes=story.reading_minutes,
         created_at=story.created_at,
         bedtime=story.bedtime,
+        favourite=story.favourite,
         read_at=story.read_at,
         safety_status=story.safety_status,
         safety=story.safety_report,
@@ -125,6 +126,8 @@ def update_story(story_id: int, payload: StoryUpdate, session: Session = Depends
         if story.safety_status != SafetyStatus.needs_review:
             raise HTTPException(409, "Only a story waiting for a parent's review can be approved")
         story.safety_status = SafetyStatus.approved
+    if "favourite" in changes:
+        story.favourite = changes["favourite"]
     if changes.get("read") is True and story.status != StoryStatus.read:
         story.status = StoryStatus.read
         story.read_at = utc_now()
