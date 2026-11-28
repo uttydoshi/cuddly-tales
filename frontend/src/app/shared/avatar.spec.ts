@@ -5,10 +5,11 @@ describe('avatar helpers', () => {
     expect(avatarSrc('Minnie')).toBe('/avatars/minnie.svg');
     expect(avatarSrc(' the big bad wolf ')).toBe('/avatars/big-bad-wolf.svg');
     expect(avatarSrc('Eight')).toBe('/avatars/eight.svg');
+    expect(avatarSrc('Bela')).toBe('/avatars/bela.svg');
   });
 
   it('has no drawn avatar for a character a parent adds', () => {
-    expect(avatarSrc('Bela')).toBeNull();
+    expect(avatarSrc('Nani')).toBeNull();
   });
 
   it('gives the same name the same pastel colour', () => {

@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 
 import { CharacterType } from '../models';
 
-/** Hand-drawn badges for the seed cast (and Eight, the octopus), in public/avatars. Matched by name. */
+/** Hand-drawn badges for the seed cast (and Eight the octopus, Bela the elephant), in public/avatars. Matched by name. */
 const SEED_AVATARS: Record<string, string> = {
   minnie: 'minnie',
   maverick: 'maverick',
@@ -15,6 +15,7 @@ const SEED_AVATARS: Record<string, string> = {
   'the clever monkey': 'clever-monkey',
   'the crocodile': 'crocodile',
   eight: 'eight',
+  bela: 'bela',
 };
 
 /** Pastel backgrounds for characters a parent adds. */
