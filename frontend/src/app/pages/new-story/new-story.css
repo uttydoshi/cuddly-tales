@@ -250,20 +250,20 @@
   color: var(--muted);
 }
 
-/* --- Adventure: how many nights, what it's about --- */
-.nights {
+/* --- Adventure: how many chapters, what it's about --- */
+.counts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
 @media (min-width: 768px) {
-  .nights {
+  .counts {
     max-width: 32rem;
   }
 }
 
-.option.night {
+.option.count {
   justify-content: center;
   min-height: 3rem;
 }

@@ -74,23 +74,23 @@
 
     @if (r.adventure; as a) {
       <section class="plan panel" aria-labelledby="plan-title">
-        <p class="eyebrow">The plan · {{ a.nights }} nights{{ a.bedtime ? ' · bedtime' : '' }}</p>
+        <p class="eyebrow">The plan · {{ a.chapter_count }} chapters{{ a.bedtime ? ' · bedtime' : '' }}</p>
         <h2 id="plan-title">{{ a.title }}</h2>
         <p class="premise">{{ a.premise }}</p>
-        <ol class="nights">
-          @for (night of a.chapters; track night.story_id) {
+        <ol class="chapters">
+          @for (chapter of a.chapters; track chapter.story_id) {
             <li>
-              <div class="night-head">
-                <span class="night-no">Night {{ night.night }}</span>
-                <span [class]="'pill ' + nightStatus(night).tone">{{ nightStatus(night).label }}</span>
+              <div class="chapter-head">
+                <span class="chapter-no">Chapter {{ chapter.chapter }}</span>
+                <span [class]="'pill ' + chapterStatus(chapter).tone">{{ chapterStatus(chapter).label }}</span>
               </div>
-              @if (night.status === 'planned') {
-                <p class="night-title">{{ night.title }}</p>
+              @if (chapter.status === 'planned') {
+                <p class="chapter-title">{{ chapter.title }}</p>
               } @else {
-                <a class="night-title" [routerLink]="['/stories', night.story_id]">{{ night.title }}</a>
+                <a class="chapter-title" [routerLink]="['/stories', chapter.story_id]">{{ chapter.title }}</a>
               }
               <ul class="cards">
-                @for (card of night.plot_cards; track $index) {
+                @for (card of chapter.plot_cards; track $index) {
                   <li>{{ card }}</li>
                 }
               </ul>
@@ -99,12 +99,12 @@
         </ol>
         @if (!working()) {
           <div class="actions">
-            @if (savedNight(); as saved) {
-              <a class="btn" [routerLink]="['/stories', saved.story_id]">Read night {{ saved.night }}</a>
+            @if (savedChapter(); as saved) {
+              <a class="btn" [routerLink]="['/stories', saved.story_id]">Read chapter {{ saved.chapter }}</a>
             }
-            @if (nextNight(); as next) {
+            @if (nextChapter(); as next) {
               <button type="button" class="btn quiet" [disabled]="starting()" (click)="writeNext(a.id)">
-                {{ starting() ? 'Starting…' : 'Write night ' + next.night + ' now' }}
+                {{ starting() ? 'Starting…' : 'Write chapter ' + next.chapter + ' now' }}
               </button>
             }
           </div>

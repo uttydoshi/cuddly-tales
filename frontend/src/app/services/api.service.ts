@@ -79,8 +79,8 @@ export class ApiService {
     return this.http.get<Adventure>(`/api/adventures/${id}`);
   }
 
-  /** Starts the agent on the adventure's next night. */
-  writeNextNight(adventureId: number): Observable<AgentRun> {
+  /** Starts the agent on the adventure's next chapter. */
+  writeNextChapter(adventureId: number): Observable<AgentRun> {
     return this.http.post<AgentRun>(`/api/adventures/${adventureId}/next`, {});
   }
 

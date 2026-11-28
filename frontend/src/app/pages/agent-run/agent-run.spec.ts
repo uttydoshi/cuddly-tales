@@ -1,12 +1,12 @@
-import { AgentStep, Night } from '../../models';
-import { duration, nightStatus, upsert } from './agent-run';
+import { AgentStep, Chapter } from '../../models';
+import { chapterStatus, duration, upsert } from './agent-run';
 
 function step(id: number, position: number, extra: Partial<AgentStep> = {}): AgentStep {
   return {
     id,
     position,
     tool: 'write_chapter',
-    label: 'Write night 1',
+    label: 'Write chapter 1',
     result: null,
     ok: null,
     detail: null,
@@ -34,9 +34,9 @@ describe('agent run helpers', () => {
     expect(duration(step(1, 0, { finished_at: '2026-11-28T10:00:00.1Z' }), now)).toBe('');
   });
 
-  it('labels each night of the plan', () => {
-    const night = (extra: Partial<Night>): Night => ({
-      night: 1,
+  it('labels each chapter of the plan', () => {
+    const chapter = (extra: Partial<Chapter>): Chapter => ({
+      chapter: 1,
       story_id: 1,
       title: 'T',
       status: 'written',
@@ -44,9 +44,9 @@ describe('agent run helpers', () => {
       plot_cards: [],
       ...extra,
     });
-    expect(nightStatus(night({ status: 'planned', safety_status: null })).label).toBe('Planned');
-    expect(nightStatus(night({ safety_status: 'needs_review' })).label).toBe('Read first');
-    expect(nightStatus(night({ status: 'read' })).label).toBe('Read');
-    expect(nightStatus(night({})).label).toBe('Ready to read');
+    expect(chapterStatus(chapter({ status: 'planned', safety_status: null })).label).toBe('Planned');
+    expect(chapterStatus(chapter({ safety_status: 'needs_review' })).label).toBe('Read first');
+    expect(chapterStatus(chapter({ status: 'read' })).label).toBe('Read');
+    expect(chapterStatus(chapter({})).label).toBe('Ready to read');
   });
 });

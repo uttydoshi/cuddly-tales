@@ -56,15 +56,15 @@ export interface StorySummary {
   favourite: boolean;
   characters: CharacterRef[];
   safety_status: SafetyStatus | null;
-  /** Set when the story is one night of an adventure. */
+  /** Set when the story is one chapter of an adventure. */
   adventure: AdventureRef | null;
 }
 
 export interface AdventureRef {
   id: number;
   title: string;
-  night: number;
-  nights: number;
+  chapter: number;
+  chapter_count: number;
 }
 
 export interface SafetyAttempt {
@@ -79,7 +79,7 @@ export interface Story extends StorySummary {
   read_at: string | null;
   /** Every version the check looked at, first to last. */
   safety: { attempts: SafetyAttempt[] } | null;
-  /** The plot beat by beat, for adventure nights. */
+  /** The plot beat by beat, for adventure chapters. */
   plot_cards: string[];
 }
 
@@ -90,9 +90,9 @@ export type StreamEvent =
   | { type: 'done'; id: number; title: string | null }
   | { type: 'error'; message: string };
 
-/** One night of an adventure, as planned (and later written). */
-export interface Night {
-  night: number;
+/** One chapter of an adventure, as planned (and later written). */
+export interface Chapter {
+  chapter: number;
   story_id: number;
   title: string;
   status: StoryStatus;
@@ -104,15 +104,15 @@ export interface Adventure {
   id: number;
   title: string;
   premise: string;
-  nights: number;
+  chapter_count: number;
   bedtime: boolean;
   status: 'in_progress' | 'finished';
   created_at: string;
-  chapters: Night[];
+  chapters: Chapter[];
 }
 
 export interface AdventureRequest {
-  nights: number;
+  chapter_count: number;
   bedtime: boolean;
   character_ids: number[];
   theme: string | null;
@@ -136,7 +136,7 @@ export type AgentRunStatus = 'pending' | 'running' | 'finished' | 'failed' | 'st
 
 export interface AgentRun {
   id: number;
-  kind: 'plan' | 'next_night';
+  kind: 'plan' | 'next_chapter';
   goal: string;
   status: AgentRunStatus;
   trigger: string;
