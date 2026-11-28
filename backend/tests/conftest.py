@@ -26,7 +26,7 @@ def client(engine) -> Iterator[TestClient]:
 @pytest.fixture(autouse=True)
 def no_tracing(monkeypatch):
     """Tests never send traces, even with real Langfuse keys in .env."""
-    for name in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST", "LANGFUSE_LOG_CONTENT"):
+    for name in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST", "LANGFUSE_LOG_CONTENT", "LANGFUSE_TRACING_ENVIRONMENT", "OTEL_ENVIRONMENT_NAME"):
         monkeypatch.delenv(name, raising=False)
 
 

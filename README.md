@@ -114,7 +114,7 @@ looked into afterwards: what the model was asked, what it said, tokens, cost and
 | `story`: one per story written | `write`, `safety-check`, and `rewrite` + `safety-check` if it failed |
 | `adventure-agent`: one per agent run | `agent-turn-1`, `agent-turn-2`… (each choice of tool), `write-chapter`, `safety-check`, and `rewrite-chapter` if it failed |
 
-Traces are tagged with the feature and where the app ran (`live` or `local`), carry the story or
+Traces are in Langfuse's environment `live` or `local` (where the app ran), are tagged with the feature and that place, carry the story or
 run id, and an adventure's runs share a Langfuse session, so all its chapters can be followed
 together. All model calls go through `backend/app/services/llm.py`, which is the only code that
 knows about tracing.

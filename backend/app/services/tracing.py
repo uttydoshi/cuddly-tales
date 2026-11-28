@@ -122,6 +122,11 @@ def setup(litellm) -> None:
     if not integration_available():
         logger.warning("Langfuse tracing is off: missing one of %s", ", ".join(NEEDED))
         return
+    # Langfuse's environment field ("live" or "local"), which its views filter by. Without this,
+    # LiteLLM labels every trace "production", wherever it ran. LiteLLM reads the first for model
+    # calls and the second for the span around each call.
+    for name in ("LANGFUSE_TRACING_ENVIRONMENT", "OTEL_ENVIRONMENT_NAME"):
+        os.environ.setdefault(name, environment())
     if CALLBACK not in litellm.callbacks:
         litellm.callbacks.append(CALLBACK)
 
