@@ -18,7 +18,10 @@ PYTHON_VERSION = "3.13"
 
 # Parts of LiteLLM's proxy server, which the app never runs (it uses LiteLLM as a
 # library). Removing them keeps the package well under Lambda's 250 MB limit.
-UNUSED_PATHS = ["litellm/proxy/_experimental", "litellm/proxy/swagger"]
+# Only the proxy's web dashboard and API docs: other proxy modules are imported by the
+# library itself (structured replies import proxy/_experimental/mcp_server), and removing
+# those broke the safety check on Lambda. backend/tests/test_llm.py guards this list.
+UNUSED_PATHS = ["litellm/proxy/_experimental/out", "litellm/proxy/swagger"]
 
 # Lambda refuses packages over 250 MB unzipped. Stop the build with a clear message
 # before that, rather than failing the deploy.

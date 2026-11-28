@@ -104,6 +104,10 @@ would take several minutes, close to Lambda's limit, and each night still needs 
 
 ## Tracing with Langfuse
 
+> **Status:** paused while it moves to LiteLLM's OpenTelemetry route. It was built against a newer
+> LiteLLM than Lambda can install (1.91.5 is the newest with Linux arm64 wheels), so it now
+> switches itself off rather than ever stopping a story; LiteLLM is pinned so this can't drift again.
+
 Every model call is traced in [Langfuse](https://langfuse.com), through LiteLLM's Langfuse
 integration, so any story or agent run can be looked into afterwards: what the model was asked,
 what it said, tokens, cost and time.
