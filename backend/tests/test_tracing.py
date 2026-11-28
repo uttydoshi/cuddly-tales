@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 from types import SimpleNamespace
 
 import pytest
@@ -66,9 +67,14 @@ def test_setup_adds_the_langfuse_callback_once_and_only_with_keys(monkeypatch):
     assert fake.callbacks == []
     for name, value in REAL_KEYS.items():
         monkeypatch.setenv(name, value)
+    monkeypatch.delenv("LANGFUSE_TRACING_ENVIRONMENT", raising=False)
+    monkeypatch.delenv("OTEL_ENVIRONMENT_NAME", raising=False)
+    monkeypatch.setenv("AWS_LAMBDA_FUNCTION_NAME", "cuddly-tales-api")
     tracing.setup(fake)
     tracing.setup(fake)
     assert fake.callbacks == ["langfuse_otel"]
+    assert os.environ["LANGFUSE_TRACING_ENVIRONMENT"] == "live"  # Langfuse's environment filter
+    assert os.environ["OTEL_ENVIRONMENT_NAME"] == "live"
 
 
 def test_tracing_stays_off_if_anything_it_needs_is_missing(monkeypatch):
