@@ -1,19 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="The Big Bad Wolf, a grumpy but soft-hearted grey wolf">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="The Big Bad Wolf, a grumpy but soft-hearted dark grey wolf">
   <defs><clipPath id="clip-big-bad-wolf"><circle cx="60" cy="60" r="58"/></clipPath></defs>
   <circle cx="60" cy="60" r="58" fill="#dbe6f3"/>
   <g clip-path="url(#clip-big-bad-wolf)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <ellipse cx="60" cy="118" rx="34" ry="28" fill="#9aa5b4"/>
-    <path d="M36 48 L34 18 L54 38 Z" fill="#9aa5b4"/>
-    <path d="M84 48 L86 18 L66 38 Z" fill="#9aa5b4"/>
-    <path d="M39 42 L38 27 L48 37 Z" fill="#f4c6d2" stroke-width="2"/>
-    <path d="M81 42 L82 27 L72 37 Z" fill="#f4c6d2" stroke-width="2"/>
-    <path d="M34 62 Q34 36 60 36 Q86 36 86 62 Q86 82 74 88 L60 92 L46 88 Q34 82 34 62 Z" fill="#9aa5b4"/>
-    <ellipse cx="60" cy="74" rx="15" ry="12" fill="#e7ebf1"/>
-    <ellipse cx="60" cy="68" rx="6.5" ry="4.5" fill="#2b2340"/>
-    <path d="M54 80 Q60 84 66 80" fill="none"/>
-    <path d="M45 51 Q50 51 54 53 M75 51 Q70 51 66 53" fill="none" stroke-width="2.5"/>
+    <ellipse cx="60" cy="122" rx="36" ry="28" fill="#4b5563"/>
+    <path d="M44 100 L50 108 L54 100 L60 110 L66 100 L70 108 L76 100 Q60 96 44 100 Z" fill="#d1d5db" stroke-width="2.5"/>
+    <path d="M36 46 L30 10 L58 34 Z" fill="#4b5563"/>
+    <path d="M84 46 L90 10 L62 34 Z" fill="#4b5563"/>
+    <path d="M38 38 L35 20 L50 33 Z" fill="#9ca3af" stroke-width="2"/>
+    <path d="M82 38 L85 20 L70 33 Z" fill="#9ca3af" stroke-width="2"/>
+    <path d="M38 40 Q60 28 82 40 Q90 50 88 62 L98 68 L87 72 L94 80 L80 82 Q72 96 60 98 Q48 96 40 82 L26 80 L33 72 L22 68 L32 62 Q30 50 38 40 Z" fill="#4b5563"/>
+    <path d="M50 62 Q60 56 70 62 Q74 80 67 92 Q60 96 53 92 Q46 80 50 62 Z" fill="#d1d5db"/>
+    <ellipse cx="60" cy="81" rx="6.5" ry="4.5" fill="#2b2340"/>
+    <path d="M55 89 Q60 92 65 89" fill="none" stroke-width="2.5"/>
+    <path d="M40 49 L53 54 M80 49 L67 54" fill="none" stroke="#d1d5db" stroke-width="3"/>
   </g>
-  <g fill="#2b2340"><ellipse cx="50" cy="59" rx="3" ry="3.4"/><ellipse cx="70" cy="59" rx="3" ry="3.4"/></g>
-  <g fill="#ffffff"><circle cx="51" cy="57.8" r="1"/><circle cx="71" cy="57.8" r="1"/></g>
-  <g fill="#f4a6bd" opacity="0.6"><circle cx="43" cy="70" r="4"/><circle cx="77" cy="70" r="4"/></g>
+  <g stroke="#2b2340" stroke-width="2"><ellipse cx="47" cy="61" rx="4.6" ry="4.2" fill="#fbbf24"/><ellipse cx="73" cy="61" rx="4.6" ry="4.2" fill="#fbbf24"/></g>
+  <g fill="#2b2340"><circle cx="47.5" cy="61.3" r="2.1"/><circle cx="72.5" cy="61.3" r="2.1"/></g>
+  <g fill="#ffffff"><circle cx="48.4" cy="60.2" r="0.8"/><circle cx="73.4" cy="60.2" r="0.8"/></g>
 </svg>

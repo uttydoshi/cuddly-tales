@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Eight, a friendly blue octopus">
+  <defs><clipPath id="clip-eight"><circle cx="60" cy="60" r="58"/></clipPath></defs>
+  <circle cx="60" cy="60" r="58" fill="#ccf2ef"/>
+  <g clip-path="url(#clip-eight)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#2b2340" stroke-width="15">
+      <path d="M36 70 Q18 72 15 86 Q14 96 23 94"/>
+      <path d="M84 70 Q102 72 105 86 Q106 96 97 94"/>
+      <path d="M42 76 Q28 92 36 104 Q42 112 32 118"/>
+      <path d="M78 76 Q92 92 84 104 Q78 112 88 118"/>
+      <path d="M52 80 Q46 100 54 116"/>
+      <path d="M68 80 Q74 100 66 116"/>
+    </g>
+    <g stroke="#5b9bf0" stroke-width="9">
+      <path d="M36 70 Q18 72 15 86 Q14 96 23 94"/>
+      <path d="M84 70 Q102 72 105 86 Q106 96 97 94"/>
+      <path d="M42 76 Q28 92 36 104 Q42 112 32 118"/>
+      <path d="M78 76 Q92 92 84 104 Q78 112 88 118"/>
+      <path d="M52 80 Q46 100 54 116"/>
+      <path d="M68 80 Q74 100 66 116"/>
+    </g>
+  </g>
+  <g fill="#bfdbfe"><circle cx="18" cy="84" r="1.6"/><circle cx="102" cy="84" r="1.6"/><circle cx="33" cy="96" r="1.6"/><circle cx="87" cy="96" r="1.6"/><circle cx="49" cy="98" r="1.6"/><circle cx="71" cy="98" r="1.6"/><circle cx="51" cy="108" r="1.6"/><circle cx="69" cy="108" r="1.6"/></g>
+  <path d="M28 64 Q26 20 60 18 Q94 20 92 64 Q92 82 60 82 Q28 82 28 64 Z" fill="#5b9bf0" stroke="#2b2340" stroke-width="3" stroke-linejoin="round"/>
+  <ellipse cx="46" cy="34" rx="8" ry="5" fill="#ffffff" opacity="0.4" transform="rotate(-25 46 34)"/>
+  <g fill="#93c5fd"><circle cx="74" cy="32" r="3.5"/><circle cx="82" cy="44" r="2.5"/><circle cx="38" cy="48" r="2.5"/></g>
+  <g fill="#2b2340"><ellipse cx="50" cy="58" rx="4" ry="5"/><ellipse cx="70" cy="58" rx="4" ry="5"/></g>
+  <g fill="#ffffff"><circle cx="51.4" cy="56.2" r="1.5"/><circle cx="71.4" cy="56.2" r="1.5"/></g>
+  <path d="M54 69 Q60 74 66 69" fill="none" stroke="#2b2340" stroke-width="3" stroke-linecap="round"/>
+  <g fill="#f9a8c9" opacity="0.75"><circle cx="42" cy="66" r="4"/><circle cx="78" cy="66" r="4"/></g>
+</svg>

@@ -4,6 +4,7 @@ describe('avatar helpers', () => {
   it('finds the drawn avatar for the seed cast, whatever the case', () => {
     expect(avatarSrc('Minnie')).toBe('/avatars/minnie.svg');
     expect(avatarSrc(' the big bad wolf ')).toBe('/avatars/big-bad-wolf.svg');
+    expect(avatarSrc('Eight')).toBe('/avatars/eight.svg');
   });
 
   it('has no drawn avatar for a character a parent adds', () => {
