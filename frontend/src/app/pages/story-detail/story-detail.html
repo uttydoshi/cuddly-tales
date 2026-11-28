@@ -1,4 +1,4 @@
-<div class="reader">
+<div class="reader" [class.paged]="paged()">
   <header class="toolbar">
     <a class="back" routerLink="/stories">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
@@ -73,6 +73,75 @@
           <button type="button" class="btn quiet" (click)="editing.set(false)">Cancel</button>
         </div>
       </form>
+    } @else if (paged()) {
+      <!-- A book: a cover, then the story in pages. Tap or swipe the edges, or use the arrows below. -->
+      <div
+        class="book"
+        (click)="tap($event)"
+        (touchstart)="touchStart($event)"
+        (touchend)="touchEnd($event)"
+      >
+        <div
+          #pages
+          class="pages"
+          [style.transform]="'translateX(' + -page() * pageStep() + 'px)'"
+          aria-live="polite"
+        >
+          <section class="cover" aria-label="Cover">
+            @if (!live() && s.safety_status === 'needs_review') {
+              <section class="review" aria-labelledby="review-title">
+                <h2 id="review-title">Please read this one first</h2>
+                <p>The safety check wasn't sure this story is right for {{ childName() }}. Here's what it found:</p>
+                <ul>
+                  @for (problem of problems(); track $index) {
+                    <li>{{ problem }}</li>
+                  }
+                </ul>
+                <div class="row">
+                  <button type="button" class="btn" [disabled]="busy()" (click)="approve(s)">It's fine</button>
+                  <button type="button" class="btn quiet" [disabled]="busy()" (click)="startEditing(s)">Edit it</button>
+                </div>
+              </section>
+            }
+            @if (s.characters.length) {
+              <div class="faces">
+                @for (character of s.characters; track character.id) {
+                  <app-avatar [name]="character.name" [type]="character.type" [size]="64" />
+                }
+              </div>
+            }
+            @if (s.adventure; as adventure) {
+              <p class="kicker adventure">Chapter {{ adventure.chapter }} of {{ adventure.chapter_count }} · {{ adventure.title }}</p>
+            }
+            <h1>{{ s.title }}</h1>
+            <p class="kicker">{{ s.bedtime ? 'Bedtime' : 'Anytime' }} story · With {{ cast() || 'no characters' }}</p>
+            @if (s.reading_minutes) {
+              <p class="minutes">{{ s.reading_minutes }} min read</p>
+            }
+          </section>
+
+          <div class="text flow" [style.font-size.px]="textSize()">
+            @for (paragraph of paragraphs(); track $index) {
+              <p><app-story-text [text]="paragraph" /></p>
+            }
+          </div>
+
+          <div class="ending">
+            <p class="the-end">The end</p>
+            @if (checkedNote()) {
+              <p class="checked">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z" /><path d="M8.8 12.2l2.2 2.2 4.2-4.4" /></svg>
+                {{ checkedNote() }}
+              </p>
+            }
+            <div class="row quiet-actions">
+              <button type="button" class="btn quiet" [disabled]="busy()" (click)="startEditing(s)">Edit</button>
+              <app-confirm-delete label="Delete story" [disabled]="busy()" (confirmed)="remove(s)" />
+            </div>
+            <span #end class="end-marker" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
     } @else {
       <article class="story" [attr.aria-busy]="live()">
         @if (!live() && s.safety_status === 'needs_review') {
@@ -144,9 +213,23 @@
     }
 
     @if (!editing()) {
-      <footer class="footer">
+      <footer class="footer" [class.paged]="paged()">
         @if (actionError()) {
           <p class="error" role="alert">{{ actionError() }}</p>
+        }
+        @if (paged()) {
+          <nav class="pager" aria-label="Pages">
+            <button type="button" class="turn" [disabled]="page() === 0" (click)="turn(-1)" aria-label="Previous page">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+            </button>
+            <span class="where" aria-live="polite">
+              <span class="sr-only">Page </span>{{ page() + 1 }} <span aria-hidden="true">/</span><span class="sr-only"> of </span>
+              {{ pageCount() }}
+            </span>
+            <button type="button" class="turn" [disabled]="onLastPage()" (click)="turn(1)" aria-label="Next page">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
+            </button>
+          </nav>
         }
         @if (writing() === 'streaming') {
           <p class="status" role="status">

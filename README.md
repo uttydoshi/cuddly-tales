@@ -15,8 +15,10 @@ word, ready to read aloud.
 </p>
 
 Designed for a parent's phone, in the style of [ukdoshi.com](https://ukdoshi.com): pick the cast,
-watch the story arrive, then read it aloud in large type. Bedtime stories end calm and sleepy and open
-in night mode; the whole site has a light and a dark theme.
+watch the story arrive, then read it aloud in large type, page by page like an e-reader: a cover with
+the title, then the story, turned with the arrows, a swipe, a tap on the page's edge or the arrow keys
+(two pages side by side on wide screens). Bedtime stories end calm and sleepy and open in night mode;
+the whole site has a light and a dark theme.
 
 > Built for a take-home assessment over three days. Day 1 is done; this README grows with each
 > feature, and the table below shows what's in place and what's next.
