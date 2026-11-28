@@ -1,9 +1,9 @@
 fastapi>=0.115
 uvicorn[standard]>=0.32
 sqlmodel>=0.0.22
-litellm>=1.60
-# Tracing through LiteLLM's Langfuse integration (which needs SDK v4.7+, below 5)
-langfuse>=4.7,<5
+# Pinned: the same version locally, in CI and on Lambda. 1.91.5 is the newest with Linux
+# arm64 wheels, which is what the Lambda build installs; a looser pin let local and live drift.
+litellm==1.91.5
 python-dotenv>=1.0
 psycopg[binary]>=3.2
 alembic>=1.14

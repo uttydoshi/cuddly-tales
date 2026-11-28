@@ -106,3 +106,51 @@ def test_app_starts_without_importing_litellm():
     code = "import sys, app.main; print('litellm' in sys.modules)"
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert result.stdout.strip() == "False"
+
+
+def test_the_lambda_build_keeps_everything_a_real_request_imports(monkeypatch):
+    """The Lambda build deletes parts of LiteLLM to stay under 250 MB. Build each kind of request
+    the app makes (stream, JSON schema, tools) for real, stopping just before it's sent, and check
+    nothing it imported is in a deleted folder. Deleting a used folder once broke the live safety check."""
+    import importlib.util
+    import pathlib
+    import sys
+
+    import httpx
+
+    bundle_file = pathlib.Path(__file__).resolve().parents[2] / "infra" / "stacks" / "bundle.py"
+    spec = importlib.util.spec_from_file_location("bundle", bundle_file)
+    bundle = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(bundle)
+
+    class NotSent(Exception):
+        pass
+
+    async def refuse(self, request, **kwargs):
+        raise NotSent()
+
+    monkeypatch.setattr(httpx.AsyncClient, "send", refuse)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-not-a-real-key")
+    litellm = llm.load_litellm()
+    messages = [{"role": "user", "content": "hi"}]
+    schema = {"type": "object", "properties": {}, "additionalProperties": False}
+    tool = {"type": "function", "function": {"name": "f", "parameters": {"type": "object", "properties": {}}}}
+
+    async def attempt(**kwargs):
+        try:
+            response = await litellm.acompletion(
+                model="anthropic/claude-opus-5-5", messages=messages, max_tokens=5, num_retries=0, **kwargs
+            )
+            if kwargs.get("stream"):
+                async for _ in response:
+                    pass
+        except Exception:
+            pass  # expected: the request is never sent
+
+    asyncio.run(attempt(stream=True))
+    asyncio.run(attempt(response_format={"type": "json_schema", "json_schema": {"name": "x", "schema": schema, "strict": True}}))
+    asyncio.run(attempt(tools=[tool]))
+
+    removed = [p.replace("/", ".") for p in bundle.UNUSED_PATHS]
+    used = sorted(m for m in sys.modules if any(m == r or m.startswith(r + ".") for r in removed))
+    assert used == [], f"The Lambda build deletes modules a request needs: {used}"
