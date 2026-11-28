@@ -24,14 +24,14 @@ class StoryStatus(StrEnum):
     idea = "idea"
     planned = "planned"
     written = "written"
-    read = "read"
+    verified = "verified"  # a parent has read it and says it's fine for their child
 
 
 class SafetyStatus(StrEnum):
     passed = "passed"  # passed the safety and age check first time
     rewritten = "rewritten"  # failed, was rewritten once, and the rewrite passed
-    needs_review = "needs_review"  # still failed (or couldn't be checked): a parent should read it first
-    approved = "approved"  # a parent read a flagged story and said it's fine
+    needs_review = "needs_review"  # still failed (or couldn't be checked): flagged for the parent
+    approved = "approved"  # flagged, then a parent verified it
 
 
 class AdventureStatus(StrEnum):
@@ -88,7 +88,7 @@ class Story(SQLModel, table=True):
     word_count: int | None = None
     reading_minutes: int | None = None
     created_at: datetime = Field(default_factory=utc_now, sa_type=DateTime(timezone=True))
-    read_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
+    verified_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
     # The safety and age check. None for stories written before the check existed.
     safety_status: SafetyStatus | None = None
     safety_report: dict | None = Field(default=None, sa_column=Column(JSON))

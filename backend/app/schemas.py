@@ -115,7 +115,7 @@ class StorySummary(BaseModel):
 
 class StoryRead(StorySummary):
     text: str | None
-    read_at: datetime | None
+    verified_at: datetime | None
     # Every version the check looked at: scores, character rules and problems found.
     safety: dict | None
     # The plot, beat by beat, for stories planned by the adventure agent.
@@ -127,9 +127,9 @@ class StoryUpdate(BaseModel):
 
     title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)] | None = None
     text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20000)] | None = None
-    read: bool | None = None
-    # A parent has read a story the safety check flagged, and says it's fine.
-    approve: bool | None = None
+    # A parent has read the story and says it's fine for their child (False undoes it). This is
+    # the parent's step after the AI's safety check, including for stories the check flagged.
+    verified: bool | None = None
     favourite: bool | None = None
 
 

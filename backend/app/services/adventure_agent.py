@@ -456,7 +456,7 @@ class AdventureAgent:
             session.commit()
             story_id, title = story.id, story.title
         self.saved = True
-        note = ": a parent should read it first" if status == SafetyStatus.needs_review else ""
+        note = ": flagged for a parent to verify" if status == SafetyStatus.needs_review else ""
         return Outcome(
             {"story_id": story_id, "saved": True, "safety": status.value},
             f'Saved chapter {chapter}, "{title}"{note}',

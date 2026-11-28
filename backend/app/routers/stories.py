@@ -40,7 +40,7 @@ def to_story_read(story: Story) -> StoryRead:
         created_at=story.created_at,
         bedtime=story.bedtime,
         favourite=story.favourite,
-        read_at=story.read_at,
+        verified_at=story.verified_at,
         safety_status=story.safety_status,
         safety=story.safety_report,
         text=story.text,
@@ -131,7 +131,7 @@ def update_story(story_id: int, payload: StoryUpdate, session: Session = Depends
     if story is None:
         raise HTTPException(404, "Story not found")
     changes = payload.model_dump(exclude_unset=True, exclude_none=True)
-    if story.text is None and ("text" in changes or "read" in changes):
+    if story.text is None and ("text" in changes or "verified" in changes):
         raise HTTPException(409, "This story has not been written yet")
 
     if "title" in changes:
@@ -140,18 +140,20 @@ def update_story(story_id: int, payload: StoryUpdate, session: Session = Depends
         story.text = changes["text"]
         story.word_count = count_words(story.text)
         story.reading_minutes = reading_minutes(story.word_count)
-    if changes.get("approve") is True:
-        if story.safety_status != SafetyStatus.needs_review:
-            raise HTTPException(409, "Only a story waiting for a parent's review can be approved")
-        story.safety_status = SafetyStatus.approved
     if "favourite" in changes:
         story.favourite = changes["favourite"]
-    if changes.get("read") is True and story.status != StoryStatus.read:
-        story.status = StoryStatus.read
-        story.read_at = utc_now()
-    elif changes.get("read") is False:
+    # Verifying is the parent's sign-off, whatever the AI's check said. A story the check flagged
+    # keeps that history: needs_review becomes approved, and goes back if the parent undoes it.
+    if changes.get("verified") is True and story.status != StoryStatus.verified:
+        story.status = StoryStatus.verified
+        story.verified_at = utc_now()
+        if story.safety_status == SafetyStatus.needs_review:
+            story.safety_status = SafetyStatus.approved
+    elif changes.get("verified") is False and story.status == StoryStatus.verified:
         story.status = StoryStatus.written
-        story.read_at = None
+        story.verified_at = None
+        if story.safety_status == SafetyStatus.approved:
+            story.safety_status = SafetyStatus.needs_review
 
     session.add(story)
     session.commit()
