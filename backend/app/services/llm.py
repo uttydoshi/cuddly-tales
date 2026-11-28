@@ -60,8 +60,9 @@ async def complete_json(
 ) -> dict:
     """One reply that matches a JSON schema (for the safety judge).
 
-    LiteLLM sends this as Anthropic's native structured output, which works with effort
-    (current models reject forced tool calls, the older way to get JSON).
+    Claude models get Anthropic's native structured output, asked for directly: LiteLLM 1.91.5
+    only uses it for the Claude models it knows by name, and for newer ones falls back to a
+    forced tool call, which current models reject. Other providers get the generic response_format.
     """
     settings = get_settings()
     response = await load_litellm().acompletion(
@@ -69,8 +70,8 @@ async def complete_json(
         messages=messages,
         max_tokens=max_tokens,
         reasoning_effort=settings.llm_reasoning_effort,
-        response_format={"type": "json_schema", "json_schema": {"name": name, "schema": schema, "strict": True}},
         drop_params=True,
+        **structured_output(settings.llm_model, name, schema),
         **_traced(trace),
     )
     return parse_json(response.choices[0].message.content or "")
@@ -123,6 +124,13 @@ async def complete_with_tools(
     message = reply.model_dump(exclude_none=True) if hasattr(reply, "model_dump") else dict(vars(reply))
     message["role"] = "assistant"
     return AgentTurn(text=(reply.content or "").strip(), tool_calls=calls, message=message)
+
+
+def structured_output(model: str, name: str, schema: dict) -> dict:
+    """The request setting that makes the reply match `schema`."""
+    if model.startswith("anthropic/"):
+        return {"output_format": {"type": "json_schema", "schema": schema}}
+    return {"response_format": {"type": "json_schema", "json_schema": {"name": name, "schema": schema, "strict": True}}}
 
 
 def parse_json(text: str) -> dict:
