@@ -350,9 +350,10 @@ first, then had Claude Code build them into the app. I reviewed every avatar and
 heads floating above their bodies, Baba Yaga needing a proper witch's hat, a wolf that looked like a
 cat.
 
-**What I changed by hand.** Only small things: my local `.env` and Langfuse settings, and the
-one-time setup only I can do: the Claude key with its own spend limit, the AWS login, and storing
-secrets with the scripts in `scripts/`, so no key was ever pasted into a chat or a file.
+**What I changed by hand.** Small edits to the prompts and to wording here and there in the app,
+my local `.env` and Langfuse settings, and the one-time setup only I can do: the Claude key with its
+own spend limit, the AWS login, and storing secrets with the scripts in `scripts/`, so no key was
+ever pasted into a chat or a file.
 
 **What went wrong, and how it was caught.** The most useful part of the process was what happened
 when things broke:
