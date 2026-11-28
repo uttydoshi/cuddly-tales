@@ -38,6 +38,7 @@ from app.models import (
     utc_now,
 )
 from app.services import llm, safety
+from app.services.tracing import Trace
 from app.services.story_prompt import EARLIER_STORIES, Chapter, build_story_messages
 from app.services.story_stream import count_words, reading_minutes, split_title
 
@@ -194,6 +195,10 @@ class AdventureAgent:
             self.child = ChildProfile(name=child.name, age=child.age, favourite_things=list(child.favourite_things))
             self.target_night = 1 if run.kind == AgentRunKind.plan else self._next_night(session)
             self.goal_message = self._goal_message(session, run)
+            # One Langfuse trace per run; an adventure's runs share a session.
+            self.trace = Trace("adventure-agent", details={"run_id": run_id, "goal": run.goal, "trigger": run.trigger})
+            if self.adventure_id:
+                self.trace = self.trace.in_session(f"adventure-{self.adventure_id}")
 
     # --- The loop ---
 
@@ -203,11 +208,13 @@ class AdventureAgent:
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": self.goal_message}]
         started = time.monotonic()
         calls = 0
+        turns = 0
         try:
             while True:
                 if time.monotonic() - started > TIME_BUDGET_SECONDS:
                     raise ToolError("Ran out of time before finishing.")
-                turn = await llm.complete_with_tools(messages, TOOLS)
+                turns += 1
+                turn = await llm.complete_with_tools(messages, TOOLS, trace=self.trace.at(f"agent-turn-{turns}"))
                 messages.append(turn.message)
                 if turn.text:
                     yield self._record("message", turn.text, ok=True, finished=True)
@@ -356,6 +363,7 @@ class AdventureAgent:
             session.add(run)
             session.commit()
             self.adventure_id = adventure.id
+            self.trace = self.trace.in_session(f"adventure-{adventure.id}")
         listed = [{"night": n, "title": t} for n, (t, _, _) in enumerate(plan, 1)]
         return Outcome(
             {"adventure_id": self.adventure_id, "nights": listed},
@@ -367,7 +375,7 @@ class AdventureAgent:
         draft = self.draft
         if draft is None:
             prompt = self._chapter_prompt()
-            title, body = await self._write(prompt)
+            title, body = await self._write(prompt, "write-chapter")
             self.draft = Draft(prompt=prompt, title=title, body=body)
             return Outcome(
                 {"night": night, "title": title, "word_count": count_words(body)},
@@ -381,7 +389,7 @@ class AdventureAgent:
         if draft.writes >= 2 or last.scariness is None:
             raise ToolError(f"Night {night} can't be written again: save it, and a parent will read it first.")
         rewrite = safety.build_rewrite_messages(draft.prompt, draft.title, draft.body, last.problems)
-        title, body = await self._write(rewrite)
+        title, body = await self._write(rewrite, "rewrite-chapter")
         draft.title, draft.body, draft.writes = title or draft.title, body, draft.writes + 1
         return Outcome(
             {"night": night, "title": draft.title, "word_count": count_words(body), "rewritten": True},
@@ -401,7 +409,7 @@ class AdventureAgent:
             earlier = self._earlier(session)
         try:
             attempt = await safety.check_story(
-                draft.title, draft.body, self.child, cast, bedtime=self.bedtime, earlier=earlier
+                draft.title, draft.body, self.child, cast, bedtime=self.bedtime, earlier=earlier, trace=self.trace
             )
         except Exception:
             logger.exception("Safety check failed in agent run %s", self.run_id)
@@ -464,9 +472,9 @@ class AdventureAgent:
         if self.saved:
             raise ToolError(f"Night {night} is already saved. You're done.")
 
-    async def _write(self, prompt: list[dict]) -> tuple[str | None, str]:
+    async def _write(self, prompt: list[dict], step: str) -> tuple[str | None, str]:
         async def collect() -> str:
-            return "".join([chunk async for chunk in llm.stream_text(prompt)])
+            return "".join([chunk async for chunk in llm.stream_text(prompt, trace=self.trace.at(step))])
 
         try:
             text = await asyncio.wait_for(collect(), WRITE_TIMEOUT_SECONDS)

@@ -159,7 +159,7 @@ def fake_checks(monkeypatch, *results):
     queue = list(results)
     seen_earlier: list[list[tuple[str, str]]] = []
 
-    async def check_story(title, body, child, characters, *, bedtime, earlier=()):
+    async def check_story(title, body, child, characters, *, bedtime, earlier=(), **kwargs):
         seen_earlier.append(list(earlier))
         result = queue.pop(0)
         if isinstance(result, Exception):

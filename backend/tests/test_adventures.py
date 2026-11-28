@@ -51,7 +51,7 @@ def checks(monkeypatch, *results: bool):
     """The safety check passes or fails in this order (then passes)."""
     queue = list(results)
 
-    async def check_story(title, body, child, characters, *, bedtime, earlier=()):
+    async def check_story(title, body, child, characters, *, bedtime, earlier=(), **kwargs):
         passed = queue.pop(0) if queue else True
         problems = [] if passed else ["Too scary: make the waves gentle."]
         return safety.Attempt(passed=passed, word_count=len(body.split()), scariness=1 if passed else 3, problems=problems)
