@@ -48,7 +48,8 @@ def test_complete_json_asks_for_the_schema_and_reads_the_reply(monkeypatch):
 
     reply = asyncio.run(llm.complete_json([{"role": "user", "content": "hi"}], schema, name="review"))
     assert reply == {"scariness": 1}
-    assert calls["response_format"]["json_schema"]["schema"] == schema
+    assert calls["output_format"] == {"type": "json_schema", "schema": schema}  # Claude: native structured output
+    assert "response_format" not in calls and "tool_choice" not in calls
     assert calls["reasoning_effort"] == "low"
     assert "stream" not in calls and "temperature" not in calls
 
@@ -154,3 +155,42 @@ def test_the_lambda_build_keeps_everything_a_real_request_imports(monkeypatch):
     removed = [p.replace("/", ".") for p in bundle.UNUSED_PATHS]
     used = sorted(m for m in sys.modules if any(m == r or m.startswith(r + ".") for r in removed))
     assert used == [], f"The Lambda build deletes modules a request needs: {used}"
+
+
+def test_structured_output_is_native_for_claude_and_generic_elsewhere():
+    schema = {"type": "object"}
+    assert llm.structured_output("anthropic/claude-opus-5-5", "review", schema) == {
+        "output_format": {"type": "json_schema", "schema": schema}
+    }
+    generic = llm.structured_output("openai/gpt-x", "review", schema)
+    assert generic["response_format"]["json_schema"] == {"name": "review", "schema": schema, "strict": True}
+
+
+def test_the_safety_check_request_never_forces_a_tool(monkeypatch):
+    """Current Claude models reject a forced tool call ("tool_choice ... not supported"). Build the
+    safety check's request for real, stop it before it's sent, and look at what would have gone."""
+    import json as json_module
+
+    import httpx
+
+    sent = []
+
+    class NotSent(Exception):
+        pass
+
+    async def capture(self, request, **kwargs):
+        sent.append(json_module.loads(request.content))
+        raise NotSent()
+
+    monkeypatch.setattr(httpx.AsyncClient, "send", capture)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-not-a-real-key")
+    monkeypatch.setenv("LLM_MODEL", "anthropic/claude-opus-5-5")
+    schema = {"type": "object", "properties": {"ok": {"type": "boolean"}}, "required": ["ok"], "additionalProperties": False}
+    try:
+        asyncio.run(llm.complete_json([{"role": "user", "content": "hi"}], schema, name="review"))
+    except Exception:
+        pass
+    assert sent, "the request was never built"
+    body = sent[0]
+    assert "tool_choice" not in body and "tools" not in body
+    assert body["output_format"]["schema"]["properties"] == {"ok": {"type": "boolean"}}
