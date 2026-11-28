@@ -2,7 +2,7 @@
   <defs><clipPath id="clip-bela"><circle cx="60" cy="60" r="58"/></clipPath></defs>
   <circle cx="60" cy="60" r="58" fill="#e0e7ff"/>
   <g clip-path="url(#clip-bela)" stroke="#1b1a33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <ellipse cx="60" cy="124" rx="34" ry="28" fill="#2f4185"/>
+    <ellipse cx="60" cy="110" rx="36" ry="32" fill="#2f4185"/>
     <path d="M60 70 Q58 92 66 100 Q74 105 77 97" fill="none" stroke-width="15"/>
     <path d="M60 70 Q58 92 66 100 Q74 105 77 97" fill="none" stroke="#2f4185" stroke-width="9"/>
     <ellipse cx="29" cy="58" rx="20" ry="25" fill="#2f4185"/>
