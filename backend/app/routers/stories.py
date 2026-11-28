@@ -8,7 +8,7 @@ from sqlmodel import Session, func, select
 
 from app.config import get_settings
 from app.db import get_session
-from app.models import AgentRun, Character, ChildProfile, SafetyStatus, Story, StoryStatus, utc_now
+from app.models import Adventure, AgentRun, Character, ChildProfile, SafetyStatus, Story, StoryStatus, utc_now
 from app.schemas import AdventureRef, CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
 from app.services import llm, safety
 from app.services.story_prompt import EARLIER_STORIES, PLOTS, build_story_messages
@@ -109,7 +109,11 @@ def create_story(payload: StoryCreate, session: Session = Depends(get_session)) 
 
 @router.get("", response_model=list[StorySummary])
 def list_stories(session: Session = Depends(get_session)) -> list[StorySummary]:
-    stories = session.exec(select(Story).order_by(Story.created_at.desc(), Story.id.desc())).all()
+    # Newest first, with an adventure's nights together and in order (at the adventure's place).
+    started = func.coalesce(Adventure.created_at, Story.created_at)
+    stories = session.exec(
+        select(Story).outerjoin(Adventure).order_by(started.desc(), Story.night, Story.id.desc())
+    ).all()
     return [StorySummary(**to_story_read(s).model_dump()) for s in stories]
 
 

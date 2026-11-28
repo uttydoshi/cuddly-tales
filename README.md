@@ -31,7 +31,7 @@ The assessment asks for at least three of five capabilities; Cuddly Tales aims f
 | **2. In-app analytics** | Day 3 | A dashboard with charts from real app data (stories read, character appearances, Polish words learned). |
 | **3. Drag and drop** | Day 3 | A storyboard of plot cards that can be reordered, with the order saved. |
 | **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare tonight's chapter, with a "Run now" button. |
-| **5. AI agent** | Backend done (UI next) | "Plan a 5-night adventure for Mira": the model works through the goal with 7 tools, choosing each next step; every step is saved and streamed live. See [The adventure agent](#the-adventure-agent). |
+| **5. AI agent** | Done | "Plan a 5-night adventure for Mira": the model works through the goal with 7 tools, choosing each next step; every step is saved and streamed live. See [The adventure agent](#the-adventure-agent). |
 
 The demo family is Mira (3) and her cast: two toy poodles, Minnie and Maverick, Tosia the cat,
 Diggles the wombat, and characters from public-domain folklore and the Panchatantra. Each character
@@ -86,7 +86,9 @@ night 1" and seven tools:
 It's a real loop: the model chooses which tool to call next (LiteLLM tool calling), the code runs
 it and returns the result, until the model says it's done. A typical run takes about 40 seconds and
 10 tool calls. Before each call the model says in one sentence what it's doing; that sentence and
-each tool's result are saved as steps and streamed to the parent's screen as they happen.
+each tool's result are saved as steps and streamed to the parent's screen as they happen: a
+live timeline with the tool names, timings, and what went in and out of each tool, then the plan,
+night by night, with its plot cards. Each night shows in the stories list as "Night 2 of 5".
 
 **The rules live in the tools, not only the prompt**, so a confused model can't break them: only
 characters that exist, every character the parent asked for, exactly the nights asked for, 2 to 6

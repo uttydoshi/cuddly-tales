@@ -77,6 +77,8 @@ export class StoryDetail {
   readonly childName = computed(() => this.shell.child()?.name ?? 'your child');
   readonly checkedNote = computed(() => safetyNote(this.story()?.safety_status, this.shell.child()?.age));
   readonly wordsSoFar = computed(() => countWords(this.streamedBody()));
+  /** For a planned adventure night: which night the agent writes next. */
+  readonly nextNight = signal<number | null>(null);
   readonly readOn = computed(() => {
     const readAt = this.story()?.read_at;
     return readAt ? friendlyDate(readAt) : '';
@@ -108,13 +110,30 @@ export class StoryDetail {
           this.shell.readingStory(story.bedtime);
           // Stream only when opened straight from "Write the story", never on a reload,
           // so a refresh can't start a second copy of the same story.
-          if (story.status === 'planned' && takeStreamFlag()) {
+          if (story.status === 'planned' && story.adventure) {
+            this.api.getAdventure(story.adventure.id).subscribe((adventure) => {
+              this.nextNight.set(adventure.chapters.find((c) => c.status === 'planned')?.night ?? null);
+            });
+          } else if (story.status === 'planned' && takeStreamFlag()) {
             this.write();
           }
         },
         error: () => this.notFound.set(true),
       });
       onCleanup(() => sub.unsubscribe());
+    });
+  }
+
+  /** An adventure night is written by the agent, on its own page. */
+  writeNight(adventureId: number): void {
+    this.busy.set(true);
+    this.actionError.set('');
+    this.api.writeNextNight(adventureId).subscribe({
+      next: (run) => this.router.navigate(['/adventures/runs', run.id]),
+      error: (error) => {
+        this.busy.set(false);
+        this.actionError.set(error.error?.detail ?? 'Could not start writing this night. Please try again.');
+      },
     });
   }
 
@@ -237,6 +256,7 @@ export class StoryDetail {
     this.writing.set('idle');
     this.rewriting.set(false);
     this.streamed.set('');
+    this.nextNight.set(null);
   }
 
   private setSize(index: number): void {

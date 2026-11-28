@@ -18,6 +18,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/story-detail/story-detail').then((m) => m.StoryDetail),
   },
   {
+    path: 'adventures/runs/:id',
+    title: 'Adventure planner · Cuddly Tales',
+    loadComponent: () => import('./pages/agent-run/agent-run').then((m) => m.AgentRunPage),
+  },
+  {
     path: 'characters',
     title: 'Characters · Cuddly Tales',
     loadComponent: () => import('./pages/characters/characters').then((m) => m.Characters),

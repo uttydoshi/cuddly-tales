@@ -1,9 +1,9 @@
 """Request and response shapes for the API."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, StringConstraints, field_validator
+from pydantic import AfterValidator, BaseModel, Field, StringConstraints, field_validator
 
 from app.models import (
     AdventureStatus,
@@ -13,6 +13,14 @@ from app.models import (
     SafetyStatus,
     StoryStatus,
 )
+
+def as_utc(value: datetime) -> datetime:
+    """SQLite gives back times without a zone; they were saved as UTC, so say so."""
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+# Sent with "+00:00", so browsers don't read the time as local.
+UtcDatetime = Annotated[datetime, AfterValidator(as_utc)]
 
 ShortText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 
@@ -155,7 +163,7 @@ class AdventureRead(BaseModel):
     nights: int
     bedtime: bool
     status: AdventureStatus
-    created_at: datetime
+    created_at: UtcDatetime
     chapters: list[NightRead]
 
 
@@ -167,8 +175,8 @@ class AgentStepRead(BaseModel):
     result: str | None
     ok: bool | None
     detail: dict | None
-    started_at: datetime
-    finished_at: datetime | None
+    started_at: UtcDatetime
+    finished_at: UtcDatetime | None
 
 
 class AgentRunRead(BaseModel):
@@ -178,7 +186,7 @@ class AgentRunRead(BaseModel):
     status: AgentRunStatus
     trigger: str
     error: str | None
-    created_at: datetime
-    finished_at: datetime | None
+    created_at: UtcDatetime
+    finished_at: UtcDatetime | None
     adventure: AdventureRead | None
     steps: list[AgentStepRead]
