@@ -122,8 +122,10 @@ knows about tracing.
 **How it's sent:** through LiteLLM's OpenTelemetry integration for Langfuse (`langfuse_otel`), to
 Langfuse's OpenTelemetry endpoint: the route Langfuse's own SDK uses, and an open standard, so the
 same spans could go to another tracing tool. Three details make it work on Lambda:
-- **One trace per story or run.** Langfuse groups spans by their OpenTelemetry trace, so every call
-  in a story or run is given the same parent; otherwise each call would be a trace of its own.
+- **One trace per story or run, with a root.** Langfuse groups spans by their OpenTelemetry trace,
+  and lists traces (and filters them by tag and environment) by each trace's root. LiteLLM only
+  sends the model calls, so the app sends a root span for each story or run: it names the trace and
+  carries its tags, environment and session, and every model call hangs under it.
 - **Sent before the response ends.** Lambda freezes the process as soon as a response is done.
   After a model call, LiteLLM hands its logging to a background queue and the spans wait in a
   batch, so `tracing.flush()` waits for the hand-off, runs the queue, then sends the batch.

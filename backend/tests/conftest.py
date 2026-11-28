@@ -26,8 +26,14 @@ def client(engine) -> Iterator[TestClient]:
 @pytest.fixture(autouse=True)
 def no_tracing(monkeypatch):
     """Tests never send traces, even with real Langfuse keys in .env."""
-    for name in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST", "LANGFUSE_LOG_CONTENT", "LANGFUSE_TRACING_ENVIRONMENT", "OTEL_ENVIRONMENT_NAME"):
+    for name in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_LOG_CONTENT", "LANGFUSE_TRACING_ENVIRONMENT", "OTEL_ENVIRONMENT_NAME"):
         monkeypatch.delenv(name, raising=False)
+    # A test that turns tracing on can only ever reach a closed local port, never Langfuse.
+    monkeypatch.setenv("LANGFUSE_HOST", "http://127.0.0.1:9")
+    from app.services import tracing
+
+    monkeypatch.setattr(tracing, "_roots", {})
+    monkeypatch.setattr(tracing, "_provider", None)
 
 
 @pytest.fixture(autouse=True)

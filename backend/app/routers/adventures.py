@@ -211,7 +211,7 @@ def stream_run(run_id: int, request: Request, session: Session = Depends(get_ses
         with Session(engine) as done_session:
             run = to_run_read(done_session, done_session.get(AgentRun, run_id))
         yield sse("done", run.model_dump(mode="json"))
-        await tracing.flush()  # after the parent has the result, before Lambda freezes the process
+        await tracing.flush(agent.trace)  # after the parent has the result, before Lambda freezes the process
 
     return StreamingResponse(
         events(),

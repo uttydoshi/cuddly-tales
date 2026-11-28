@@ -12,11 +12,13 @@ LANGFUSE_LOG_CONTENT=false keeps prompts and replies out of Langfuse (timings, t
 """
 
 import asyncio
+import base64
 import importlib.util
 import logging
 import os
 import sys
 import uuid
+from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
 
 from app import config  # noqa: F401  (loads .env, and the keys from Secrets Manager on Lambda)
@@ -71,29 +73,90 @@ class Trace:
         if not log_content():
             data["mask_input"] = True
             data["mask_output"] = True
-        parent = _parent_span(self.id)
-        if parent is not None:
-            data["litellm_parent_otel_span"] = parent
+        root = root_span(self)
+        if root is not None:
+            data["litellm_parent_otel_span"] = root
         return data
 
 
-def _parent_span(trace_id: str):
-    """An OpenTelemetry parent for every call in one trace. Langfuse groups spans by their
-    OpenTelemetry trace, so without one each model call would be a trace of its own. Our trace id
-    is already 32 hex characters, a valid OpenTelemetry trace id."""
-    if not enabled():
+# --- The root span: one per story or agent run ---
+# Langfuse builds its trace list (and its tag and environment filters) from each trace's root
+# observation. LiteLLM only sends the model calls, so each trace gets a root span of its own,
+# sent by this module: it carries the trace's name, tags, environment, session and details, and
+# the model calls hang under it. It starts with the first model call and ends with flush(trace).
+
+_roots: dict[str, object] = {}  # open root spans, by trace id
+_provider = None  # this module's OpenTelemetry provider, made on first use
+_next_trace_id: ContextVar[int | None] = ContextVar("_next_trace_id", default=None)
+MAX_OPEN_ROOTS = 200  # a run cut off mid-way never ends its root; don't let those pile up
+
+
+def _root_provider():
+    """An OpenTelemetry provider that sends to the same Langfuse project as LiteLLM. Its trace
+    ids are ours, so the root and LiteLLM's spans are one trace."""
+    global _provider
+    if _provider is None:
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+        from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+        from opentelemetry.sdk.trace.id_generator import RandomIdGenerator
+
+        class OurTraceIds(RandomIdGenerator):
+            def generate_trace_id(self) -> int:
+                return _next_trace_id.get() or super().generate_trace_id()
+
+        host = os.getenv("LANGFUSE_HOST", "https://us.cloud.langfuse.com").rstrip("/")
+        keys = f"{os.environ['LANGFUSE_PUBLIC_KEY']}:{os.environ['LANGFUSE_SECRET_KEY']}"
+        exporter = OTLPSpanExporter(
+            endpoint=f"{host}/api/public/otel/v1/traces",
+            headers={"Authorization": "Basic " + base64.b64encode(keys.encode()).decode()},
+        )
+        provider = TracerProvider(
+            resource=Resource.create({"service.name": "cuddly-tales", "deployment.environment": environment()}),
+            id_generator=OurTraceIds(),
+            shutdown_on_exit=False,  # flush() sends everything; nothing is left for exit
+        )
+        provider.add_span_processor(BatchSpanProcessor(exporter))
+        _provider = provider
+    return _provider
+
+
+def root_span(trace: "Trace"):
+    """The trace's root span, started on first use. None when tracing is off."""
+    if not enabled() or not integration_available():
         return None
-    try:
-        from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
-    except ImportError:
-        return None
-    context = SpanContext(
-        trace_id=int(trace_id, 16),
-        span_id=int(trace_id[:16], 16) or 1,
-        is_remote=True,
-        trace_flags=TraceFlags(TraceFlags.SAMPLED),
-    )
-    return NonRecordingSpan(context)
+    root = _roots.get(trace.id)
+    if root is None:
+        if len(_roots) >= MAX_OPEN_ROOTS:
+            _roots.pop(next(iter(_roots))).end()
+        attributes = {
+            "langfuse.trace.name": trace.feature,
+            "langfuse.trace.tags": [trace.feature, environment()],
+            "langfuse.environment": environment(),
+            **{f"langfuse.trace.metadata.{key}": str(value) for key, value in trace.details.items()},
+        }
+        token = _next_trace_id.set(int(trace.id, 16))
+        try:
+            root = _root_provider().get_tracer("cuddly-tales").start_span(trace.feature, attributes=attributes)
+        finally:
+            _next_trace_id.reset(token)
+        _roots[trace.id] = root
+    if trace.session:
+        root.set_attribute("session.id", trace.session)
+        root.set_attribute("langfuse.session.id", trace.session)
+    return root
+
+
+def _end_root(trace: "Trace | None") -> None:
+    if trace is None:
+        return
+    root = _roots.pop(trace.id, None)
+    if root is not None:
+        if trace.session:
+            root.set_attribute("session.id", trace.session)
+            root.set_attribute("langfuse.session.id", trace.session)
+        root.end()
 
 
 # What this tracing needs: LiteLLM's OpenTelemetry integration for Langfuse, and the
@@ -147,7 +210,7 @@ def _span_providers() -> list:
     credentials (kept in each logger's cache), not the global provider."""
     from litellm.litellm_core_utils.litellm_logging import _in_memory_loggers
 
-    providers = {}
+    providers = {id(_provider): _provider} if _provider is not None else {}
     for logger_ in _in_memory_loggers:
         for provider in [getattr(logger_, "_tracer_provider", None), *(getattr(logger_, "_tracer_provider_cache", None) or {}).values()]:
             if provider is not None and hasattr(provider, "force_flush"):
@@ -155,9 +218,9 @@ def _span_providers() -> list:
     return list(providers.values())
 
 
-async def flush() -> None:
-    """Send queued traces now. Called as each request ends: on Lambda the process is frozen
-    once the response is done, so anything still queued would be lost.
+async def flush(trace: "Trace | None" = None) -> None:
+    """End the trace's root span and send queued traces now. Called as each request ends: on
+    Lambda the process is frozen once the response is done, so anything still queued would be lost.
 
     After a model call returns, LiteLLM hands its logging to a background queue; the spans are
     only made when that queue runs, and then wait in a batch. So: wait for the hand-off, run the
@@ -165,6 +228,7 @@ async def flush() -> None:
     if not enabled() or "litellm" not in sys.modules or not integration_available():
         return
     try:
+        _end_root(trace)
         from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
         handoffs = _litellm_logging_tasks()

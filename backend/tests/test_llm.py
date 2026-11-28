@@ -247,12 +247,17 @@ def test_traces_reach_the_exporter_as_one_trace_before_flush_returns(monkeypatch
                 mock_response="Once upon a time.",
                 metadata=trace.at(step).metadata(),
             )
-        await tracing.flush()
+        await tracing.flush(trace)
 
     asyncio.run(story())
     ours = [s for s in exported if s.context.trace_id == int(trace.id, 16)]
     assert len(ours) >= 2, f"expected both calls in trace {trace.id}, got {[(s.name, hex(s.context.trace_id)) for s in exported]}"
     steps = {str(value) for span in ours for value in span.attributes.values()}
     assert {"write", "safety-check"} <= steps
+    roots = [s for s in ours if s.parent is None]
+    assert [r.name for r in roots] == ["story"]  # one root, so Langfuse lists the trace
+    assert roots[0].attributes["langfuse.trace.tags"] == ("story", "local")
+    calls = [s for s in ours if s.attributes.get("langfuse.generation.name")]
+    assert calls and all(s.parent.span_id == roots[0].context.span_id for s in calls)
     for provider in tracing._span_providers():  # this test's logger: close it now, not at exit
         provider.shutdown()
