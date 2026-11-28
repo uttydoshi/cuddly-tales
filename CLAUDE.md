@@ -41,11 +41,14 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
 - **Character**: name, type (family | original | folklore | latte_monster | custom), description,
   personality traits, running gags / consistency rules, image (optional, latte monsters only).
 - **Story**: title, characters (many-to-many), plot cards (ordered), bedtime (yes/no), favourite,
-  status (idea | planned | written | read), text, reading time, safety status and report,
+  status (idea | planned | written | verified), text, reading time, safety status and report,
   created/read dates; and, for an adventure, its adventure and chapter number.
 - **PlotCard**: story id, position, short beat text.
 - **Adventure**: title, premise, chapter count, bedtime, status (in progress | finished). Each chapter
   is a Story. Adventures are told in **chapters, one a day** (never "nights": they can be for any time).
+- A story is **verified** when a parent has read it and says it's fine for their child: the parent's
+  sign-off, separate from the AI's safety check (the AI *checks*, a parent *verifies*). Every new story
+  starts "To verify"; verifying a flagged one sets its safety status to approved.
 - **AgentRun**: kind (plan | next_chapter), goal, status, trigger, what was asked for, error; its
   **AgentSteps** (tool, label, result, ok, input/output detail, timestamps) are saved as they happen.
 

@@ -171,16 +171,16 @@ def test_edit_title_and_text_recounts_words(client, character_ids, monkeypatch):
     assert client.get(f"/api/stories/{story_id}").json()["word_count"] == 300
 
 
-def test_mark_read_and_unread(client, character_ids, monkeypatch):
+def test_a_parent_verifies_a_story_and_can_undo_it(client, character_ids, monkeypatch):
     story_id = written_story(client, character_ids, monkeypatch)
 
-    story = client.patch(f"/api/stories/{story_id}", json={"read": True}).json()
-    assert story["status"] == "read"
-    assert story["read_at"] is not None
+    story = client.patch(f"/api/stories/{story_id}", json={"verified": True}).json()
+    assert story["status"] == "verified"
+    assert story["verified_at"] is not None
 
-    story = client.patch(f"/api/stories/{story_id}", json={"read": False}).json()
+    story = client.patch(f"/api/stories/{story_id}", json={"verified": False}).json()
     assert story["status"] == "written"
-    assert story["read_at"] is None
+    assert story["verified_at"] is None
 
 
 def test_favourite_and_unfavourite(client, character_ids, monkeypatch):
@@ -195,10 +195,10 @@ def test_favourite_and_unfavourite(client, character_ids, monkeypatch):
     assert client.patch(f"/api/stories/{story_id}", json={"favourite": False}).json()["favourite"] is False
 
 
-def test_cannot_edit_text_or_read_a_planned_story(client, character_ids):
+def test_cannot_edit_text_or_verify_a_planned_story(client, character_ids):
     story_id = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
     assert client.patch(f"/api/stories/{story_id}", json={"text": "Hi."}).status_code == 409
-    assert client.patch(f"/api/stories/{story_id}", json={"read": True}).status_code == 409
+    assert client.patch(f"/api/stories/{story_id}", json={"verified": True}).status_code == 409
     assert client.patch(f"/api/stories/{story_id}", json={"title": "Soon"}).status_code == 200
 
 

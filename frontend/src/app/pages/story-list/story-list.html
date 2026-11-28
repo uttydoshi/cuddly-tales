@@ -15,11 +15,11 @@
       <button type="button" class="chip" [attr.aria-pressed]="filter() === 'all'" (click)="filter.set('all')">
         All · {{ counts().all }}
       </button>
-      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'unread'" (click)="filter.set('unread')">
-        Unread · {{ counts().unread }}
+      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'toVerify'" (click)="filter.set('toVerify')">
+        To verify · {{ counts().toVerify }}
       </button>
-      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'read'" (click)="filter.set('read')">
-        Read · {{ counts().read }}
+      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'verified'" (click)="filter.set('verified')">
+        Verified · {{ counts().verified }}
       </button>
       <button
         type="button"
@@ -38,17 +38,20 @@
     <ul class="stories">
       @for (card of cards(); track card.story.id) {
         <li>
-          <a class="story" [class.done]="card.story.status === 'read'" [routerLink]="['/stories', card.story.id]">
+          <a class="story" [class.done]="card.story.status === 'verified'" [routerLink]="['/stories', card.story.id]">
             <span class="meta">
               @switch (card.story.status) {
-                @case ('read') {
+                @case ('verified') {
                   <span class="pill ok">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-                    Read
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z" /><path d="M8.8 12.2l2.2 2.2 4.2-4.4" /></svg>
+                    Verified
                   </span>
                 }
                 @case ('written') {
-                  <span class="pill">Unread</span>
+                  <!-- Amber when the AI's check flagged it: read this one carefully. -->
+                  <span class="pill" [class.warn]="card.story.safety_status === 'needs_review'">
+                    To verify{{ card.story.safety_status === 'needs_review' ? ' · flagged' : '' }}
+                  </span>
                 }
                 @default {
                   <span class="pill quiet">{{ card.story.adventure ? 'Planned' : 'Not written yet' }}</span>
@@ -58,9 +61,6 @@
                 <svg class="fav" viewBox="0 0 24 24" role="img" aria-label="A favourite">
                   <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z" />
                 </svg>
-              }
-              @if (card.story.safety_status === 'needs_review') {
-                <span class="pill warn">Read first</span>
               }
               @if (card.story.bedtime) {
                 <span class="type bedtime">

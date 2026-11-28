@@ -12,7 +12,7 @@ word, ready to read aloud.
   <img src="docs/screenshots/story-streaming.png" width="160" alt="A story arriving word by word in night mode, with 'Still writing · 32 words so far'">
   <img src="docs/screenshots/reading-cover.png" width="160" alt="The cover of a bedtime chapter in night mode: the characters' faces, 'Chapter 2 of 3 · Mira's Creek Picnic', the title, and 6 min read, with page arrows">
   <img src="docs/screenshots/planner.png" width="160" alt="The adventure planner: 'Plan a 5-chapter adventure for Mira', done in 7 steps, each tool step with its result">
-  <img src="docs/screenshots/your-stories.png" width="160" alt="Your stories: filters for All, Unread, Read and favourites, and story cards labelled 'Chapter 2 of 5 · Mira's Rainy Day Rainbow'">
+  <img src="docs/screenshots/your-stories.png" width="160" alt="Your stories: filters for All, To verify, Verified and favourites, and story cards labelled 'Chapter 2 of 5 · Mira's Rainy Day Rainbow'">
 </p>
 
 Designed for a parent's phone, in the style of [ukdoshi.com](https://ukdoshi.com): pick the cast,
@@ -31,7 +31,7 @@ The assessment asks for at least three of five capabilities; Cuddly Tales aims f
 
 | Requirement | Status | How it's met |
 | --- | --- | --- |
-| **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. Stories can be marked read, and hearted to keep them under Favourites. The child's profile (name, age, favourite things) can be edited too; a new name is also changed in every story and character that used the old one. Deleting a character keeps the stories it was in. |
+| **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. A parent verifies each story before reading it to their child, and can heart stories to keep them under Favourites. The child's profile (name, age, favourite things) can be edited too; a new name is also changed in every story and character that used the old one. Deleting a character keeps the stories it was in. |
 | **2. In-app analytics** | Day 3 | A dashboard with charts from real app data (stories read, character appearances, Polish words learned). |
 | **3. Drag and drop** | Day 3 | A storyboard of plot cards that can be reordered, with the order saved. |
 | **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare the next chapter of an adventure, with a "Run now" button. |
@@ -63,8 +63,12 @@ enforces it: a story too similar to an earlier one fails and is rewritten.
 
 If the story fails, it's **rewritten once**, with the problems as feedback, and the rewrite streams
 in place of the first version. If that fails too (or the check itself can't run), the story is
-saved but marked **"Read first"**: the reading page lists what the check found, and a parent can
-approve it, edit it or delete it. A story is never treated as safe without a check.
+saved but **flagged**: the reading page lists what the check found, and a parent can verify it,
+edit it or delete it. A story is never treated as safe without a check.
+
+**The AI checks; a parent verifies.** Passing the check doesn't make a story verified. Every new
+story is "To verify" until a parent has read it and taps **Verify** (a flagged one shows amber, with
+the reasons). Verified stories are marked with a shield, and the stories list filters by both.
 
 Each story keeps the full report (scores and problems for every version), so the dashboard can show
 how often stories pass first time. One trade-off: the first version streams before it's checked,
@@ -97,8 +101,7 @@ chapter by chapter, with its plot cards. Each chapter shows in the stories list 
 **The rules live in the tools, not only the prompt**, so a confused model can't break them: only
 characters that exist, every character the parent asked for, exactly the chapters asked for, 2 to 6
 plot cards a chapter; only the next chapter is written in a run; nothing is saved before its check; a
-chapter that fails is rewritten (once) before it's saved, then saved as "Read first" if it still
-fails. A refused call is reported back to the model, which can correct itself. A run is capped at
+chapter that fails is rewritten (once) before it's saved, then saved flagged if it still fails. A refused call is reported back to the model, which can correct itself. A run is capped at
 25 tool calls and 4 minutes (Lambda stops a request at 5), and the parent's theme is passed as a
 topic only. Planned chapters don't count towards the daily story cap; each run does.
 
@@ -147,7 +150,7 @@ anything).
 
 **Guardrails.** Every story passes the [safety and age check](#the-safety-and-age-check) (plain rules
 plus an LLM judge) before it counts as safe: a failure is rewritten once, and if it still fails, or
-the check can't run, the story is saved as "Read first" for a parent. The adventure agent can't skip
+the check can't run, the story is saved flagged, for a parent to verify. The adventure agent can't skip
 any of this: its rules live in its tools (real characters only, nothing saved before its check, one
 rewrite), not just in its prompt, and a parent's theme is passed as a topic, never as instructions.
 The prompts set the limits too: the child is the hero, nothing frightening, simple words, a warm
@@ -165,8 +168,9 @@ only timings, tokens and cost. The demo family is made up; no real children's na
 the repo.
 
 **A parent stays in control.** The parent picks the cast and the kind of story, can read, edit or
-delete any story or character, approves anything the check flagged, and sees every step the agent
-takes. Adventures are written one chapter at a time, so nothing piles up unread.
+delete any story or character, and sees every step the agent takes. Nothing counts as verified
+until a parent has read it and said so, whatever the AI's check found. Adventures are written one
+chapter at a time, so there's only ever one new chapter to verify.
 
 **Known limits.** The first version of a story streams before it's checked, because holding it back
 would lose the word-by-word streaming; a failed story is replaced within seconds. An LLM judge can be
@@ -340,8 +344,11 @@ live site before saying "merge". Merging to `main` deployed it.
   general rule: check what's been told before writing, and reject anything too similar.
 - **Characters stay themselves.** Tosia the cat once appeared as "Babcia Tosia" (grandma); that
   became a rule in the prompt and a check in the safety judge.
-- **Small product details:** favourites, renaming the child everywhere, one word ("Unread") for
-  unread stories, keeping the filters on one line.
+- **The AI checks; a parent verifies.** Stories were first marked "read", which looked like it
+  tracked reading to the child. What matters is that a parent has looked at an AI-written story
+  first, so that became "To verify" and "Verified", kept separate from the AI's safety check.
+- **Small product details:** favourites, renaming the child everywhere, keeping the filters on one
+  line.
 - **What to cut.** I deferred the latte monster creator (photo to character) to keep the required
   features on track.
 

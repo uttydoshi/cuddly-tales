@@ -91,14 +91,14 @@
             @if (!live() && s.safety_status === 'needs_review') {
               <section class="review" aria-labelledby="review-title">
                 <h2 id="review-title">Please read this one first</h2>
-                <p>The safety check wasn't sure this story is right for {{ childName() }}. Here's what it found:</p>
+                <p>The safety check wasn't sure this story is right for {{ childName() }}. Here's what it found, for you to verify:</p>
                 <ul>
                   @for (problem of problems(); track $index) {
                     <li>{{ problem }}</li>
                   }
                 </ul>
                 <div class="row">
-                  <button type="button" class="btn" [disabled]="busy()" (click)="approve(s)">It's fine</button>
+                  <button type="button" class="btn" [disabled]="busy()" (click)="setVerified(s, true)">It's fine: verify</button>
                   <button type="button" class="btn quiet" [disabled]="busy()" (click)="startEditing(s)">Edit it</button>
                 </div>
               </section>
@@ -147,14 +147,14 @@
         @if (!live() && s.safety_status === 'needs_review') {
           <section class="review" aria-labelledby="review-title">
             <h2 id="review-title">Please read this one first</h2>
-            <p>The safety check wasn't sure this story is right for {{ childName() }}. Here's what it found:</p>
+            <p>The safety check wasn't sure this story is right for {{ childName() }}. Here's what it found, for you to verify:</p>
             <ul>
               @for (problem of problems(); track $index) {
                 <li>{{ problem }}</li>
               }
             </ul>
             <div class="row">
-              <button type="button" class="btn" [disabled]="busy()" (click)="approve(s)">It's fine</button>
+              <button type="button" class="btn" [disabled]="busy()" (click)="setVerified(s, true)">It's fine: verify</button>
               <button type="button" class="btn quiet" [disabled]="busy()" (click)="startEditing(s)">Edit it</button>
             </div>
           </section>
@@ -253,10 +253,10 @@
           }
         } @else if (s.text === null) {
           <button type="button" class="btn big" (click)="write()">Write it now</button>
-        } @else if (s.status === 'read') {
+        } @else if (s.status === 'verified') {
           <p class="status">
-            <span class="pill ok">Read {{ readOn() }}</span>
-            <button type="button" class="link" [disabled]="busy()" (click)="setRead(s, false)">Mark as unread</button>
+            <span class="pill ok">Verified {{ verifiedOn() }}</span>
+            <button type="button" class="link" [disabled]="busy()" (click)="setVerified(s, false)">Undo</button>
           </p>
         } @else {
           <!-- The same round action button as the pen and add-character buttons. -->
@@ -265,15 +265,14 @@
             class="fab"
             [class.busy]="busy()"
             [disabled]="busy()"
-            (click)="setRead(s, true)"
-            aria-label="Mark as read"
-            title="Mark as read"
+            (click)="setVerified(s, true)"
+            aria-label="Verify: you've read it and it's fine for your child"
+            title="Verify"
           >
-            <!-- The Stories tab's book, with a tick on the cover -->
+            <!-- A shield with a tick: the parent's sign-off, after the AI's safety check -->
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
-              <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
-              <path d="M8.8 10.6l2.4 2.4 4.6-4.8" />
+              <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z" />
+              <path d="M8.8 12.2l2.2 2.2 4.2-4.4" />
             </svg>
           </button>
         }

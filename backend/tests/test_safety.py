@@ -261,20 +261,27 @@ def test_the_story_api_reports_the_check(client, story_id, monkeypatch):
     assert client.get("/api/stories").json()[0]["safety_status"] == "rewritten"
 
 
-def test_a_parent_can_approve_a_flagged_story(client, story_id, monkeypatch):
+def test_verifying_a_flagged_story_records_that_a_parent_approved_it(client, story_id, monkeypatch):
     fake_writer(monkeypatch, REWRITE)
     fake_checks(monkeypatch, RuntimeError("judge down"))
     stream(client, story_id)
-    response = client.patch(f"/api/stories/{story_id}", json={"approve": True})
+    response = client.patch(f"/api/stories/{story_id}", json={"verified": True})
     assert response.status_code == 200
-    assert response.json()["safety_status"] == "approved"
+    assert response.json()["status"] == "verified"
+    assert response.json()["safety_status"] == "approved"  # flagged by the check, then verified
+
+    undone = client.patch(f"/api/stories/{story_id}", json={"verified": False}).json()
+    assert undone["status"] == "written"
+    assert undone["safety_status"] == "needs_review"  # flagged again
 
 
-def test_only_a_flagged_story_can_be_approved(client, story_id, monkeypatch):
+def test_verifying_a_story_that_passed_keeps_its_check_result(client, story_id, monkeypatch):
     fake_writer(monkeypatch, REWRITE)
     fake_checks(monkeypatch, PASS)
     stream(client, story_id)
-    assert client.patch(f"/api/stories/{story_id}", json={"approve": True}).status_code == 409
+    story = client.patch(f"/api/stories/{story_id}", json={"verified": True}).json()
+    assert story["status"] == "verified"
+    assert story["safety_status"] == "passed"  # the AI's check and the parent's sign-off are separate
 
 
 # --- Every story is new ---

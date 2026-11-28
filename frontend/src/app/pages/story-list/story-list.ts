@@ -7,12 +7,13 @@ import { ApiService } from '../../services/api.service';
 import { Avatar } from '../../shared/avatar';
 import { friendlyDate, joinNames } from '../../shared/story-format';
 
-type Filter = 'all' | 'unread' | 'read' | 'favourites';
+type Filter = 'all' | 'toVerify' | 'verified' | 'favourites';
 
 const SHOWS: Record<Filter, (story: StorySummary) => boolean> = {
   all: () => true,
-  unread: (s) => s.status !== 'read',
-  read: (s) => s.status === 'read',
+  // Written stories a parent hasn't verified yet (planned ones aren't ready to verify).
+  toVerify: (s) => s.status === 'written',
+  verified: (s) => s.status === 'verified',
   favourites: (s) => s.favourite,
 };
 
@@ -37,8 +38,8 @@ export class StoryList {
     const all = this.stories() ?? [];
     return {
       all: all.length,
-      unread: all.filter(SHOWS.unread).length,
-      read: all.filter(SHOWS.read).length,
+      toVerify: all.filter(SHOWS.toVerify).length,
+      verified: all.filter(SHOWS.verified).length,
       favourites: all.filter(SHOWS.favourites).length,
     };
   });
