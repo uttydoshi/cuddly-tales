@@ -49,6 +49,7 @@ def test_content_can_be_kept_out_of_langfuse(monkeypatch):
 
 
 def test_setup_adds_the_langfuse_callback_once_and_only_with_keys(monkeypatch):
+    monkeypatch.setattr(tracing, "integration_available", lambda: True)
     fake = SimpleNamespace(success_callback=[], failure_callback=[])
     tracing.setup(fake)
     assert fake.success_callback == []
@@ -57,6 +58,16 @@ def test_setup_adds_the_langfuse_callback_once_and_only_with_keys(monkeypatch):
     tracing.setup(fake)
     tracing.setup(fake)
     assert fake.success_callback == ["langfuse"] and fake.failure_callback == ["langfuse"]
+
+
+def test_tracing_stays_off_if_this_litellm_lacks_the_integration(monkeypatch):
+    for name, value in REAL_KEYS.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setattr(tracing, "INTEGRATION", "litellm.integrations.no_such_module")
+    fake = SimpleNamespace(success_callback=[], failure_callback=[])
+    tracing.setup(fake)
+    assert fake.success_callback == [] and fake.failure_callback == []
+    asyncio.run(tracing.flush())  # and flushing is a no-op, not an error
 
 
 def test_flush_does_nothing_without_keys():

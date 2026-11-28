@@ -11,6 +11,7 @@ LANGFUSE_LOG_CONTENT=false keeps prompts and replies out of Langfuse (timings, t
 """
 
 import asyncio
+import importlib.util
 import logging
 import os
 import sys
@@ -72,9 +73,24 @@ class Trace:
         return data
 
 
+# The LiteLLM module this tracing is written for (LiteLLM's Langfuse v4 integration).
+INTEGRATION = "litellm.integrations.langfuse.langfuse_sdk"
+
+
+def integration_available() -> bool:
+    try:
+        return importlib.util.find_spec(INTEGRATION) is not None
+    except ModuleNotFoundError:
+        return False
+
+
 def setup(litellm) -> None:
-    """Turn the integration on (once), when LiteLLM is first loaded."""
+    """Turn the integration on (once), when LiteLLM is first loaded. Tracing must never stop a
+    story: with a LiteLLM that lacks the integration it stays off, with a warning."""
     if not enabled():
+        return
+    if not integration_available():
+        logger.warning("Langfuse tracing is off: this LiteLLM has no %s", INTEGRATION)
         return
     for callbacks in (litellm.success_callback, litellm.failure_callback):
         if "langfuse" not in callbacks:
@@ -84,7 +100,7 @@ def setup(litellm) -> None:
 async def flush() -> None:
     """Send queued traces now. Called as each request ends: on Lambda the process is frozen
     once the response is done, so anything still queued would be lost."""
-    if not enabled() or "litellm" not in sys.modules:
+    if not enabled() or "litellm" not in sys.modules or not integration_available():
         return
     try:
         from litellm.integrations.langfuse.langfuse_sdk import flush_langfuse_tracing
