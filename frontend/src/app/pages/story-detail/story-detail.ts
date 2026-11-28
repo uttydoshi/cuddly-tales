@@ -1,4 +1,15 @@
-import { Component, DestroyRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -8,6 +19,7 @@ import { ApiService } from '../../services/api.service';
 import { StoryStreamService } from '../../services/story-stream.service';
 import { Avatar } from '../../shared/avatar';
 import { ConfirmDelete } from '../../shared/confirm-delete';
+import { clampPage, countPages, edgeTap, loadPlace, pageAt, placeOf, savePlace, swipeTurn } from '../../shared/pages';
 import { safetyNote } from '../../shared/safety-note';
 import { ShellService } from '../../shared/shell.service';
 import { countWords, friendlyDate, joinNames, toParagraphs } from '../../shared/story-format';
@@ -21,9 +33,13 @@ const SIZE_KEY = 'cuddly-tales.text-size';
 /** streaming: words arriving (first version or the rewrite). checking: the safety and age check. */
 type Writing = 'idle' | 'streaming' | 'checking' | 'failed';
 
-/** Reading a story: full screen, large type, night mode for bedtime stories. Also where a new story streams in. */
+/**
+ * Reading a story: full screen, large type, night mode for bedtime stories, in pages like an
+ * e-reader (a cover, then the story). Also where a new story streams in, as one scrolling page.
+ */
 @Component({
   selector: 'app-story-detail',
+  host: { '(document:keydown)': 'onKey($event)' },
   imports: [RouterLink, Avatar, StoryText, ReactiveFormsModule, ConfirmDelete],
   templateUrl: './story-detail.html',
   styleUrl: './story-detail.css',
@@ -50,6 +66,22 @@ export class StoryDetail {
   readonly rewriting = signal(false);
 
   readonly textSize = computed(() => TEXT_SIZES[this.sizeIndex()]);
+
+  /** Read in pages once the story is written; while it streams in (or is edited) it scrolls. */
+  readonly paged = computed(() => {
+    const story = this.story();
+    return !!story && story.text !== null && this.writing() === 'idle' && !this.editing();
+  });
+  readonly page = signal(0);
+  readonly pageCount = signal(1);
+  /** The distance from one page to the next, in px (page width plus the gap). */
+  readonly pageStep = signal(0);
+  readonly onLastPage = computed(() => this.page() >= this.pageCount() - 1);
+  private readonly pagesEl = viewChild<ElementRef<HTMLElement>>('pages');
+  private readonly endEl = viewChild<ElementRef<HTMLElement>>('end');
+  /** The story whose saved place has been restored (once per story). */
+  private placedStory: number | null = null;
+  private touchAt: { x: number; y: number } | null = null;
   readonly cast = computed(() => joinNames(this.story()?.characters.map((c) => c.name) ?? []));
 
   /** While streaming, the model's first line is "# Title". */
@@ -100,6 +132,21 @@ export class StoryDetail {
       this.shell.stopReading();
     });
     this.keepScreenOn();
+
+    // Lay out the pages again whenever the page size or the text changes.
+    effect((onCleanup) => {
+      const pages = this.pagesEl()?.nativeElement;
+      this.textSize();
+      this.story();
+      if (!pages) {
+        return;
+      }
+      const relayout = () => requestAnimationFrame(() => this.measure());
+      relayout();
+      const observer = new ResizeObserver(relayout);
+      observer.observe(pages);
+      onCleanup(() => observer.disconnect());
+    });
 
     effect((onCleanup) => {
       const id = Number(this.id());
@@ -172,6 +219,82 @@ export class StoryDetail {
         this.writing.set('failed');
       }
     });
+  }
+
+  /** Turn the page: -1 back, 1 forward. */
+  turn(by: number): void {
+    const next = clampPage(this.page() + by, this.pageCount());
+    if (next === this.page()) {
+      return;
+    }
+    this.page.set(next);
+    const story = this.story();
+    if (story) {
+      savePlace(story.id, placeOf(next, this.pageCount()));
+    }
+  }
+
+  /** Tapping the left or right edge of the page turns it (not on a button or link). */
+  tap(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, input, textarea, summary, app-confirm-delete')) {
+      return;
+    }
+    const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.turn(edgeTap(event.clientX - box.left, box.width));
+  }
+
+  touchStart(event: TouchEvent): void {
+    const touch = event.changedTouches[0];
+    this.touchAt = { x: touch.clientX, y: touch.clientY };
+  }
+
+  touchEnd(event: TouchEvent): void {
+    const start = this.touchAt;
+    this.touchAt = null;
+    if (!start) {
+      return;
+    }
+    const touch = event.changedTouches[0];
+    const by = swipeTurn(touch.clientX - start.x, touch.clientY - start.y);
+    if (by) {
+      event.preventDefault(); // a swipe, not a tap: don't also turn by tapping the edge
+      this.turn(by);
+    }
+  }
+
+  onKey(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!this.paged() || target?.closest('input, textarea, select, [contenteditable]')) {
+      return;
+    }
+    if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+      this.turn(1);
+    } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+      this.turn(-1);
+    }
+  }
+
+  /** Count the pages from where the story's end landed, and keep (or restore) the reader's place. */
+  private measure(): void {
+    const pages = this.pagesEl()?.nativeElement;
+    const end = this.endEl()?.nativeElement;
+    const story = this.story();
+    if (!pages || !end || !story) {
+      return;
+    }
+    // One page on phones; on wide screens a spread of two (each turn moves the whole view).
+    const gap = parseFloat(getComputedStyle(pages).columnGap) || 0;
+    const step = pages.clientWidth + gap;
+    // Where the end landed, from the layout as drawn (offsetLeft ignores columns in some browsers).
+    // Both boxes move with the page-turn slide, so the difference is unaffected by it.
+    const endsAt = end.getBoundingClientRect().left - pages.getBoundingClientRect().left;
+    const count = countPages(endsAt, step);
+    const place = this.placedStory === story.id ? placeOf(this.page(), this.pageCount()) : loadPlace(story.id);
+    this.placedStory = story.id;
+    this.pageStep.set(step);
+    this.pageCount.set(count);
+    this.page.set(pageAt(place, count));
   }
 
   smaller(): void {
@@ -257,6 +380,9 @@ export class StoryDetail {
     this.rewriting.set(false);
     this.streamed.set('');
     this.nextChapter.set(null);
+    this.page.set(0);
+    this.pageCount.set(1);
+    this.placedStory = null;
   }
 
   private setSize(index: number): void {
