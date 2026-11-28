@@ -183,6 +183,18 @@ def test_mark_read_and_unread(client, character_ids, monkeypatch):
     assert story["read_at"] is None
 
 
+def test_favourite_and_unfavourite(client, character_ids, monkeypatch):
+    story_id = written_story(client, character_ids, monkeypatch)
+    assert client.get(f"/api/stories/{story_id}").json()["favourite"] is False
+
+    story = client.patch(f"/api/stories/{story_id}", json={"favourite": True}).json()
+    assert story["favourite"] is True
+    assert story["status"] == "written"  # a heart doesn't mark it read
+    assert client.get("/api/stories").json()[0]["favourite"] is True
+
+    assert client.patch(f"/api/stories/{story_id}", json={"favourite": False}).json()["favourite"] is False
+
+
 def test_cannot_edit_text_or_read_a_planned_story(client, character_ids):
     story_id = client.post("/api/stories", json={"character_ids": character_ids}).json()["id"]
     assert client.patch(f"/api/stories/{story_id}", json={"text": "Hi."}).status_code == 409

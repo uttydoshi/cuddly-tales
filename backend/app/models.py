@@ -63,6 +63,8 @@ class Story(SQLModel, table=True):
     status: StoryStatus = StoryStatus.planned
     # A bedtime story ends calm and sleepy and opens in night mode; otherwise it's for any time.
     bedtime: bool = False
+    # A parent's heart: the story shows under Favourites.
+    favourite: bool = False
     text: str | None = None
     word_count: int | None = None
     reading_minutes: int | None = None

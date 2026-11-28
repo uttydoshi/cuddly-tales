@@ -1,10 +1,7 @@
 .filters {
   display: flex;
+  flex-wrap: wrap; /* four filters don't fit on one line on a phone */
   gap: 0.5rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin: 0 -1rem;
-  padding: 0 1rem 0.15rem;
 }
 
 .chip {
@@ -27,6 +24,17 @@
   background: var(--chip-on-bg);
   color: var(--chip-on-text);
   font-weight: 700;
+}
+
+.chip-heart {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin: 0 0.15rem -0.15rem 0;
+  fill: var(--accent);
+}
+
+.chip[aria-pressed='true'] .chip-heart {
+  fill: currentColor;
 }
 
 .stories {
@@ -84,6 +92,12 @@
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.25;
+}
+
+.fav {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: var(--accent);
 }
 
 .cast {
