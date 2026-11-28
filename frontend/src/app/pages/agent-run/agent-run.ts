@@ -2,7 +2,7 @@ import { Component, DestroyRef, computed, effect, inject, input, signal, untrack
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { AgentRun, AgentStep, Night } from '../../models';
+import { AgentRun, AgentStep, Chapter } from '../../models';
 import { AgentStreamService } from '../../services/agent-stream.service';
 import { ApiService } from '../../services/api.service';
 
@@ -25,15 +25,15 @@ export function upsert(steps: AgentStep[], step: AgentStep): AgentStep[] {
   return [...others, step].sort((a, b) => a.position - b.position);
 }
 
-/** How a night reads in the plan: "Ready to read", "Read first", "Read" or "Planned". */
-export function nightStatus(night: Night): { label: string; tone: 'ok' | 'warn' | 'quiet' | '' } {
-  if (night.status === 'planned') {
+/** How a chapter reads in the plan: "Ready to read", "Read first", "Read" or "Planned". */
+export function chapterStatus(chapter: Chapter): { label: string; tone: 'ok' | 'warn' | 'quiet' | '' } {
+  if (chapter.status === 'planned') {
     return { label: 'Planned', tone: 'quiet' };
   }
-  if (night.safety_status === 'needs_review') {
+  if (chapter.safety_status === 'needs_review') {
     return { label: 'Read first', tone: 'warn' };
   }
-  return night.status === 'read' ? { label: 'Read', tone: 'ok' } : { label: 'Ready to read', tone: '' };
+  return chapter.status === 'read' ? { label: 'Read', tone: 'ok' } : { label: 'Ready to read', tone: '' };
 }
 
 /**
@@ -71,16 +71,16 @@ export class AgentRunPage {
     const seconds = (Date.parse(run.finished_at) - Date.parse(this.steps()[0].started_at)) / 1000;
     return `${Math.round(seconds)} seconds`;
   });
-  /** The night this run saved, to read straight away. */
-  readonly savedNight = computed(() => {
+  /** The chapter this run saved, to read straight away. */
+  readonly savedChapter = computed(() => {
     const saved = this.steps().find((s) => s.tool === 'save_story' && s.ok);
     const storyId = (saved?.detail?.output as { story_id?: number } | undefined)?.story_id;
     return this.run()?.adventure?.chapters.find((c) => c.story_id === storyId) ?? null;
   });
-  readonly nextNight = computed(() => this.run()?.adventure?.chapters.find((c) => c.status === 'planned') ?? null);
+  readonly nextChapter = computed(() => this.run()?.adventure?.chapters.find((c) => c.status === 'planned') ?? null);
 
   readonly duration = duration;
-  readonly nightStatus = nightStatus;
+  readonly chapterStatus = chapterStatus;
 
   private stream?: Subscription;
   private poll?: ReturnType<typeof setInterval>;
@@ -107,11 +107,11 @@ export class AgentRunPage {
     });
   }
 
-  /** "Write the next night now": a new run, on its own page. */
+  /** "Write the next chapter now": a new run, on its own page. */
   writeNext(adventureId: number): void {
     this.starting.set(true);
     this.actionError.set('');
-    this.api.writeNextNight(adventureId).subscribe({
+    this.api.writeNextChapter(adventureId).subscribe({
       next: (run) => {
         this.starting.set(false);
         this.run.set(null);
@@ -122,7 +122,7 @@ export class AgentRunPage {
       },
       error: (error) => {
         this.starting.set(false);
-        this.actionError.set(error.error?.detail ?? 'Could not start the next night. Please try again.');
+        this.actionError.set(error.error?.detail ?? 'Could not start the next chapter. Please try again.');
       },
     });
   }

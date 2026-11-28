@@ -28,7 +28,7 @@ from app.models import (
     utc_now,
 )
 from app.routers.stories import KEEPALIVE_SECONDS, check_daily_limit
-from app.schemas import AdventureCreate, AdventureRead, AgentRunRead, AgentStepRead, NextNight, NightRead
+from app.schemas import AdventureCreate, AdventureRead, AgentRunRead, AgentStepRead, NextChapter, ChapterRead
 from app.services import tracing
 from app.services.adventure_agent import AdventureAgent, goal_for_next, goal_for_plan
 from app.services.story_stream import KEEPALIVE, sse, with_keepalive
@@ -41,8 +41,8 @@ router = APIRouter(tags=["adventures"])
 STALE_AFTER = timedelta(minutes=6)
 
 
-def nights_of(session: Session, adventure_id: int) -> list[Story]:
-    return list(session.exec(select(Story).where(Story.adventure_id == adventure_id).order_by(Story.night)).all())
+def chapters_of(session: Session, adventure_id: int) -> list[Story]:
+    return list(session.exec(select(Story).where(Story.adventure_id == adventure_id).order_by(Story.chapter)).all())
 
 
 def to_adventure_read(session: Session, adventure: Adventure) -> AdventureRead:
@@ -50,20 +50,20 @@ def to_adventure_read(session: Session, adventure: Adventure) -> AdventureRead:
         id=adventure.id,
         title=adventure.title,
         premise=adventure.premise,
-        nights=adventure.nights,
+        chapter_count=adventure.chapter_count,
         bedtime=adventure.bedtime,
         status=adventure.status,
         created_at=adventure.created_at,
         chapters=[
-            NightRead(
-                night=s.night,
+            ChapterRead(
+                chapter=s.chapter,
                 story_id=s.id,
                 title=s.title,
                 status=s.status,
                 safety_status=s.safety_status,
                 plot_cards=[p.text for p in s.plot_cards],
             )
-            for s in nights_of(session, adventure.id)
+            for s in chapters_of(session, adventure.id)
         ],
     )
 
@@ -107,7 +107,7 @@ def get_run_or_404(session: Session, run_id: int) -> AgentRun:
 
 @router.post("/api/adventures", response_model=AgentRunRead, status_code=201)
 def plan_adventure(payload: AdventureCreate, session: Session = Depends(get_session)) -> AgentRunRead:
-    """Start the agent on "Plan an N-night adventure". The page then opens the run's stream."""
+    """Start the agent on "Plan an N-chapter adventure". The page then opens the run's stream."""
     check_daily_limit(session)
     child = session.exec(select(ChildProfile)).first()
     if child is None:
@@ -119,8 +119,8 @@ def plan_adventure(payload: AdventureCreate, session: Session = Depends(get_sess
         raise HTTPException(404, f"Unknown character ids: {missing}")
     run = AgentRun(
         kind=AgentRunKind.plan,
-        goal=goal_for_plan(child.name, payload.nights),
-        nights=payload.nights,
+        goal=goal_for_plan(child.name, payload.chapter_count),
+        chapter_count=payload.chapter_count,
         bedtime=payload.bedtime,
         theme=payload.theme or None,
         character_ids=ids,
@@ -146,16 +146,16 @@ def get_adventure(adventure_id: int, session: Session = Depends(get_session)) ->
 
 
 @router.post("/api/adventures/{adventure_id}/next", response_model=AgentRunRead, status_code=201)
-def write_next_night(
-    adventure_id: int, payload: NextNight | None = None, session: Session = Depends(get_session)
+def write_next_chapter(
+    adventure_id: int, payload: NextChapter | None = None, session: Session = Depends(get_session)
 ) -> AgentRunRead:
-    """Start the agent on the adventure's next night (the scheduled job does the same each evening)."""
+    """Start the agent on the adventure's next chapter (the scheduled job does the same each evening)."""
     adventure = session.get(Adventure, adventure_id)
     if adventure is None:
         raise HTTPException(404, "Adventure not found")
-    planned = [s for s in nights_of(session, adventure_id) if s.status == StoryStatus.planned]
+    planned = [s for s in chapters_of(session, adventure_id) if s.status == StoryStatus.planned]
     if adventure.status == AdventureStatus.finished or not planned:
-        raise HTTPException(409, "Every night of this adventure has been written")
+        raise HTTPException(409, "Every chapter of this adventure has been written")
     busy = session.exec(
         select(AgentRun).where(
             AgentRun.adventure_id == adventure_id,
@@ -163,11 +163,11 @@ def write_next_night(
         )
     ).all()
     if any(settle_if_stale(session, r).status in (AgentRunStatus.pending, AgentRunStatus.running) for r in busy):
-        raise HTTPException(409, "The agent is already writing a night of this adventure")
+        raise HTTPException(409, "The agent is already writing a chapter of this adventure")
     check_daily_limit(session)
     run = AgentRun(
-        kind=AgentRunKind.next_night,
-        goal=goal_for_next(planned[0].night, adventure.title),
+        kind=AgentRunKind.next_chapter,
+        goal=goal_for_next(planned[0].chapter, adventure.title),
         trigger=(payload.trigger if payload else "parent"),
         bedtime=adventure.bedtime,
         adventure_id=adventure_id,

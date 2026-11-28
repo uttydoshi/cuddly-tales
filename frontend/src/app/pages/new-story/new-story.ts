@@ -10,7 +10,7 @@ import { groupByType } from '../../shared/character-groups';
 import { ShellService } from '../../shared/shell.service';
 
 export const MAX_FRIENDS = 6;
-export const NIGHT_CHOICES = [3, 5, 7];
+export const CHAPTER_CHOICES = [3, 5, 7];
 const THEME_MAX = 200;
 
 type Kind = 'story' | 'adventure';
@@ -37,10 +37,10 @@ export class NewStory {
   protected readonly shell = inject(ShellService);
 
   readonly maxFriends = MAX_FRIENDS;
-  readonly nightChoices = NIGHT_CHOICES;
+  readonly chapterChoices = CHAPTER_CHOICES;
   readonly themeMax = THEME_MAX;
   readonly kind = signal<Kind>('story');
-  readonly nights = signal(5);
+  readonly chapterCount = signal(5);
   readonly theme = signal('');
   readonly loading = signal(true);
   readonly starting = signal(false);
@@ -60,7 +60,7 @@ export class NewStory {
   readonly buttonLabel = computed(() => {
     const n = this.count();
     if (this.kind() === 'adventure') {
-      return `Plan a ${this.nights()}-night adventure`;
+      return `Plan a ${this.chapterCount()}-chapter adventure`;
     }
     if (n === 0) {
       return 'Pick at least one friend';
@@ -136,7 +136,7 @@ export class NewStory {
 
   private planAdventure(): void {
     const request = {
-      nights: this.nights(),
+      chapter_count: this.chapterCount(),
       bedtime: this.bedtime(),
       character_ids: [...this.selected()],
       theme: this.theme().trim() || null,

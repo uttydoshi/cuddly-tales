@@ -33,7 +33,7 @@
         </svg>
         <span class="text">
           <span class="title">An adventure</span>
-          <span class="hint">A story over a few nights</span>
+          <span class="hint">A story in a few chapters, one a day</span>
         </span>
       </label>
     </div>
@@ -66,12 +66,12 @@
 
   @if (kind() === 'adventure') {
     <fieldset class="when">
-      <legend class="group-label">How many nights?</legend>
-      <div class="nights">
-        @for (n of nightChoices; track n) {
-          <label class="option night" [class.chosen]="nights() === n">
-            <input type="radio" name="nights" [checked]="nights() === n" (change)="nights.set(n)" />
-            <span class="title">{{ n }} nights</span>
+      <legend class="group-label">How many chapters?</legend>
+      <div class="counts">
+        @for (n of chapterChoices; track n) {
+          <label class="option count" [class.chosen]="chapterCount() === n">
+            <input type="radio" name="chapters" [checked]="chapterCount() === n" (change)="chapterCount.set(n)" />
+            <span class="title">{{ n }} chapters</span>
           </label>
         }
       </div>

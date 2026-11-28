@@ -235,7 +235,7 @@ pre {
   color: var(--muted);
 }
 
-.nights {
+.chapters {
   list-style: none;
   margin: 0.5rem 0 0;
   padding: 0;
@@ -244,13 +244,13 @@ pre {
   gap: 1rem;
 }
 
-.night-head {
+.chapter-head {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.night-no {
+.chapter-no {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -258,7 +258,7 @@ pre {
   color: var(--muted);
 }
 
-.night-title {
+.chapter-title {
   display: block;
   margin: 0.2rem 0 0;
   font-family: var(--font-heading);
@@ -266,7 +266,7 @@ pre {
   font-weight: 600;
 }
 
-a.night-title {
+a.chapter-title {
   color: var(--text);
 }
 

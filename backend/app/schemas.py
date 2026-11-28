@@ -90,12 +90,12 @@ class StoryCreate(BaseModel):
 
 
 class AdventureRef(BaseModel):
-    """Which adventure a story is one night of."""
+    """Which adventure a story is one chapter of."""
 
     id: int
     title: str
-    night: int
-    nights: int
+    chapter: int
+    chapter_count: int
 
 
 class StorySummary(BaseModel):
@@ -136,19 +136,19 @@ class StoryUpdate(BaseModel):
 class AdventureCreate(BaseModel):
     """A parent asks the agent to plan an adventure."""
 
-    nights: int = Field(default=5, ge=2, le=7)
+    chapter_count: int = Field(default=5, ge=2, le=7)
     bedtime: bool = False
     # Characters the parent wants in it; the agent chooses the rest.
     character_ids: list[int] = Field(default_factory=list, max_length=6)
     theme: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
 
 
-class NextNight(BaseModel):
+class NextChapter(BaseModel):
     trigger: Literal["parent", "run_now"] = "parent"
 
 
-class NightRead(BaseModel):
-    night: int
+class ChapterRead(BaseModel):
+    chapter: int
     story_id: int
     title: str
     status: StoryStatus
@@ -160,11 +160,11 @@ class AdventureRead(BaseModel):
     id: int
     title: str
     premise: str
-    nights: int
+    chapter_count: int
     bedtime: bool
     status: AdventureStatus
     created_at: UtcDatetime
-    chapters: list[NightRead]
+    chapters: list[ChapterRead]
 
 
 class AgentStepRead(BaseModel):

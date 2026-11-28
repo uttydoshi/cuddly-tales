@@ -30,8 +30,8 @@ The assessment asks for at least three of five capabilities; Cuddly Tales aims f
 | **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. Stories can be marked read, and hearted to keep them under Favourites. The child's profile (name, age, favourite things) can be edited too; a new name is also changed in every story and character that used the old one. Deleting a character keeps the stories it was in. |
 | **2. In-app analytics** | Day 3 | A dashboard with charts from real app data (stories read, character appearances, Polish words learned). |
 | **3. Drag and drop** | Day 3 | A storyboard of plot cards that can be reordered, with the order saved. |
-| **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare tonight's chapter, with a "Run now" button. |
-| **5. AI agent** | Done | "Plan a 5-night adventure for Mira": the model works through the goal with 7 tools, choosing each next step; every step is saved and streamed live. See [The adventure agent](#the-adventure-agent). |
+| **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare the next chapter of an adventure, with a "Run now" button. |
+| **5. AI agent** | Done | "Plan a 5-chapter adventure for Mira": the model works through the goal with 7 tools, choosing each next step; every step is saved and streamed live. See [The adventure agent](#the-adventure-agent). |
 
 The demo family is Mira (3) and her cast: two toy poodles, Minnie and Maverick, Tosia the cat,
 Diggles the wombat, and characters from public-domain folklore and the Panchatantra. Each character
@@ -71,15 +71,15 @@ Tests never call the real model: a test fixture makes any unfaked model call fai
 
 ## The adventure agent
 
-A parent asks for an adventure (3 to 7 nights, optionally with characters who must be in it and a
-theme). The agent gets the goal "Plan a 5-night adventure for Mira, then write, check and save
-night 1" and seven tools:
+A parent asks for an adventure (3 to 7 chapters, one a day, for bedtime or any time; optionally with characters who must be in it and a
+theme). The agent gets the goal "Plan a 5-chapter adventure for Mira, then write, check and save
+chapter 1" and seven tools:
 
 | Tool | What it does |
 |---|---|
 | `get_child_profile`, `list_characters`, `get_previous_stories` | Read the child, the cast and the stories already told |
-| `create_plot_cards` | Save the plan: a title, a premise, and each night's title, characters and plot cards |
-| `write_chapter` | Write a night from its plot cards (the story prompt, plus the nights so far); called again after a failed check, it rewrites it |
+| `create_plot_cards` | Save the plan: a title, a premise, and each chapter's title, characters and plot cards |
+| `write_chapter` | Write a chapter from its plot cards (the story prompt, plus the chapters so far); called again after a failed check, it rewrites it |
 | `safety_check` | The same safety and age check as every story |
 | `save_story` | Save the checked chapter |
 
@@ -88,19 +88,19 @@ it and returns the result, until the model says it's done. A typical run takes a
 10 tool calls. Before each call the model says in one sentence what it's doing; that sentence and
 each tool's result are saved as steps and streamed to the parent's screen as they happen: a
 live timeline with the tool names, timings, and what went in and out of each tool, then the plan,
-night by night, with its plot cards. Each night shows in the stories list as "Night 2 of 5".
+chapter by chapter, with its plot cards. Each chapter shows in the stories list as "Chapter 2 of 5".
 
 **The rules live in the tools, not only the prompt**, so a confused model can't break them: only
-characters that exist, every character the parent asked for, exactly the nights asked for, 2 to 6
-plot cards a night; only tonight's night is written in a run; nothing is saved before its check; a
+characters that exist, every character the parent asked for, exactly the chapters asked for, 2 to 6
+plot cards a chapter; only the next chapter is written in a run; nothing is saved before its check; a
 chapter that fails is rewritten (once) before it's saved, then saved as "Read first" if it still
 fails. A refused call is reported back to the model, which can correct itself. A run is capped at
 25 tool calls and 4 minutes (Lambda stops a request at 5), and the parent's theme is passed as a
-topic only. Planned nights don't count towards the daily story cap; each run does.
+topic only. Planned chapters don't count towards the daily story cap; each run does.
 
-**One night per run.** The plan run writes night 1; each later night is its own run, started by
-the evening scheduled job or a parent's "Write the next night now". Writing every night in one go
-would take several minutes, close to Lambda's limit, and each night still needs its own check.
+**One chapter per run.** The plan run writes chapter 1; each later chapter is its own run, started
+by the evening scheduled job or a parent's "Write chapter 2 now". Writing every chapter in one go
+would take several minutes, close to Lambda's limit, and each chapter still needs its own check.
 
 ## Tracing with Langfuse
 
@@ -118,7 +118,7 @@ what it said, tokens, cost and time.
 | `adventure-agent`: one per agent run | `agent-turn-1`, `agent-turn-2`… (each choice of tool), `write-chapter`, `safety-check`, and `rewrite-chapter` if it failed |
 
 Traces are tagged with the feature and where the app ran (`live` or `local`), carry the story or
-run id, and an adventure's runs share a Langfuse session, so all its nights can be followed
+run id, and an adventure's runs share a Langfuse session, so all its chapters can be followed
 together. All model calls go through `backend/app/services/llm.py`, which is the only code that
 knows about tracing.
 
