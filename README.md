@@ -350,10 +350,14 @@ first, then had Claude Code build them into the app. I reviewed every avatar and
 heads floating above their bodies, Baba Yaga needing a proper witch's hat, a wolf that looked like a
 cat.
 
-**What I changed by hand.** Small edits to the prompts and to wording here and there in the app,
-my local `.env` and Langfuse settings, and the one-time setup only I can do: the Claude key with its
-own spend limit, the AWS login, and storing secrets with the scripts in `scripts/`, so no key was
-ever pasted into a chat or a file.
+**What I did by hand.** Small edits to the prompts and to wording here and there in the app, and
+all the setup and configuration of the services the app runs on:
+- **AWS:** the account, SSO access and settings the CDK deploys into, and the secrets in Secrets
+  Manager, stored with the scripts in `scripts/` so no key was ever pasted into a chat or a file.
+- **Anthropic:** a separate workspace for Cuddly Tales with its own API key and monthly spend limit.
+- **Neon:** the Postgres project and database the live site uses.
+- **Langfuse:** the account, the project in the US region, and its API keys, locally and on AWS.
+- My local `.env`.
 
 **What went wrong, and how it was caught.** The most useful part of the process was what happened
 when things broke:
