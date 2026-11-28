@@ -31,7 +31,7 @@ The assessment asks for at least three of five capabilities; Cuddly Tales aims f
 | **2. In-app analytics** | Day 3 | A dashboard with charts from real app data (stories read, character appearances, Polish words learned). |
 | **3. Drag and drop** | Day 3 | A storyboard of plot cards that can be reordered, with the order saved. |
 | **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare tonight's chapter, with a "Run now" button. |
-| **5. AI agent** | Day 2 | "Plan a 5-night adventure for Mira": an agent that uses tools step by step, with every step shown live. |
+| **5. AI agent** | Backend done (UI next) | "Plan a 5-night adventure for Mira": the model works through the goal with 7 tools, choosing each next step; every step is saved and streamed live. See [The adventure agent](#the-adventure-agent). |
 
 The demo family is Mira (3) and her cast: two toy poodles, Minnie and Maverick, Tosia the cat,
 Diggles the wombat, and characters from public-domain folklore and the Panchatantra. Each character
@@ -68,6 +68,37 @@ because holding it back would remove the word-by-word streaming. The prompt sets
 the check runs within seconds of the end, and a failed story is replaced.
 
 Tests never call the real model: a test fixture makes any unfaked model call fail.
+
+## The adventure agent
+
+A parent asks for an adventure (3 to 7 nights, optionally with characters who must be in it and a
+theme). The agent gets the goal "Plan a 5-night adventure for Mira, then write, check and save
+night 1" and seven tools:
+
+| Tool | What it does |
+|---|---|
+| `get_child_profile`, `list_characters`, `get_previous_stories` | Read the child, the cast and the stories already told |
+| `create_plot_cards` | Save the plan: a title, a premise, and each night's title, characters and plot cards |
+| `write_chapter` | Write a night from its plot cards (the story prompt, plus the nights so far); called again after a failed check, it rewrites it |
+| `safety_check` | The same safety and age check as every story |
+| `save_story` | Save the checked chapter |
+
+It's a real loop: the model chooses which tool to call next (LiteLLM tool calling), the code runs
+it and returns the result, until the model says it's done. A typical run takes about 40 seconds and
+10 tool calls. Before each call the model says in one sentence what it's doing; that sentence and
+each tool's result are saved as steps and streamed to the parent's screen as they happen.
+
+**The rules live in the tools, not only the prompt**, so a confused model can't break them: only
+characters that exist, every character the parent asked for, exactly the nights asked for, 2 to 6
+plot cards a night; only tonight's night is written in a run; nothing is saved before its check; a
+chapter that fails is rewritten (once) before it's saved, then saved as "Read first" if it still
+fails. A refused call is reported back to the model, which can correct itself. A run is capped at
+25 tool calls and 4 minutes (Lambda stops a request at 5), and the parent's theme is passed as a
+topic only. Planned nights don't count towards the daily story cap; each run does.
+
+**One night per run.** The plan run writes night 1; each later night is its own run, started by
+the evening scheduled job or a parent's "Write the next night now". Writing every night in one go
+would take several minutes, close to Lambda's limit, and each night still needs its own check.
 
 ## Architecture
 

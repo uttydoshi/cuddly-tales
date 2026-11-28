@@ -38,5 +38,9 @@ def no_real_model(request, monkeypatch):
     async def complete_json(messages, schema, **kwargs):
         raise RuntimeError("tests must fake llm.complete_json")
 
+    async def complete_with_tools(messages, tools, **kwargs):
+        raise RuntimeError("tests must fake llm.complete_with_tools")
+
     monkeypatch.setattr(llm, "stream_text", stream_text)
     monkeypatch.setattr(llm, "complete_json", complete_json)
+    monkeypatch.setattr(llm, "complete_with_tools", complete_with_tools)

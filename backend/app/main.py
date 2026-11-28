@@ -12,7 +12,7 @@ from app import aws_secrets
 from app.config import get_settings
 from app.db import make_engine, migrate
 from app.origin import CloudFrontOnly
-from app.routers import characters, profile, stories
+from app.routers import adventures, characters, profile, stories
 from app.seed import seed_if_empty
 
 
@@ -39,6 +39,7 @@ def create_app(engine: Engine | None = None, frontend_dist: Path | None = None) 
     app.include_router(profile.router)
     app.include_router(characters.router)
     app.include_router(stories.router)
+    app.include_router(adventures.router)
 
     # The built Angular app. Registered last so /api routes win.
     # Real files are served as-is; any other path gets index.html so

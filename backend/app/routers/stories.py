@@ -8,8 +8,8 @@ from sqlmodel import Session, func, select
 
 from app.config import get_settings
 from app.db import get_session
-from app.models import Character, ChildProfile, SafetyStatus, Story, StoryStatus, utc_now
-from app.schemas import CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
+from app.models import AgentRun, Character, ChildProfile, SafetyStatus, Story, StoryStatus, utc_now
+from app.schemas import AdventureRef, CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
 from app.services import llm, safety
 from app.services.story_prompt import EARLIER_STORIES, PLOTS, build_story_messages
 from app.services.story_stream import (
@@ -45,7 +45,16 @@ def to_story_read(story: Story) -> StoryRead:
         safety=story.safety_report,
         text=story.text,
         characters=[CharacterRef(id=c.id, name=c.name, type=c.type) for c in story.characters],
+        adventure=adventure_ref(story),
+        plot_cards=[p.text for p in story.plot_cards],
     )
+
+
+def adventure_ref(story: Story) -> AdventureRef | None:
+    adventure = story.adventure
+    if adventure is None:
+        return None
+    return AdventureRef(id=adventure.id, title=adventure.title, night=story.night, nights=adventure.nights)
 
 
 def placeholder_title(names: list[str]) -> str:
@@ -63,12 +72,17 @@ DAILY_LIMIT_MESSAGE = (
 
 
 def check_daily_limit(session: Session) -> None:
+    """Each story started and each agent run counts (a run writes one night of an adventure).
+    An adventure's planned nights don't count until a run writes them."""
     limit = get_settings().max_stories_per_day
     if limit is None:
         return
     since = utc_now() - timedelta(hours=24)
-    started = session.exec(select(func.count()).select_from(Story).where(Story.created_at >= since)).one()
-    if started >= limit:
+    stories = session.exec(
+        select(func.count()).select_from(Story).where(Story.created_at >= since, Story.adventure_id.is_(None))
+    ).one()
+    runs = session.exec(select(func.count()).select_from(AgentRun).where(AgentRun.created_at >= since)).one()
+    if stories + runs >= limit:
         raise HTTPException(429, DAILY_LIMIT_MESSAGE)
 
 
@@ -160,6 +174,8 @@ def stream_story(
         raise HTTPException(404, "Story not found")
     if story.status != StoryStatus.planned:
         raise HTTPException(409, "This story has already been written")
+    if story.adventure_id is not None:
+        raise HTTPException(409, "This is a night of an adventure: the adventure agent writes it")
     child = session.exec(select(ChildProfile)).first()
     if child is None:
         raise HTTPException(409, "Set up a child profile first")
