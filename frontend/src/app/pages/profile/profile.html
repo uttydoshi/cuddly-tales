@@ -13,6 +13,8 @@
         <input id="name" type="text" formControlName="name" maxlength="40" autocomplete="off" />
         @if (form.controls.name.touched && form.controls.name.invalid) {
           <span class="error">Add your child's first name.</span>
+        } @else if (renaming()) {
+          <span class="hint">Saving also changes {{ savedName() }} to {{ renaming() }} in your stories and characters.</span>
         }
       </label>
 
@@ -44,6 +46,9 @@
           <span class="saved" role="status">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
             Saved
+            @if (storiesRenamed()) {
+              · {{ storiesRenamed() }} {{ storiesRenamed() === 1 ? 'story' : 'stories' }} now say {{ savedName() }}
+            }
           </span>
         }
       </div>

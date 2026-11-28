@@ -27,7 +27,7 @@ The assessment asks for at least three of five capabilities; Cuddly Tales aims f
 
 | Requirement | Status | How it's met |
 | --- | --- | --- |
-| **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. Stories can be marked read. The child's profile (name, age, favourite things) can be edited too. Deleting a character keeps the stories it was in. |
+| **1. CRUD** | Done | Characters and stories can be created, viewed, edited and deleted, and are saved in Postgres. Stories can be marked read, and hearted to keep them under Favourites. The child's profile (name, age, favourite things) can be edited too; a new name is also changed in every story and character that used the old one. Deleting a character keeps the stories it was in. |
 | **2. In-app analytics** | Day 3 | A dashboard with charts from real app data (stories read, character appearances, Polish words learned). |
 | **3. Drag and drop** | Day 3 | A storyboard of plot cards that can be reordered, with the order saved. |
 | **4. Streaming and scheduled work** | Streaming done; schedule Day 3 | Stories stream word by word over Server-Sent Events, live through CloudFront and Lambda. An EventBridge job at 18:30 (Melbourne) will prepare tonight's chapter, with a "Run now" button. |
