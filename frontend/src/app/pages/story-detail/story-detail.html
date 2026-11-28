@@ -157,7 +157,7 @@
         } @else if (s.status === 'read') {
           <p class="status">
             <span class="pill ok">Read {{ readOn() }}</span>
-            <button type="button" class="link" [disabled]="busy()" (click)="setRead(s, false)">Mark as not read</button>
+            <button type="button" class="link" [disabled]="busy()" (click)="setRead(s, false)">Mark as unread</button>
           </p>
         } @else {
           <!-- The same round action button as the pen and add-character buttons. -->

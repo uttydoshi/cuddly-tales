@@ -16,7 +16,7 @@
         All · {{ counts().all }}
       </button>
       <button type="button" class="chip" [attr.aria-pressed]="filter() === 'unread'" (click)="filter.set('unread')">
-        <span class="long">Not read yet</span><span class="short">Unread</span> · {{ counts().unread }}
+        Unread · {{ counts().unread }}
       </button>
       <button type="button" class="chip" [attr.aria-pressed]="filter() === 'read'" (click)="filter.set('read')">
         Read · {{ counts().read }}
@@ -48,7 +48,7 @@
                   </span>
                 }
                 @case ('written') {
-                  <span class="pill">Not read yet</span>
+                  <span class="pill">Unread</span>
                 }
                 @default {
                   <span class="pill quiet">Not written yet</span>

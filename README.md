@@ -11,7 +11,7 @@ word, ready to read aloud.
   <img src="docs/screenshots/pick-the-cast.png" width="200" alt="Picking the cast: 'Dear Mira, who's in Mira's story?', Anytime or Bedtime, Minnie and Diggles chosen, and a 'Write the story with 2 friends' button">
   <img src="docs/screenshots/story-streaming.png" width="200" alt="The story arriving word by word in night mode, with 'Still writing · 32 words so far'">
   <img src="docs/screenshots/reading-night-mode.png" width="200" alt="Reading the finished story in night mode, with the Polish word gwiazda in italics">
-  <img src="docs/screenshots/your-stories.png" width="200" alt="Your stories: filter chips and story cards marked Not read yet or Read">
+  <img src="docs/screenshots/your-stories.png" width="200" alt="Your stories: filter chips and story cards marked Unread or Read">
 </p>
 
 Designed for a parent's phone, in the style of [ukdoshi.com](https://ukdoshi.com): pick the cast,
