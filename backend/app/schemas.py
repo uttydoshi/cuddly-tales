@@ -1,11 +1,18 @@
 """Request and response shapes for the API."""
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
-from app.models import CharacterType, SafetyStatus, StoryStatus
+from app.models import (
+    AdventureStatus,
+    AgentRunKind,
+    AgentRunStatus,
+    CharacterType,
+    SafetyStatus,
+    StoryStatus,
+)
 
 ShortText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 
@@ -74,6 +81,15 @@ class StoryCreate(BaseModel):
     bedtime: bool = False
 
 
+class AdventureRef(BaseModel):
+    """Which adventure a story is one night of."""
+
+    id: int
+    title: str
+    night: int
+    nights: int
+
+
 class StorySummary(BaseModel):
     id: int
     title: str
@@ -86,6 +102,7 @@ class StorySummary(BaseModel):
     characters: list[CharacterRef]
     # None for stories written before the safety check existed, or not written yet.
     safety_status: SafetyStatus | None
+    adventure: AdventureRef | None = None
 
 
 class StoryRead(StorySummary):
@@ -93,6 +110,8 @@ class StoryRead(StorySummary):
     read_at: datetime | None
     # Every version the check looked at: scores, character rules and problems found.
     safety: dict | None
+    # The plot, beat by beat, for stories planned by the adventure agent.
+    plot_cards: list[str] = []
 
 
 class StoryUpdate(BaseModel):
@@ -104,3 +123,62 @@ class StoryUpdate(BaseModel):
     # A parent has read a story the safety check flagged, and says it's fine.
     approve: bool | None = None
     favourite: bool | None = None
+
+
+class AdventureCreate(BaseModel):
+    """A parent asks the agent to plan an adventure."""
+
+    nights: int = Field(default=5, ge=2, le=7)
+    bedtime: bool = False
+    # Characters the parent wants in it; the agent chooses the rest.
+    character_ids: list[int] = Field(default_factory=list, max_length=6)
+    theme: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
+
+
+class NextNight(BaseModel):
+    trigger: Literal["parent", "run_now"] = "parent"
+
+
+class NightRead(BaseModel):
+    night: int
+    story_id: int
+    title: str
+    status: StoryStatus
+    safety_status: SafetyStatus | None
+    plot_cards: list[str]
+
+
+class AdventureRead(BaseModel):
+    id: int
+    title: str
+    premise: str
+    nights: int
+    bedtime: bool
+    status: AdventureStatus
+    created_at: datetime
+    chapters: list[NightRead]
+
+
+class AgentStepRead(BaseModel):
+    id: int
+    position: int
+    tool: str
+    label: str
+    result: str | None
+    ok: bool | None
+    detail: dict | None
+    started_at: datetime
+    finished_at: datetime | None
+
+
+class AgentRunRead(BaseModel):
+    id: int
+    kind: AgentRunKind
+    goal: str
+    status: AgentRunStatus
+    trigger: str
+    error: str | None
+    created_at: datetime
+    finished_at: datetime | None
+    adventure: AdventureRead | None
+    steps: list[AgentStepRead]
