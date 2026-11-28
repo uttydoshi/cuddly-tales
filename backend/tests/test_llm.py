@@ -1,7 +1,7 @@
 import asyncio
 from types import SimpleNamespace
 
-from app.services import llm
+from app.services import llm, tracing
 
 
 def _chunk(content):
@@ -79,6 +79,23 @@ def test_complete_with_tools_reads_tool_calls(monkeypatch):
     assert turn.message["role"] == "assistant"
     assert calls["tools"] == tools
     assert "tool_choice" not in calls and "temperature" not in calls
+
+
+def test_each_model_call_sends_its_trace_as_metadata(monkeypatch):
+    calls = []
+
+    async def fake_acompletion(**kwargs):
+        calls.append(kwargs)
+        message = SimpleNamespace(content='{"ok": true}', tool_calls=None)
+        return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+    monkeypatch.setattr(llm.load_litellm(), "acompletion", fake_acompletion)
+    trace = tracing.Trace("story", details={"story_id": 1})
+    asyncio.run(llm.complete_json([], {}, name="x", trace=trace.at("safety-check")))
+    asyncio.run(llm.complete_json([], {}, name="x"))
+    assert calls[0]["metadata"]["generation_name"] == "safety-check"
+    assert calls[0]["metadata"]["trace_metadata"] == {"story_id": 1}
+    assert "metadata" not in calls[1]
 
 
 def test_app_starts_without_importing_litellm():

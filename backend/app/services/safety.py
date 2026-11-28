@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass, field
 
 from app.models import Character, ChildProfile, Story
 from app.services import llm
+from app.services.tracing import Trace
 from app.services.story_prompt import word_range
 
 MAX_SCARINESS = 2  # out of 5
@@ -194,6 +195,7 @@ async def check_story(
     *,
     bedtime: bool,
     earlier: list[tuple[str, str]] = (),
+    trace: Trace | None = None,
 ) -> Attempt:
     """Run the rules and the judge. Raises if the judge can't be reached or answers nonsense,
     so the caller can treat "couldn't check" as "a parent should read it"."""
@@ -202,6 +204,7 @@ async def check_story(
         build_judge_messages(title, body, child, characters, bedtime=bedtime, earlier=earlier),
         JUDGE_SCHEMA,
         name="story_review",
+        trace=trace.at("safety-check") if trace else None,
     )
     rules = [RuleCheck(r["character"], r["rule"], bool(r["followed"])) for r in verdict["rules"]]
     scariness = int(verdict["scariness"])

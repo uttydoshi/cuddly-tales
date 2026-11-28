@@ -38,7 +38,7 @@ def parse_events(body: str) -> list[tuple[str, dict]]:
 def check_passes(monkeypatch):
     """These tests are about writing and saving; the safety check has its own tests."""
 
-    async def check_story(title, body, child, characters, *, bedtime, earlier=()):
+    async def check_story(title, body, child, characters, *, bedtime, earlier=(), **kwargs):
         return safety.Attempt(passed=True, word_count=len(body.split()), scariness=1)
 
     monkeypatch.setattr(safety, "check_story", check_story)

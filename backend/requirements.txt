@@ -2,6 +2,8 @@ fastapi>=0.115
 uvicorn[standard]>=0.32
 sqlmodel>=0.0.22
 litellm>=1.60
+# Tracing through LiteLLM's Langfuse integration (which needs SDK v4.7+, below 5)
+langfuse>=4.7,<5
 python-dotenv>=1.0
 psycopg[binary]>=3.2
 alembic>=1.14

@@ -29,6 +29,7 @@ from app.models import (
 )
 from app.routers.stories import KEEPALIVE_SECONDS, check_daily_limit
 from app.schemas import AdventureCreate, AdventureRead, AgentRunRead, AgentStepRead, NextNight, NightRead
+from app.services import tracing
 from app.services.adventure_agent import AdventureAgent, goal_for_next, goal_for_plan
 from app.services.story_stream import KEEPALIVE, sse, with_keepalive
 
@@ -210,6 +211,7 @@ def stream_run(run_id: int, request: Request, session: Session = Depends(get_ses
         with Session(engine) as done_session:
             run = to_run_read(done_session, done_session.get(AgentRun, run_id))
         yield sse("done", run.model_dump(mode="json"))
+        await tracing.flush()  # after the parent has the result, before Lambda freezes the process
 
     return StreamingResponse(
         events(),

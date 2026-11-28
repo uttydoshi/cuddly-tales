@@ -24,6 +24,13 @@ def client(engine) -> Iterator[TestClient]:
 
 
 @pytest.fixture(autouse=True)
+def no_tracing(monkeypatch):
+    """Tests never send traces, even with real Langfuse keys in .env."""
+    for name in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST", "LANGFUSE_LOG_CONTENT"):
+        monkeypatch.delenv(name, raising=False)
+
+
+@pytest.fixture(autouse=True)
 def no_real_model(request, monkeypatch):
     """Tests never call the real model (cost, speed, flakiness). A test that needs the model
     replaces these with a fake; anything that reaches them unfaked fails like a provider outage.

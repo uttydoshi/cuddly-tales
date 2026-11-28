@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from types import ModuleType
 
 from app.config import get_settings
+from app.services import tracing
+from app.services.tracing import Trace
 
 
 def load_litellm() -> ModuleType:
@@ -19,10 +21,18 @@ def load_litellm() -> ModuleType:
     os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     import litellm
 
+    tracing.setup(litellm)
     return litellm
 
 
-async def stream_text(messages: list[dict], *, max_tokens: int = 4000) -> AsyncIterator[str]:
+def _traced(trace: Trace | None) -> dict:
+    """The call's place in Langfuse (see tracing.py), as LiteLLM metadata."""
+    return {"metadata": trace.metadata()} if trace else {}
+
+
+async def stream_text(
+    messages: list[dict], *, max_tokens: int = 4000, trace: Trace | None = None
+) -> AsyncIterator[str]:
     """Yield text chunks from the model as they arrive.
 
     No temperature is sent: current Claude models reject sampling parameters.
@@ -37,6 +47,7 @@ async def stream_text(messages: list[dict], *, max_tokens: int = 4000) -> AsyncI
         max_tokens=max_tokens,
         reasoning_effort=settings.llm_reasoning_effort,
         drop_params=True,
+        **_traced(trace),
     )
     async for chunk in response:
         delta = chunk.choices[0].delta.content if chunk.choices else None
@@ -44,7 +55,9 @@ async def stream_text(messages: list[dict], *, max_tokens: int = 4000) -> AsyncI
             yield delta
 
 
-async def complete_json(messages: list[dict], schema: dict, *, name: str, max_tokens: int = 8000) -> dict:
+async def complete_json(
+    messages: list[dict], schema: dict, *, name: str, max_tokens: int = 8000, trace: Trace | None = None
+) -> dict:
     """One reply that matches a JSON schema (for the safety judge).
 
     LiteLLM sends this as Anthropic's native structured output, which works with effort
@@ -58,6 +71,7 @@ async def complete_json(messages: list[dict], schema: dict, *, name: str, max_to
         reasoning_effort=settings.llm_reasoning_effort,
         response_format={"type": "json_schema", "json_schema": {"name": name, "schema": schema, "strict": True}},
         drop_params=True,
+        **_traced(trace),
     )
     return parse_json(response.choices[0].message.content or "")
 
@@ -78,7 +92,9 @@ class AgentTurn:
     message: dict = field(default_factory=dict)  # the reply as-is, to add to the conversation
 
 
-async def complete_with_tools(messages: list[dict], tools: list[dict], *, max_tokens: int = 4000) -> AgentTurn:
+async def complete_with_tools(
+    messages: list[dict], tools: list[dict], *, max_tokens: int = 4000, trace: Trace | None = None
+) -> AgentTurn:
     """One turn of the agent: the model answers, calling any tools it chooses.
 
     Tools are OpenAI-style function definitions, which LiteLLM converts for each provider. The
@@ -94,6 +110,7 @@ async def complete_with_tools(messages: list[dict], tools: list[dict], *, max_to
         max_tokens=max_tokens,
         reasoning_effort=settings.llm_reasoning_effort,
         drop_params=True,
+        **_traced(trace),
     )
     reply = response.choices[0].message
     calls = []

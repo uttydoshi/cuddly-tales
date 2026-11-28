@@ -10,7 +10,7 @@ from app.config import get_settings
 from app.db import get_session
 from app.models import Adventure, AgentRun, Character, ChildProfile, SafetyStatus, Story, StoryStatus, utc_now
 from app.schemas import AdventureRef, CharacterRef, StoryCreate, StoryRead, StorySummary, StoryUpdate
-from app.services import llm, safety
+from app.services import llm, safety, tracing
 from app.services.story_prompt import EARLIER_STORIES, PLOTS, build_story_messages
 from app.services.story_stream import (
     KEEPALIVE,
@@ -210,8 +210,11 @@ def stream_story(
         for c in story.characters
     ]
 
-    async def stream_words(prompt: list[dict], parts: list[str]):
-        words = words_from_chunks(llm.stream_text(prompt))
+    # One Langfuse trace for this story: the writing, the check, and any rewrite.
+    trace = tracing.Trace("story", details={"story_id": story_id, "bedtime": bedtime})
+
+    async def stream_words(prompt: list[dict], parts: list[str], step: str):
+        words = words_from_chunks(llm.stream_text(prompt, trace=trace.at(step)))
         async for word in with_keepalive(words, KEEPALIVE_SECONDS):
             if word is None:
                 yield KEEPALIVE
@@ -223,7 +226,7 @@ def stream_story(
         yield sse("checking", {})
         result = None
         try:
-            check = safety.check_story(title, body, hero, cast, bedtime=bedtime, earlier=earlier)
+            check = safety.check_story(title, body, hero, cast, bedtime=bedtime, earlier=earlier, trace=trace)
             async for item in await_with_keepalive(check, KEEPALIVE_SECONDS):
                 if item is None:
                     yield KEEPALIVE
@@ -234,9 +237,16 @@ def stream_story(
         attempts.append(result or safety.unchecked(body, CHECK_FAILED))
 
     async def events():
+        try:
+            async for event in write_and_check():
+                yield event
+        finally:
+            await tracing.flush()  # before Lambda freezes the process
+
+    async def write_and_check():
         parts: list[str] = []
         try:
-            async for event in stream_words(messages, parts):
+            async for event in stream_words(messages, parts, "write"):
                 yield event
         except Exception:
             logger.exception("Story generation failed for story %s", story_id)
@@ -259,7 +269,7 @@ def stream_story(
             again: list[str] = []
             try:
                 rewrite = safety.build_rewrite_messages(messages, title, body, first.problems)
-                async for event in stream_words(rewrite, again):
+                async for event in stream_words(rewrite, again, "rewrite"):
                     yield event
                 new_title, new_body = split_title("".join(again))
                 if not new_body:
