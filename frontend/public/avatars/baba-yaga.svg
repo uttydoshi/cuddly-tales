@@ -1,16 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Baba Yaga, a silly old woman in a polka-dot headscarf">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Baba Yaga, a silly witch in a tall pointed hat">
   <defs><clipPath id="clip-baba-yaga"><circle cx="60" cy="60" r="58"/></clipPath></defs>
   <circle cx="60" cy="60" r="58" fill="#eadcf8"/>
   <g clip-path="url(#clip-baba-yaga)" stroke="#2b2340" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <ellipse cx="60" cy="120" rx="34" ry="28" fill="#7c3aed"/>
-    <path d="M30 70 Q28 30 60 26 Q92 30 90 70 Q86 92 60 94 Q34 92 30 70 Z" fill="#7c3aed"/>
-    <ellipse cx="60" cy="64" rx="21" ry="22" fill="#f6d7c3"/>
-    <path d="M40 54 Q38 62 41 66 M80 54 Q82 62 79 66" fill="none" stroke="#c9c3d1" stroke-width="3.5"/>
-    <path d="M50 92 L60 84 L70 92 L64 100 L60 94 L56 100 Z" fill="#7c3aed"/>
-    <ellipse cx="60" cy="67" rx="6.5" ry="5.5" fill="#eab69a"/>
-    <path d="M50 76 Q60 85 70 76" fill="#ffffff"/>
-    <path d="M49 59 Q52 55 55 59 M65 59 Q68 55 71 59" fill="none"/>
+    <ellipse cx="60" cy="122" rx="36" ry="28" fill="#7c3aed"/>
+    <path d="M38 56 Q30 72 36 90 Q40 84 42 92 Q46 80 44 64 Z M82 56 Q90 72 84 90 Q80 84 78 92 Q74 80 76 64 Z" fill="#d9d4e3"/>
+    <ellipse cx="60" cy="72" rx="19" ry="21" fill="#f6d7c3"/>
+    <path d="M58 66 Q60 74 68 79 Q69 83 64 83 Q57 82 57 76 Z" fill="#eab69a" stroke-width="2.5"/><circle cx="64" cy="73" r="1.3" fill="#c98b6f" stroke="none"/>
+    <path d="M51 85 Q60 92 69 85" fill="#ffffff"/>
+    <path d="M58 87 L58 90 L62 90 L62 88" fill="#ffffff" stroke-width="2"/>
+    <ellipse cx="60" cy="52" rx="38" ry="8" fill="#4c1d95"/>
+    <path d="M40 50 Q48 34 54 20 Q60 6 80 8 Q70 12 68 22 Q72 36 80 50 Q60 55 40 50 Z" fill="#4c1d95"/>
+    <path d="M41 48 Q60 53 79 48 L77 42 Q60 46 43 42 Z" fill="#f59e0b" stroke-width="2.5"/>
   </g>
-  <g fill="#ffffff" opacity="0.9"><circle cx="42" cy="40" r="3"/><circle cx="56" cy="34" r="3"/><circle cx="72" cy="36" r="3"/><circle cx="84" cy="48" r="3"/><circle cx="36" cy="56" r="2.5"/><circle cx="84" cy="64" r="2.5"/><circle cx="48" cy="106" r="3"/><circle cx="72" cy="108" r="3"/></g>
-  <g fill="#f9a8c9" opacity="0.7"><circle cx="46" cy="70" r="4"/><circle cx="74" cy="70" r="4"/></g>
+  <path d="M62 24 L63.6 28 L68 28.4 L64.6 31.2 L65.6 35.4 L62 33 L58.4 35.4 L59.4 31.2 L56 28.4 L60.4 28 Z" fill="#fcd34d"/>
+  <g fill="#2b2340"><ellipse cx="52" cy="67" rx="2.8" ry="3.4"/><ellipse cx="68" cy="67" rx="2.8" ry="3.4"/></g>
+  <g fill="#ffffff"><circle cx="53" cy="65.8" r="1"/><circle cx="69" cy="65.8" r="1"/></g>
+  <g fill="#f9a8c9" opacity="0.7"><circle cx="46" cy="78" r="4"/><circle cx="74" cy="78" r="4"/></g>
+  <g fill="#ffffff" opacity="0.9"><circle cx="46" cy="108" r="3"/><circle cx="74" cy="110" r="3"/><circle cx="60" cy="114" r="2.5"/></g>
 </svg>

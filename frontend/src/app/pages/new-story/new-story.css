@@ -5,6 +5,10 @@
   padding-top: 0.25rem;
 }
 
+.intro h1 {
+  color: var(--accent);
+}
+
 .group {
   display: flex;
   flex-direction: column;

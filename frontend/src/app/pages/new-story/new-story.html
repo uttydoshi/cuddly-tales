@@ -1,8 +1,5 @@
 <div class="page">
   <div class="intro">
-    @if (shell.child(); as child) {
-      <p class="script" aria-hidden="true">Dear {{ child.name }},</p>
-    }
     <h1>Who's in {{ shell.child()?.name ? shell.child()!.name + "'s" : 'the' }} story?</h1>
     <p class="muted">
       {{ shell.child()?.name ?? 'Your child' }} is always the hero. Pick up to six friends to join in.
