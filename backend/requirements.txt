@@ -8,6 +8,7 @@ litellm==1.91.5
 # sends with these. Pinned with LiteLLM, for the same reason.
 opentelemetry-sdk==1.45.2
 opentelemetry-exporter-otlp-proto-http==1.45.2
+pydantic-settings==2.16.3  # LiteLLM's OpenTelemetry logger imports it, but doesn't declare it
 python-dotenv>=1.0
 psycopg[binary]>=3.2
 alembic>=1.14

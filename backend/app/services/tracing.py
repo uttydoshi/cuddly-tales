@@ -103,6 +103,7 @@ NEEDED = (
     "litellm.integrations.langfuse.langfuse_otel",
     "opentelemetry.sdk.trace",
     "opentelemetry.exporter.otlp.proto.http.trace_exporter",
+    "pydantic_settings",  # imported by LiteLLM's OpenTelemetry logger, though LiteLLM doesn't declare it
 )
 
 
