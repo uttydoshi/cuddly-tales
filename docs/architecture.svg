@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1110" height="540" viewBox="0 0 1110 540" role="img" aria-label="Architecture: the Angular app on a phone talks to CloudFront at cuddly-tales.ukdoshi.com. CloudFront serves the app's files from S3 and sends /api requests, with a secret header, to FastAPI on AWS Lambda through a streaming Function URL. The Lambda reads its secrets from Secrets Manager, calls the Anthropic API through LiteLLM and stores data in Neon Postgres. GitHub Actions deploys everything with the CDK. Langfuse tracing and the EventBridge scheduled job come later.">
-          <style>svg{--bg:#ffffff;--fg:#1b2230;--muted:#5d6676;--line-strong:#8a93a3;--accent:#b86e0a;--accent-soft:#fbefd9;--accent-ink:#8a5207;--surface:#ffffff}@media (prefers-color-scheme: dark){svg{--bg:#18202c;--fg:#e4e8ef;--muted:#98a2b3;--line-strong:#5b6678;--accent:#f2b35a;--accent-soft:#2d2416;--accent-ink:#f2b35a;--surface:#18202c}}svg{--font-head:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}.bg{fill:var(--bg)}.frame { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+<svg xmlns="http://www.w3.org/2000/svg" width="1110" height="590" viewBox="0 0 1110 590" role="img" aria-label="Architecture: the Angular app on a phone talks to CloudFront at cuddly-tales.ukdoshi.com. CloudFront serves the app's files from S3 and sends /api requests, with a secret header, to FastAPI on AWS Lambda through a streaming Function URL. In the Lambda, the story service streams stories and runs the safety check, the adventure agent plans adventures with tools, and llm.py calls the Anthropic API through LiteLLM and sends a trace of every call to Langfuse. Data is in Neon Postgres; secrets come from Secrets Manager. GitHub Actions deploys everything with the CDK. The EventBridge scheduled job comes next.">
+          <style>svg{--bg:#ffffff;--fg:#1b2230;--muted:#5d6676;--line-strong:#8a93a3;--accent:#b86e0a;--accent-soft:#fbefd9;--accent-ink:#8a5207;--surface:#ffffff}@media (prefers-color-scheme: dark){svg{--bg:#18202c;--fg:#e4e8ef;--muted:#98a2b3;--line-strong:#5b6678;--accent:#f2b35a;--accent-soft:#2d2416;--accent-ink:#f2b35a;--surface:#18202c}}svg{--font-head:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}.bg{fill:var(--bg)}/* SVG parts, styled from the page so both themes work */
+.frame { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
 .box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.25; }
 .box-acc { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
 .box-later { fill: none; stroke: var(--muted); stroke-width: 1.25; stroke-dasharray: 5 4; }
@@ -17,28 +18,37 @@
 .life { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 2 4; }
 .ah { fill: var(--fg); }
 .ah-acc { fill: var(--accent); }
-.ah-later { fill: var(--muted); }</style><rect class="bg" width="1110" height="540" rx="12"/><defs>
+.ah-later { fill: var(--muted); }
+</style>
+          <rect class="bg" width="1110" height="590" rx="12"/>
+          <defs>
             <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
             <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-acc"/></marker>
             <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-later"/></marker>
           </defs>
 
           <!-- Phone / browser -->
-          <rect class="frame" x="20" y="60" width="176" height="270" rx="10"/>
+          <rect class="frame" x="20" y="60" width="176" height="384" rx="10"/>
           <text class="t" x="34" y="84">Phone or browser</text>
           <text class="s" x="34" y="100">Angular app</text>
           <rect class="box-acc" x="32" y="110" width="152" height="44" rx="6"/>
-          <text class="t" x="42" y="128">Pick + stream</text>
-          <text class="s" x="42" y="145">/new · EventSource</text>
-          <rect class="box" x="32" y="164" width="152" height="44" rx="6"/>
-          <text class="t" x="42" y="182">Stories</text>
-          <text class="s" x="42" y="199">read · edit · delete</text>
-          <rect class="box" x="32" y="218" width="152" height="44" rx="6"/>
-          <text class="t" x="42" y="236">Characters</text>
-          <text class="s" x="42" y="253">add · edit · delete</text>
+          <text class="t" x="42" y="128">Write</text>
+          <text class="s" x="42" y="145">story or adventure</text>
+          <rect class="box-acc" x="32" y="164" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="182">Read</text>
+          <text class="s" x="42" y="199">streamed · in pages</text>
+          <rect class="box-acc" x="32" y="218" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="236">Planner</text>
+          <text class="s" x="42" y="253">agent steps, live</text>
           <rect class="box" x="32" y="272" width="152" height="44" rx="6"/>
-          <text class="t" x="42" y="290">Your child</text>
-          <text class="s" x="42" y="307">/profile</text>
+          <text class="t" x="42" y="290">Stories</text>
+          <text class="s" x="42" y="307">unread · read · ♥</text>
+          <rect class="box" x="32" y="326" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="344">Characters</text>
+          <text class="s" x="42" y="361">add · edit · delete</text>
+          <rect class="box" x="32" y="380" width="152" height="44" rx="6"/>
+          <text class="t" x="42" y="398">Your child</text>
+          <text class="s" x="42" y="415">name · age · likes</text>
 
           <!-- CloudFront -->
           <rect class="box" x="280" y="60" width="180" height="162" rx="8"/>
@@ -53,53 +63,58 @@
           <text class="s" x="280" y="242">Route 53 alias · ACM cert</text>
 
           <!-- AWS account -->
-          <rect class="frame" x="510" y="20" width="410" height="410" rx="12"/>
+          <rect class="frame" x="510" y="20" width="410" height="460" rx="12"/>
           <text class="t" x="526" y="44">AWS · us-east-1</text>
           <text class="s" x="526" y="60">CDK stack CuddlyTalesSite</text>
           <rect class="box" x="530" y="164" width="150" height="44" rx="6"/>
           <text class="t" x="542" y="182">S3 bucket</text>
           <text class="s" x="542" y="199">Angular build</text>
-          <rect class="box" x="530" y="284" width="150" height="40" rx="6"/>
-          <text class="t" x="542" y="301">Secrets Manager</text>
-          <text class="s" x="542" y="317">Claude key · DB URL</text>
-          <rect class="box-later" x="530" y="356" width="150" height="40" rx="6"/>
-          <text class="t-later" x="542" y="373">EventBridge</text>
-          <text class="s" x="542" y="389">18:30 job · Day 3</text>
+          <rect class="box" x="530" y="344" width="150" height="56" rx="6"/>
+          <text class="t" x="542" y="362">Secrets Manager</text>
+          <text class="s" x="542" y="378">Claude key · DB URL</text>
+          <text class="s" x="542" y="392">Langfuse keys</text>
+          <rect class="box-later" x="530" y="422" width="150" height="40" rx="6"/>
+          <text class="t-later" x="542" y="439">EventBridge</text>
+          <text class="s" x="542" y="455">18:30 · Day 3</text>
 
           <!-- Lambda -->
-          <rect class="frame" x="710" y="60" width="190" height="280" rx="10"/>
+          <rect class="frame" x="710" y="60" width="190" height="352" rx="10"/>
           <text class="t" x="722" y="84">Lambda (arm64)</text>
           <text class="s" x="722" y="100">FastAPI · Web Adapter</text>
           <rect class="box" x="722" y="112" width="166" height="40" rx="6"/>
           <text class="t" x="732" y="129">API routers</text>
           <text class="s" x="732" y="145">origin check · cap</text>
-          <rect class="box-acc" x="722" y="168" width="166" height="44" rx="6"/>
-          <text class="t" x="732" y="186">Story service</text>
-          <text class="s" x="732" y="203">prompt · words · save</text>
-          <rect class="box" x="722" y="228" width="166" height="40" rx="6"/>
-          <text class="t" x="732" y="245">llm.py</text>
-          <text class="s" x="732" y="261">LiteLLM, loaded lazily</text>
-          <rect class="box" x="722" y="284" width="166" height="40" rx="6"/>
-          <text class="t" x="732" y="301">SQLModel</text>
-          <text class="s" x="732" y="317">Alembic at start</text>
+          <rect class="box-acc" x="722" y="166" width="166" height="44" rx="6"/>
+          <text class="t" x="732" y="184">Story service</text>
+          <text class="s" x="732" y="201">stream · safety check</text>
+          <rect class="box" x="722" y="224" width="166" height="44" rx="6"/>
+          <text class="t" x="732" y="242">Adventure agent</text>
+          <text class="s" x="732" y="259">7 tools · steps saved</text>
+          <rect class="box" x="722" y="282" width="166" height="52" rx="6"/>
+          <text class="t" x="732" y="300">llm.py</text>
+          <text class="s" x="732" y="316">LiteLLM 1.91.5 (pinned)</text>
+          <text class="s" x="732" y="329">every call traced</text>
+          <rect class="box" x="722" y="350" width="166" height="44" rx="6"/>
+          <text class="t" x="732" y="368">SQLModel</text>
+          <text class="s" x="732" y="385">Alembic at start</text>
 
           <!-- Outside AWS -->
-          <rect class="box-later" x="960" y="168" width="130" height="40" rx="6"/>
-          <text class="t-later" x="972" y="185">Langfuse</text>
-          <text class="s" x="972" y="201">traces · Day 2</text>
-          <rect class="box-acc" x="960" y="228" width="130" height="40" rx="6"/>
-          <text class="t" x="972" y="245">Anthropic API</text>
-          <text class="s" x="972" y="261">claude-opus-5-5</text>
-          <rect class="box" x="960" y="284" width="130" height="40" rx="6"/>
-          <text class="t" x="972" y="301">Neon Postgres</text>
-          <text class="s" x="972" y="317">us-east-1</text>
+          <rect class="box-acc" x="960" y="268" width="140" height="40" rx="6"/>
+          <text class="t" x="972" y="285">Anthropic API</text>
+          <text class="s" x="972" y="301">claude-opus-5-5</text>
+          <rect class="box" x="960" y="320" width="140" height="40" rx="6"/>
+          <text class="t" x="972" y="337">Langfuse</text>
+          <text class="s" x="972" y="353">every model call</text>
+          <rect class="box" x="960" y="372" width="140" height="40" rx="6"/>
+          <text class="t" x="972" y="389">Neon Postgres</text>
+          <text class="s" x="972" y="405">us-east-1</text>
 
           <!-- GitHub Actions -->
-          <rect class="box" x="530" y="470" width="370" height="48" rx="6"/>
-          <text class="t" x="542" y="490">GitHub Actions</text>
-          <text class="s" x="542" y="507">PRs: tests · main: tests → build → cdk deploy</text>
-          <line class="ln" x1="715" y1="470" x2="715" y2="432" marker-end="url(#a1)"/>
-          <text class="lbl" x="724" y="455">deploys (OIDC)</text>
+          <rect class="box" x="530" y="520" width="370" height="48" rx="6"/>
+          <text class="t" x="542" y="540">GitHub Actions</text>
+          <text class="s" x="542" y="557">PRs: tests · main: tests → build → cdk deploy</text>
+          <line class="ln" x1="715" y1="520" x2="715" y2="482" marker-end="url(#a1)"/>
+          <text class="lbl" x="724" y="505">deploys (OIDC)</text>
 
           <!-- Phone <-> CloudFront -->
           <line class="ln-acc" x1="198" y1="132" x2="278" y2="132" marker-start="url(#a2)" marker-end="url(#a2)"/>
@@ -114,19 +129,21 @@
           <text class="lbl" x="494" y="179" text-anchor="middle">read</text>
 
           <!-- Inside Lambda -->
-          <line class="ln" x1="805" y1="152" x2="805" y2="168" marker-end="url(#a1)"/>
-          <line class="ln" x1="790" y1="212" x2="790" y2="228" marker-end="url(#a1)"/>
-          <line class="ln-acc" x1="820" y1="228" x2="820" y2="212" marker-end="url(#a2)"/>
-          <line class="ln" x1="805" y1="268" x2="805" y2="284" marker-end="url(#a1)"/>
-          <line class="ln" x1="710" y1="304" x2="682" y2="304" marker-end="url(#a1)"/>
-          <text class="lbl" x="605" y="342" text-anchor="middle">read at start</text>
-          <path class="ln-later" d="M680,376 H805 V342" marker-end="url(#a3)"/>
+          <line class="ln" x1="805" y1="152" x2="805" y2="166" marker-end="url(#a1)"/>
+          <path class="ln" d="M888,140 H896 V246 H890" marker-end="url(#a1)"/>
+          <path class="ln" d="M722,196 H715 V300 H720" marker-end="url(#a1)"/>
+          <line class="ln" x1="840" y1="268" x2="840" y2="282" marker-end="url(#a1)"/>
+          <line class="ln" x1="805" y1="334" x2="805" y2="350" marker-end="url(#a1)"/>
+          <line class="ln" x1="710" y1="372" x2="682" y2="372" marker-end="url(#a1)"/>
+          <text class="lbl" x="605" y="338" text-anchor="middle">read at start</text>
+          <path class="ln-later" d="M680,442 H805 V414" marker-end="url(#a3)"/>
 
           <!-- Lambda <-> outside -->
-          <line class="ln" x1="888" y1="240" x2="958" y2="240" marker-end="url(#a1)"/>
-          <line class="ln-acc" x1="958" y1="256" x2="890" y2="256" marker-end="url(#a2)"/>
-          <text class="lbl-acc" x="924" y="233" text-anchor="middle">stream</text>
-          <line class="ln" x1="888" y1="304" x2="958" y2="304" marker-start="url(#a1)" marker-end="url(#a1)"/>
-          <text class="lbl" x="924" y="297" text-anchor="middle">SQL</text>
-          <line class="ln-later" x1="888" y1="232" x2="958" y2="200" marker-end="url(#a3)"/>
+          <line class="ln" x1="888" y1="284" x2="958" y2="284" marker-end="url(#a1)"/>
+          <line class="ln-acc" x1="958" y1="296" x2="890" y2="296" marker-end="url(#a2)"/>
+          <text class="lbl-acc" x="924" y="278" text-anchor="middle">stream</text>
+          <line class="ln" x1="888" y1="328" x2="958" y2="336" marker-end="url(#a1)"/>
+          <text class="lbl" x="924" y="349" text-anchor="middle">spans</text>
+          <line class="ln" x1="888" y1="384" x2="958" y2="390" marker-start="url(#a1)" marker-end="url(#a1)"/>
+          <text class="lbl" x="924" y="378" text-anchor="middle">SQL</text>
         </svg>

@@ -8,10 +8,11 @@ word, ready to read aloud.
 **Live: https://cuddly-tales.ukdoshi.com** (public; new stories are capped at 30 a day)
 
 <p>
-  <img src="docs/screenshots/pick-the-cast.png" width="200" alt="Picking the cast: 'Dear Mira, who's in Mira's story?', Anytime or Bedtime, Minnie and Diggles chosen, and a 'Write the story with 2 friends' button">
-  <img src="docs/screenshots/story-streaming.png" width="200" alt="The story arriving word by word in night mode, with 'Still writing · 32 words so far'">
-  <img src="docs/screenshots/reading-night-mode.png" width="200" alt="Reading the finished story in night mode, with the Polish word gwiazda in italics">
-  <img src="docs/screenshots/your-stories.png" width="200" alt="Your stories: filter chips and story cards marked Unread or Read">
+  <img src="docs/screenshots/write.png" width="160" alt="New story: 'Who's in Mira's story?', choosing An adventure, Anytime and 5 chapters, with Minnie and Bela picked">
+  <img src="docs/screenshots/story-streaming.png" width="160" alt="A story arriving word by word in night mode, with 'Still writing · 32 words so far'">
+  <img src="docs/screenshots/reading-cover.png" width="160" alt="The cover of a bedtime chapter in night mode: the characters' faces, 'Chapter 2 of 3 · Mira's Creek Picnic', the title, and 6 min read, with page arrows">
+  <img src="docs/screenshots/planner.png" width="160" alt="The adventure planner: 'Plan a 5-chapter adventure for Mira', done in 7 steps, each tool step with its result">
+  <img src="docs/screenshots/your-stories.png" width="160" alt="Your stories: filters for All, Unread, Read and favourites, and story cards labelled 'Chapter 2 of 5 · Mira's Rainy Day Rainbow'">
 </p>
 
 Designed for a parent's phone, in the style of [ukdoshi.com](https://ukdoshi.com): pick the cast,
@@ -20,8 +21,9 @@ the title, then the story, turned with the arrows, a swipe, a tap on the page's 
 (two pages side by side on wide screens). Bedtime stories end calm and sleepy and open in night mode;
 the whole site has a light and a dark theme.
 
-> Built for a take-home assessment over three days. Day 1 is done; this README grows with each
-> feature, and the table below shows what's in place and what's next.
+> Built for a take-home assessment over three days. Days 1 and 2 are done and live; Day 3 (the
+> storyboard, the dashboard, the scheduled chapter and evals) is next. The table below shows what's
+> in place.
 
 ## What it does
 
@@ -141,15 +143,46 @@ because that's what makes a failed safety check debuggable. `LANGFUSE_LOG_CONTEN
 only timings, tokens and cost. Without Langfuse keys, nothing is sent at all (and tests never send
 anything).
 
+## Responsible AI
+
+**Guardrails.** Every story passes the [safety and age check](#the-safety-and-age-check) (plain rules
+plus an LLM judge) before it counts as safe: a failure is rewritten once, and if it still fails, or
+the check can't run, the story is saved as "Read first" for a parent. The adventure agent can't skip
+any of this: its rules live in its tools (real characters only, nothing saved before its check, one
+rewrite), not just in its prompt, and a parent's theme is passed as a topic, never as instructions.
+The prompts set the limits too: the child is the hero, nothing frightening, simple words, a warm
+ending (sleepy at bedtime).
+
+**Content rights.** Only original characters and public-domain folklore (Baba Yaga, Red Riding Hood,
+the Gingerbread Man, the Panchatantra). The prompt forbids characters from films, TV, games and
+modern books, and nothing copyrighted is in the repo. Characters a parent adds are their own data,
+kept in the app's database and never committed.
+
+**Child privacy.** No sign-in and one family per deployment. The app stores the child's first name,
+age and favourite things, nothing more, and no photos. Prompts (with that name) and stories are
+traced to a private Langfuse project that only the owner can see; `LANGFUSE_LOG_CONTENT=false` sends
+only timings, tokens and cost. The demo family is made up; no real children's names or photos are in
+the repo.
+
+**A parent stays in control.** The parent picks the cast and the kind of story, can read, edit or
+delete any story or character, approves anything the check flagged, and sees every step the agent
+takes. Adventures are written one chapter at a time, so nothing piles up unread.
+
+**Known limits.** The first version of a story streams before it's checked, because holding it back
+would lose the word-by-word streaming; a failed story is replaced within seconds. An LLM judge can be
+wrong, so it's backed by plain rules and, on Day 3, by evals with fixed expectations. The site is
+public, so new stories are capped at 30 a day and the Claude key has its own spend limit.
+
 ## Architecture
 
 ![Architecture: the Angular app on a phone talks to CloudFront at cuddly-tales.ukdoshi.com, which serves the app from S3 and sends /api requests to FastAPI on AWS Lambda through a streaming Function URL; the Lambda reads secrets from Secrets Manager, calls the Anthropic API through LiteLLM and stores data in Neon Postgres; GitHub Actions deploys it with the CDK](docs/architecture.svg)
 
 Live, the Angular app is served from S3 through CloudFront, and `/api/*` goes to FastAPI on AWS
 Lambda through a streaming Function URL (see [Deployment](#deployment)). Locally, one FastAPI process
-can serve both. On the streaming path (amber), the LLM sends token chunks through LiteLLM, the story service
-regroups them into whole words, and Server-Sent Events carry each word to the browser. Dashed parts
-come later.
+can serve both. On the streaming paths (amber), the LLM sends token chunks through LiteLLM, the story
+service regroups them into whole words, and Server-Sent Events carry each word to the browser; the
+planner page streams the agent's steps the same way. Every model call goes through `llm.py`, which
+traces it in Langfuse. The dashed part (the 18:30 scheduled chapter) comes on Day 3.
 
 ![Sequence: load the cast, create a planned story, stream it word by word, save the full text once at the end](docs/story-flow.svg)
 
@@ -200,7 +233,14 @@ cd backend && .venv/bin/pytest        # API tests, with the LLM faked (no API ke
 cd frontend && npx ng test --watch=false
 ```
 
-GitHub Actions runs both on every pull request, and again before every deploy.
+GitHub Actions runs both on every pull request, and again before every deploy. Tests never call
+the model or send traces. A few guard against live-only failures found along the way: one builds
+each kind of model request for real (stopped before it's sent) and fails if the Lambda build deleted
+anything it needs, or if it forces a tool call current Claude models reject.
+
+LiteLLM is pinned (1.91.5, the newest with Linux arm64 wheels, which is what Lambda gets) so local,
+CI and Lambda run the same version. When dependencies change, run the tests in a fresh virtualenv
+built only from `requirements-dev.txt`, as CI and Lambda do.
 
 ### Changing the database
 
@@ -242,7 +282,8 @@ in [`infra/`](infra).
 | **Frontend** | Angular, in a private S3 bucket served through CloudFront |
 | **API** | FastAPI on AWS Lambda (Python 3.13, arm64), run by the [Lambda Web Adapter](https://github.com/awslabs/aws-lambda-web-adapter) behind a streaming Function URL, so stories stream word by word. CloudFront adds a secret header and the API refuses requests without it. |
 | **Database** | Neon Postgres (us-east-1), with Alembic migrations run when the API starts |
-| **Secrets** | The Claude key and database URL in AWS Secrets Manager, set with `scripts/` |
+| **Secrets** | The Claude key, database URL and Langfuse keys in AWS Secrets Manager, set with `scripts/` |
+| **Observability** | Every model call traced in Langfuse (OpenTelemetry), in the environment `live`; Lambda logs in CloudWatch |
 | **DNS and HTTPS** | `cuddly-tales.ukdoshi.com` in the existing Route 53 zone, with an ACM certificate, both made by the CDK |
 | **CI/CD** | GitHub Actions: tests on every pull request; on `main`, tests, build and `cdk deploy`, logging in to AWS with OIDC |
 | **Cost guards** | No sign-in, so new stories are capped at 30 a day, and the Claude key has its own spend limit |
@@ -270,3 +311,42 @@ cdk deploy CuddlyTalesGithubDeploy    # the role GitHub Actions deploys with
 
 After that, merging to `main` deploys. Running a script again replaces that secret and restarts
 the API.
+
+## How I used AI to build it
+
+Built with [Claude Code](https://claude.com/claude-code), with [CLAUDE.md](CLAUDE.md) as the
+project brief: the requirements, the domain model, the content rules, the stack and the build order,
+plus a "Things to know" section that grew as problems were found.
+
+- **Plan first.** For anything larger than a small fix, Claude wrote a plan (what changes, the
+  trade-offs, what it recommends) and I approved or changed it before any code. Some decisions changed
+  the design: adventures are told in chapters, not nights (an adventure can be for any time of day);
+  stories read in pages with a cover; the latte monster creator was deferred to keep Day 3 on track.
+- **Small PRs.** Every change went through a feature branch and a pull request, with tests in CI;
+  merging to `main` deployed it. The history reads one feature or fix at a time.
+- **Checking the work.** Claude checked UI changes with screenshots on phone and desktop, in light and
+  dark, and checked AI features against the real model on a scratch database before opening a PR.
+  I reviewed the screens and asked for changes (the avatars, the filter wording, the pager, the
+  heading on the New story page).
+- **What went wrong, and what changed because of it.** Several features worked locally but failed on
+  the live site: Lambda installs an older LiteLLM than my laptop had, the Lambda build deleted a
+  folder that version needed, and a package was only present locally. Each was found by checking the
+  live site after deploying, fixed, and then guarded by a test. LiteLLM is now pinned, dependency
+  changes are tested in a clean environment, and every deploy that touches the model is followed by a
+  live story. These lessons are recorded in CLAUDE.md so later sessions start with them.
+
+<!-- TODO before submission: add what you reviewed and changed by hand, in your own words. -->
+
+## What I'd do next
+
+- **Families with sign-in:** accounts, each family's own child, characters and stories, and per-family
+  limits instead of one site-wide cap.
+- **The latte monster creator:** photograph latte art and the model invents a character from its
+  shape, for a parent to approve. The photo would be sent to the model and not stored.
+- **Cheaper agent runs:** each agent turn resends the whole conversation (about 1,800 tokens on the
+  first turn, 5,000 by the last); prompt caching would cut the cost of an adventure noticeably.
+- **A staging copy:** one more stage in the CDK and a branch in the workflow, so changes are checked on
+  AWS before the live site.
+- **Evals that keep running:** run the evals on a schedule against the live model, and send the safety
+  check's scores to Langfuse, to see drift over time.
+- **Read aloud:** audio for each page, and a Polish-only mode for grandparents.
