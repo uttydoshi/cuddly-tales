@@ -314,28 +314,63 @@ the API.
 
 ## How I used AI to build it
 
-Built with [Claude Code](https://claude.com/claude-code), with [CLAUDE.md](CLAUDE.md) as the
-project brief: the requirements, the domain model, the content rules, the stack and the build order,
-plus a "Things to know" section that grew as problems were found.
+I built Cuddly Tales with [Claude Code](https://claude.com/claude-code) in VS Code, and used
+[claude.ai](https://claude.ai) alongside it for the visual design. Claude wrote most of the code; I
+decided what to build, reviewed everything before it shipped, and caught most of what went wrong by
+using the app.
 
-- **Plan first.** For anything larger than a small fix, Claude wrote a plan (what changes, the
-  trade-offs, what it recommends) and I approved or changed it before any code. Some decisions changed
-  the design: adventures are told in chapters, not nights (an adventure can be for any time of day);
-  stories read in pages with a cover; the latte monster creator was deferred to keep Day 3 on track.
-- **Small PRs.** Every change went through a feature branch and a pull request, with tests in CI;
-  merging to `main` deployed it. The history reads one feature or fix at a time.
-- **Checking the work.** Claude checked UI changes with screenshots on phone and desktop, in light and
-  dark, and checked AI features against the real model on a scratch database before opening a PR.
-  I reviewed the screens and asked for changes (the avatars, the filter wording, the pager, the
-  heading on the New story page).
-- **What went wrong, and what changed because of it.** Several features worked locally but failed on
-  the live site: Lambda installs an older LiteLLM than my laptop had, the Lambda build deleted a
-  folder that version needed, and a package was only present locally. Each was found by checking the
-  live site after deploying, fixed, and then guarded by a test. LiteLLM is now pinned, dependency
-  changes are tested in a clean environment, and every deploy that touches the model is followed by a
-  live story. These lessons are recorded in CLAUDE.md so later sessions start with them.
+**The brief.** I wrote [CLAUDE.md](CLAUDE.md) before any code: the assessment requirements, the
+domain model, the demo family and each character's running jokes, the content rules (no copyrighted
+characters, no real children's names, age-appropriate stories), the stack, the build order and how I
+wanted to work: plan before coding, small commits, a test for every endpoint, never commit secrets.
+Claude refined it and kept a "Things to know" section updated with every lesson we learned, so each
+new session started from what the last one found out.
 
-<!-- TODO before submission: add what you reviewed and changed by hand, in your own words. -->
+**How a change went.** For anything bigger than a small fix, Claude wrote a plan first: what would
+change, the trade-offs, and a recommendation. I approved it or changed it, then it was built on a
+feature branch, tested in CI, and opened as a pull request. I read the plans, the PR diffs and the
+screenshots Claude took on phone and desktop, in light and dark, and tried the app locally and on the
+live site before saying "merge". Merging to `main` deployed it.
+
+**Decisions I made.** Claude proposed options; these were my calls:
+- **Adventures in chapters, not nights,** once I noticed "How many nights?" made no sense for a story
+  read in the daytime. The rename went all the way through the database and the agent's tools.
+- **Reading in pages,** like an e-reader, with the title on a cover page.
+- **Every story must be new.** After seeing three stories in a row about a lost mortar, I asked for a
+  general rule: check what's been told before writing, and reject anything too similar.
+- **Characters stay themselves.** Tosia the cat once appeared as "Babcia Tosia" (grandma); that
+  became a rule in the prompt and a check in the safety judge.
+- **Small product details:** favourites, renaming the child everywhere, one word ("Unread") for
+  unread stories, keeping the filters on one line.
+- **What to cut.** I deferred the latte monster creator (photo to character) to keep the required
+  features on track.
+
+**Design.** I worked out the phone design and the character avatars on a design canvas in claude.ai
+first, then had Claude Code build them into the app. I reviewed every avatar and sent back changes:
+heads floating above their bodies, Baba Yaga needing a proper witch's hat, a wolf that looked like a
+cat.
+
+**What I changed by hand.** Only small things: my local `.env` and Langfuse settings, and the
+one-time setup only I can do: the Claude key with its own spend limit, the AWS login, and storing
+secrets with the scripts in `scripts/`, so no key was ever pasted into a chat or a file.
+
+**What went wrong, and how it was caught.** The most useful part of the process was what happened
+when things broke:
+- **"Works locally, fails live."** I noticed stories on the live site were always marked "Read
+  first" and adventures failed straight away. The causes were all differences between my laptop and
+  Lambda: Lambda installs an older LiteLLM than I had locally, the Lambda build deleted a folder that
+  version needed, and one package was only present locally as a leftover. Each was fixed and then
+  guarded by a test; LiteLLM is now pinned to the version Lambda gets, and every deploy that touches
+  the model is followed by a real story on the live site.
+- **A tracing bug I spotted in Langfuse:** the `live` tag never showed. The first explanation (an
+  environment filter) was only part of it; the real cause was that the traces had no root, so
+  Langfuse never listed them. It took asking "why" twice.
+- **My local database looked empty** after a half-finished migration reloaded into my running dev
+  server. The data was intact; Claude repaired it with a backup, and since then works in a separate
+  git worktree so my running app never sees half-done changes.
+
+**What I'd keep doing.** Writing the brief first, insisting on a plan before code, and checking the
+real thing (the live site, real model output, real traces) rather than trusting green tests.
 
 ## What I'd do next
 
