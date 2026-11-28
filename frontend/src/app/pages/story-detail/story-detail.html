@@ -97,6 +97,9 @@
             }
           </div>
         }
+        @if (s.adventure; as adventure) {
+          <p class="kicker adventure">Night {{ adventure.night }} of {{ adventure.nights }} · {{ adventure.title }}</p>
+        }
         <p class="kicker">{{ s.bedtime ? 'Bedtime' : 'Anytime' }} story · With {{ cast() || 'no characters' }}</p>
         <h1>{{ title() }}</h1>
 
@@ -111,6 +114,13 @@
           } @empty {
             @if (writing() === 'streaming') {
               <p class="muted thinking">Finding the right words<span class="cursor" aria-hidden="true"></span></p>
+            } @else if (writing() === 'idle' && s.text === null && s.adventure) {
+              <p class="muted">This night hasn't been written yet. Here's the plan for it:</p>
+              <ol class="plot">
+                @for (card of s.plot_cards; track $index) {
+                  <li>{{ card }}</li>
+                }
+              </ol>
             } @else if (writing() === 'idle' && s.text === null) {
               <p class="muted">This story hasn't been written yet.</p>
             }
@@ -152,6 +162,12 @@
         } @else if (writing() === 'failed') {
           <p class="error" role="alert">{{ writeError() }}</p>
           <button type="button" class="btn big" (click)="write()">Try again</button>
+        } @else if (s.text === null && s.adventure) {
+          @if (nextNight() === s.adventure.night) {
+            <button type="button" class="btn big" [disabled]="busy()" (click)="writeNight(s.adventure.id)">Write it now</button>
+          } @else if (nextNight()) {
+            <p class="status">Night {{ nextNight() }} comes first.</p>
+          }
         } @else if (s.text === null) {
           <button type="button" class="btn big" (click)="write()">Write it now</button>
         } @else if (s.status === 'read') {

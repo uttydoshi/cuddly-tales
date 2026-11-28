@@ -2,7 +2,18 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Character, CharacterInput, ChildProfile, ChildProfileSaved, Story, StoryChanges, StorySummary } from '../models';
+import {
+  Adventure,
+  AdventureRequest,
+  AgentRun,
+  Character,
+  CharacterInput,
+  ChildProfile,
+  ChildProfileSaved,
+  Story,
+  StoryChanges,
+  StorySummary,
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -57,5 +68,23 @@ export class ApiService {
 
   deleteStory(id: number): Observable<void> {
     return this.http.delete<void>(`/api/stories/${id}`);
+  }
+
+  /** Starts the adventure agent; the run page then streams its steps. */
+  planAdventure(request: AdventureRequest): Observable<AgentRun> {
+    return this.http.post<AgentRun>('/api/adventures', request);
+  }
+
+  getAdventure(id: number): Observable<Adventure> {
+    return this.http.get<Adventure>(`/api/adventures/${id}`);
+  }
+
+  /** Starts the agent on the adventure's next night. */
+  writeNextNight(adventureId: number): Observable<AgentRun> {
+    return this.http.post<AgentRun>(`/api/adventures/${adventureId}/next`, {});
+  }
+
+  getRun(id: number): Observable<AgentRun> {
+    return this.http.get<AgentRun>(`/api/agent-runs/${id}`);
   }
 }

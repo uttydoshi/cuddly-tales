@@ -2,9 +2,42 @@
   <div class="intro">
     <h1>Who's in {{ shell.child()?.name ? shell.child()!.name + "'s" : 'the' }} story?</h1>
     <p class="muted">
-      {{ shell.child()?.name ?? 'Your child' }} is always the hero. Pick up to six friends to join in.
+      @if (kind() === 'adventure') {
+        {{ shell.child()?.name ?? 'Your child' }} is always the hero. The planner chooses the friends, or pick any who
+        must be in it.
+      } @else {
+        {{ shell.child()?.name ?? 'Your child' }} is always the hero. Pick up to six friends to join in.
+      }
     </p>
   </div>
+
+  <fieldset class="when">
+    <legend class="group-label">What kind?</legend>
+    <div class="when-options">
+      <label class="option" [class.chosen]="kind() === 'story'">
+        <input type="radio" name="kind" [checked]="kind() === 'story'" (change)="kind.set('story')" />
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+          <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+        </svg>
+        <span class="text">
+          <span class="title">One story</span>
+          <span class="hint">Written now, read today</span>
+        </span>
+      </label>
+      <label class="option" [class.chosen]="kind() === 'adventure'">
+        <input type="radio" name="kind" [checked]="kind() === 'adventure'" (change)="kind.set('adventure')" />
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" />
+          <path d="M9 4v14M15 6v14" />
+        </svg>
+        <span class="text">
+          <span class="title">An adventure</span>
+          <span class="hint">A story over a few nights</span>
+        </span>
+      </label>
+    </div>
+  </fieldset>
 
   <fieldset class="when">
     <legend class="group-label">When is it for?</legend>
@@ -30,6 +63,35 @@
       </label>
     </div>
   </fieldset>
+
+  @if (kind() === 'adventure') {
+    <fieldset class="when">
+      <legend class="group-label">How many nights?</legend>
+      <div class="nights">
+        @for (n of nightChoices; track n) {
+          <label class="option night" [class.chosen]="nights() === n">
+            <input type="radio" name="nights" [checked]="nights() === n" (change)="nights.set(n)" />
+            <span class="title">{{ n }} nights</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <label class="field theme" for="theme">
+      <span class="group-label">What's it about?</span>
+      <span class="hint">Optional. For example "the beach", "a birthday" or "a rainy week". The planner chooses if you leave it.</span>
+      <input
+        id="theme"
+        type="text"
+        [value]="theme()"
+        (input)="setTheme($any($event.target).value)"
+        [attr.maxlength]="themeMax"
+        autocomplete="off"
+      />
+    </label>
+
+    <p class="group-label must">Who must be in it? <span class="optional">Optional</span></p>
+  }
 
   @if (loading()) {
     <p class="muted">Gathering the cast…</p>
@@ -81,16 +143,24 @@
   <button
     type="button"
     class="fab"
-    [class.off]="count() === 0"
+    [class.off]="!canStart()"
     [class.busy]="starting()"
-    [attr.aria-disabled]="count() === 0 || starting()"
+    [attr.aria-disabled]="!canStart() || starting()"
     (click)="pressWrite()"
-    [attr.aria-label]="starting() ? 'Starting the story' : count() === 0 ? 'Write the story (pick at least one friend first)' : buttonLabel()"
+    [attr.aria-label]="starting() ? 'Starting' : !canStart() ? 'Write the story (pick at least one friend first)' : buttonLabel()"
+    [title]="buttonLabel()"
   >
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </svg>
+    @if (kind() === 'adventure') {
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" />
+        <path d="M9 4v14M15 6v14" />
+      </svg>
+    } @else {
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+      </svg>
+    }
     @if (count() > 0) {
       <span class="badge" aria-hidden="true">{{ count() }}</span>
     }

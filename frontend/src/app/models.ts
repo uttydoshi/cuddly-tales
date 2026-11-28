@@ -56,6 +56,15 @@ export interface StorySummary {
   favourite: boolean;
   characters: CharacterRef[];
   safety_status: SafetyStatus | null;
+  /** Set when the story is one night of an adventure. */
+  adventure: AdventureRef | null;
+}
+
+export interface AdventureRef {
+  id: number;
+  title: string;
+  night: number;
+  nights: number;
 }
 
 export interface SafetyAttempt {
@@ -70,6 +79,8 @@ export interface Story extends StorySummary {
   read_at: string | null;
   /** Every version the check looked at, first to last. */
   safety: { attempts: SafetyAttempt[] } | null;
+  /** The plot beat by beat, for adventure nights. */
+  plot_cards: string[];
 }
 
 export type StreamEvent =
@@ -78,3 +89,62 @@ export type StreamEvent =
   | { type: 'rewriting'; problems: string[] }
   | { type: 'done'; id: number; title: string | null }
   | { type: 'error'; message: string };
+
+/** One night of an adventure, as planned (and later written). */
+export interface Night {
+  night: number;
+  story_id: number;
+  title: string;
+  status: StoryStatus;
+  safety_status: SafetyStatus | null;
+  plot_cards: string[];
+}
+
+export interface Adventure {
+  id: number;
+  title: string;
+  premise: string;
+  nights: number;
+  bedtime: boolean;
+  status: 'in_progress' | 'finished';
+  created_at: string;
+  chapters: Night[];
+}
+
+export interface AdventureRequest {
+  nights: number;
+  bedtime: boolean;
+  character_ids: number[];
+  theme: string | null;
+}
+
+/** One thing the agent did: a tool call, or what it said between tools (tool "message"). */
+export interface AgentStep {
+  id: number;
+  position: number;
+  tool: string;
+  label: string;
+  result: string | null;
+  /** null while the step is still running. */
+  ok: boolean | null;
+  detail: { input: unknown; output: unknown } | null;
+  started_at: string;
+  finished_at: string | null;
+}
+
+export type AgentRunStatus = 'pending' | 'running' | 'finished' | 'failed' | 'stopped';
+
+export interface AgentRun {
+  id: number;
+  kind: 'plan' | 'next_night';
+  goal: string;
+  status: AgentRunStatus;
+  trigger: string;
+  error: string | null;
+  created_at: string;
+  finished_at: string | null;
+  adventure: Adventure | null;
+  steps: AgentStep[];
+}
+
+export type AgentEvent = { type: 'step'; step: AgentStep } | { type: 'done'; run: AgentRun } | { type: 'lost' };

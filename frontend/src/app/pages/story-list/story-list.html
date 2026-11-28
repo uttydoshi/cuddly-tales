@@ -51,7 +51,7 @@
                   <span class="pill">Unread</span>
                 }
                 @default {
-                  <span class="pill quiet">Not written yet</span>
+                  <span class="pill quiet">{{ card.story.adventure ? 'Planned' : 'Not written yet' }}</span>
                 }
               }
               @if (card.story.favourite) {
@@ -78,6 +78,12 @@
                 · {{ card.story.reading_minutes }} min read
               }
             </span>
+            @if (card.story.adventure; as adventure) {
+              <span class="adventure">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" /><path d="M9 4v14M15 6v14" /></svg>
+                Night {{ adventure.night }} of {{ adventure.nights }} · {{ adventure.title }}
+              </span>
+            }
             <span class="title">{{ card.story.title }}</span>
             @if (card.cast) {
               <span class="cast">
