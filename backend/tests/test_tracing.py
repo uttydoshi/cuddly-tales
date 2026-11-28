@@ -41,6 +41,17 @@ def test_trace_metadata_names_the_feature_step_and_place(monkeypatch):
     assert len(trace.id) == 32  # unique, so local and live traces never merge
 
 
+def test_with_keys_every_call_in_a_trace_shares_one_opentelemetry_parent(monkeypatch):
+    for name, value in REAL_KEYS.items():
+        monkeypatch.setenv(name, value)
+    trace = tracing.Trace("story")
+    write, check = trace.at("write").metadata(), trace.at("safety-check").metadata()
+    parent = write["litellm_parent_otel_span"].get_span_context()
+    assert parent.trace_id == int(trace.id, 16)  # Langfuse groups by this
+    assert check["litellm_parent_otel_span"].get_span_context() == parent
+    assert tracing.Trace("story").metadata()["litellm_parent_otel_span"].get_span_context().trace_id != parent.trace_id
+
+
 def test_content_can_be_kept_out_of_langfuse(monkeypatch):
     monkeypatch.setenv("LANGFUSE_LOG_CONTENT", "false")
     metadata = tracing.Trace("story").metadata()
@@ -50,23 +61,23 @@ def test_content_can_be_kept_out_of_langfuse(monkeypatch):
 
 def test_setup_adds_the_langfuse_callback_once_and_only_with_keys(monkeypatch):
     monkeypatch.setattr(tracing, "integration_available", lambda: True)
-    fake = SimpleNamespace(success_callback=[], failure_callback=[])
+    fake = SimpleNamespace(callbacks=[])
     tracing.setup(fake)
-    assert fake.success_callback == []
+    assert fake.callbacks == []
     for name, value in REAL_KEYS.items():
         monkeypatch.setenv(name, value)
     tracing.setup(fake)
     tracing.setup(fake)
-    assert fake.success_callback == ["langfuse"] and fake.failure_callback == ["langfuse"]
+    assert fake.callbacks == ["langfuse_otel"]
 
 
-def test_tracing_stays_off_if_this_litellm_lacks_the_integration(monkeypatch):
+def test_tracing_stays_off_if_anything_it_needs_is_missing(monkeypatch):
     for name, value in REAL_KEYS.items():
         monkeypatch.setenv(name, value)
-    monkeypatch.setattr(tracing, "INTEGRATION", "litellm.integrations.no_such_module")
-    fake = SimpleNamespace(success_callback=[], failure_callback=[])
+    monkeypatch.setattr(tracing, "NEEDED", ("litellm.integrations.no_such_module",))
+    fake = SimpleNamespace(callbacks=[])
     tracing.setup(fake)
-    assert fake.success_callback == [] and fake.failure_callback == []
+    assert fake.callbacks == []
     asyncio.run(tracing.flush())  # and flushing is a no-op, not an error
 
 

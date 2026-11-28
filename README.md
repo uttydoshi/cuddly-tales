@@ -106,13 +106,8 @@ would take several minutes, close to Lambda's limit, and each chapter still need
 
 ## Tracing with Langfuse
 
-> **Status:** paused while it moves to LiteLLM's OpenTelemetry route. It was built against a newer
-> LiteLLM than Lambda can install (1.91.5 is the newest with Linux arm64 wheels), so it now
-> switches itself off rather than ever stopping a story; LiteLLM is pinned so this can't drift again.
-
-Every model call is traced in [Langfuse](https://langfuse.com), through LiteLLM's Langfuse
-integration, so any story or agent run can be looked into afterwards: what the model was asked,
-what it said, tokens, cost and time.
+Every model call is traced in [Langfuse](https://langfuse.com), so any story or agent run can be
+looked into afterwards: what the model was asked, what it said, tokens, cost and time.
 
 | Trace | Steps inside it |
 |---|---|
@@ -124,8 +119,19 @@ run id, and an adventure's runs share a Langfuse session, so all its chapters ca
 together. All model calls go through `backend/app/services/llm.py`, which is the only code that
 knows about tracing.
 
-On Lambda the process is frozen as soon as a response ends, so each story stream and agent run
-sends its traces before it finishes (`tracing.flush()`), instead of leaving them queued.
+**How it's sent:** through LiteLLM's OpenTelemetry integration for Langfuse (`langfuse_otel`), to
+Langfuse's OpenTelemetry endpoint: the route Langfuse's own SDK uses, and an open standard, so the
+same spans could go to another tracing tool. Three details make it work on Lambda:
+- **One trace per story or run.** Langfuse groups spans by their OpenTelemetry trace, so every call
+  in a story or run is given the same parent; otherwise each call would be a trace of its own.
+- **Sent before the response ends.** Lambda freezes the process as soon as a response is done.
+  After a model call, LiteLLM hands its logging to a background queue and the spans wait in a
+  batch, so `tracing.flush()` waits for the hand-off, runs the queue, then sends the batch.
+- **Costs.** The pinned LiteLLM's price list predates Opus 5.5, so its price is registered from a
+  later LiteLLM release's list; otherwise every call would show $0.
+
+LiteLLM is also kept from loading a `.env` file of its own (`LITELLM_MODE=PRODUCTION`): the app
+loads its settings itself, and LiteLLM's search was quietly putting keys back into the tests.
 
 **What's sent:** prompts include the child's first name, age and favourite things, and replies are
 the stories. They go to a private Langfuse project (US region) that only the owner can see,
