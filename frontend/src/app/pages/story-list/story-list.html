@@ -16,16 +16,22 @@
         All · {{ counts().all }}
       </button>
       <button type="button" class="chip" [attr.aria-pressed]="filter() === 'unread'" (click)="filter.set('unread')">
-        Not read yet · {{ counts().unread }}
+        <span class="long">Not read yet</span><span class="short">Unread</span> · {{ counts().unread }}
       </button>
       <button type="button" class="chip" [attr.aria-pressed]="filter() === 'read'" (click)="filter.set('read')">
         Read · {{ counts().read }}
       </button>
-      <button type="button" class="chip" [attr.aria-pressed]="filter() === 'favourites'" (click)="filter.set('favourites')">
+      <button
+        type="button"
+        class="chip"
+        [attr.aria-pressed]="filter() === 'favourites'"
+        (click)="filter.set('favourites')"
+        aria-label="Favourites"
+      >
         <svg class="chip-heart" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z" />
         </svg>
-        Favourites · {{ counts().favourites }}
+        <span class="long">Favourites ·</span> {{ counts().favourites }}
       </button>
     </div>
 

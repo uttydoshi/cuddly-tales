@@ -1,6 +1,5 @@
 .filters {
   display: flex;
-  flex-wrap: wrap; /* four filters don't fit on one line on a phone */
   gap: 0.5rem;
 }
 
@@ -185,4 +184,28 @@
 
 .story.done .faces app-avatar {
   box-shadow: 0 0 0 2px var(--surface-soft);
+}
+
+/* Phones: shorter labels and tighter pills, so all four fit on one line. */
+.short {
+  display: none;
+}
+
+@media (max-width: 479px) {
+  .filters {
+    gap: 0.375rem;
+  }
+
+  .chip {
+    flex: 1 1 auto; /* fill the row evenly */
+    padding: 0 0.7rem;
+  }
+
+  .long {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
 }
