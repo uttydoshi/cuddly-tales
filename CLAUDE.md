@@ -40,10 +40,14 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
   Age drives story length, vocabulary and the scariness limit.
 - **Character**: name, type (family | original | folklore | latte_monster | custom), description,
   personality traits, running gags / consistency rules, image (optional, latte monsters only).
-- **Story**: title, characters (many-to-many), plot cards (ordered), bedtime (yes/no), status
-  (idea | planned | written | read), text, reading time, safety check result, created/read dates.
+- **Story**: title, characters (many-to-many), plot cards (ordered), bedtime (yes/no), favourite,
+  status (idea | planned | written | read), text, reading time, safety status and report,
+  created/read dates; and, for an adventure, its adventure and chapter number.
 - **PlotCard**: story id, position, short beat text.
-- **AgentRun**: goal, status, ordered steps (tool name, input summary, output summary, timestamps).
+- **Adventure**: title, premise, chapter count, bedtime, status (in progress | finished). Each chapter
+  is a Story. Adventures are told in **chapters, one a day** (never "nights": they can be for any time).
+- **AgentRun**: kind (plan | next_chapter), goal, status, trigger, what was asked for, error; its
+  **AgentSteps** (tool, label, result, ok, input/output detail, timestamps) are saved as they happen.
 
 ## Seed cast (demo family; use exactly these in seed data, screenshots, demo and README)
 - **Mira**: the demo child profile, a curious 3-year-old girl. (A made-up name; never use real family names other than the dogs.)
@@ -71,10 +75,16 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
    reading level, length and character-rule adherence. If a check fails, the story is rewritten once, then flagged for parent review.
 3. **Latte monster creator (vision)**: upload a latte art photo; the model describes the shape and invents a
    character (name, look, personality, one running gag), which a parent approves before it is saved.
-4. **Adventure agent**: goal "Plan an N-night adventure for <child name>". Tools:
+   *Deferred (user's decision, 2026-11-28): Day 3 first; if time remains, a lean version that doesn't store
+   the photo. Otherwise it goes in the README's "What I'd do next".*
+4. **Adventure agent**: goal "Plan an N-chapter adventure for <child name>". Tools:
    `get_child_profile`, `list_characters`, `get_previous_stories`, `create_plot_cards`, `write_chapter`, `safety_check`, `save_story`.
-   Each step is persisted to AgentRun and streamed to the UI as it happens.
-5. **Scheduled job**: daily at 18:30 (Australia/Melbourne), prepare tonight's next chapter if an adventure is in progress.
+   Each step is persisted to AgentRun and streamed to the UI as it happens. One chapter per run: the plan run
+   writes chapter 1, later runs (`POST /api/adventures/{id}/next`) write the rest. The rules live in the tools.
+5. **Scheduled job**: daily at 18:30 (Australia/Melbourne), prepare the next chapter if an adventure is in progress.
+6. **Tracing**: every model call goes through `services/llm.py` and is traced in Langfuse via LiteLLM's
+   `langfuse_otel` (OpenTelemetry). One trace per story or agent run, with a root span the app sends
+   (`services/tracing.py`); Langfuse environment `live` or `local`.
 
 ## Evals
 - `evals/` contains about 10 sample story requests with expectations: scariness ≤ 2, word count range,
@@ -113,8 +123,27 @@ checks, decides and acts. It is not a chatbot bolted onto a form.
 - **AWS**: SSO profile `ukdoshi`, region `us-east-1`. Secrets are set only with `scripts/claude-key.sh` and
   `scripts/database-url.sh`; never paste a secret into chat or a file. The deploy role trusts only this repo's `main`.
 - **Local-only changes**: don't commit the Angular CLI's `cli.analytics` id in `frontend/angular.json`.
-- **Diagrams**: `docs/architecture.html` is the source; `docs/*.svg` are generated from it for the README. Keep them in
-  step with what's built, and redraw them before submission.
+- **Diagrams**: `docs/architecture.html` is the source; `docs/*.svg` are generated from it for the README with
+  `python3 scripts/export-diagrams.py docs`. Keep them in step with what's built, and redraw them before submission.
+- **Local and live must match** (several live-only failures came from drift):
+  - LiteLLM is pinned to **1.91.5**, the newest with Linux arm64 wheels (what the Lambda build gets). Don't
+    upgrade it without checking `infra/stacks/bundle.py` resolves the same version.
+  - The Lambda build deletes only LiteLLM's proxy dashboard (`proxy/_experimental/out`); a test fails if a
+    request needs anything it deletes. Lambda package: about 221 MB.
+  - Structured output: Claude models get Anthropic's native `output_format` directly (1.91.5 would otherwise
+    force a tool call, which current models reject); a test checks the real request.
+  - When dependencies change, run the tests in a clean venv built from `requirements-dev.txt`, not the
+    long-lived one (a package once worked locally only as a leftover: `pydantic-settings`).
+  - After any deploy that touches the model, write one story on the live site (and an adventure if the agent
+    changed) and read the Lambda logs.
+- **LiteLLM quirks**: `LITELLM_MODE=PRODUCTION` is set before import, or LiteLLM loads a `.env` of its own;
+  Opus 5.5's price is registered (`MISSING_PRICES` in `llm.py`) because 1.91.5's list predates it.
+- **Langfuse**: Cloud removed its v3 APIs (`/api/public/traces`, sessions) on 2026-11-16. Read data with
+  `GET /api/public/v2/observations` (live) or `/api/public/v2/metrics` (minutes behind). Traces only appear in
+  Langfuse's trace list if they have a root observation. Tests point any export at a closed local port.
+- **The user's local server** runs `uvicorn --reload` on port 8000 from this checkout: edits reload into it, and
+  a half-written migration once ran against their database. Work in a git worktree for code changes, and never
+  restart or touch their servers (ports 8000 and 4200).
 
 ## Build order
 - Day 1: repo setup → cocoon happy path → CRUD for characters and stories → seed data → first deploy.
